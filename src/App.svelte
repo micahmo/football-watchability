@@ -824,10 +824,15 @@
     color: var(--text-faint);
   }
   .behind {
-    padding: 1px 5px;
+    /* Top-heavy padding on purpose. Flex centres the pill's box, but the eye
+       follows the text, and "−15s" has no descender while "1m ago" does, so a
+       centred box reads high. The extra pixel up top pushes the glyphs down by
+       half of one and lands the two baselines together. */
+    padding: 2px 5px 1px;
     border: 1px solid var(--border-hi);
     border-radius: 999px;
     font-size: 11px;
+    line-height: 1;
     opacity: 0.75;
   }
   .ok {
