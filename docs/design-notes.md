@@ -708,6 +708,26 @@ HOME_CONF=5 AWAY_CONF=15 HOME_RANK=16 npx tsx scripts/replay.ts game.json
 teams as unranked FCS and understates everything. That produced a full round of wrong
 conclusions before it was noticed.
 
+## The field diagram asked for more than it needed
+
+Two faults with one cause: every marker was gated on the whole situation block being present.
+
+The card jumped, because the field is tall and the block lapses often, so everything below it moved
+each time. And markers were hidden whose data was sitting right there: on the first play of a drive
+ESPN publishes a yard line and a "1st & 10 at BUF 38" while `down` is still -1 and possession is
+empty, so the card showed the text above a blank space.
+
+The pitch is now always painted, and each marker asks only for what it uses. The ball and the line of
+scrimmage need a yard line and nothing else. The line to gain and the drive arrow need a direction,
+so they wait for real possession.
+
+**Possession is recoverable and deliberately not recovered.** `situation.lastPlay.team.id` is
+populated when `situation.possession` is null, but the moment possession goes missing is the moment
+after it changed hands, when the team that ran the last play is the team that just gave the ball
+away. On the kickoff that prompted this, the last play was Houston kicking off and Buffalo had the
+ball on their own 38, so the arrow and the line to gain would both have pointed at the wrong end
+zone, in the one moment somebody was looking at them.
+
 ## The board beats the television
 
 FastCast lands a play about two seconds after it happens. A broadcast is ten to forty-five seconds
@@ -1245,6 +1265,27 @@ elapsed time.
 Measured against the deployed build on a live Sunday slate: most one o'clock games moved up four to
 nine points, which is the difference between a marquee kickoff sitting mid-board and sitting near the
 top where the planning list had it an hour earlier.
+
+### Two surfaces, one game, two different numbers
+
+The kickoff notification quotes the pregame rating. The board, from the first snap, quotes the live
+one. So a viewer was told "expected 80", opened the app a minute later and found the same game at 54,
+sitting in the hero slot looking ordinary.
+
+No curve fixes that. Carrying the billing at some fraction narrows the gap and leaves one, because
+the two numbers come from different formulas: `anticipationScore` weighs a spread, the worse of the
+two teams and a broadcast slot, while the live score weighs closeness, lateness and what has
+happened. Tuning one to land on the other would be distorting the live score to match a number
+rather than to be right.
+
+So the billing became a **floor on the total** rather than a term inside it, at full strength. Before
+a game has said anything, its rating simply is what the planning list said it would be, because that
+is the only evidence anybody has. `fade` and the scoreboard veto are both 1 at kickoff, so the floor
+equals the anticipation exactly and the board cannot print a smaller number than the notification
+quoted. By halftime the floor is zero and the live score has been on its own for some time.
+
+`maxTotal` still outranks it: a four-score game in the fourth quarter is over however good it was
+supposed to be.
 
 ### No notification may assume a time of day
 

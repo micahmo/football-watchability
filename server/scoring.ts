@@ -561,10 +561,10 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
     upsetTension,
     // Several ways to earn the dominant term, and a game qualifies on any of
     // them: it is close and late, it has a decisive snap coming, something is
-    // happening that was not supposed to, a real underdog finished the job, or it
-    // has only just kicked off and was billed as the one to watch.
+    // happening that was not supposed to, or a real underdog finished the job.
+    // Billing is not among them; it floors the total instead, below.
     billing,
-    primary: Math.max(core, clutch, upsetTension, upsetDrama, decisiveness, billing),
+    primary: Math.max(core, clutch, upsetTension, upsetDrama, decisiveness),
     prominence: prominenceScore({
       league: input.league,
       homeConferenceId: input.home.conferenceId,
@@ -588,11 +588,27 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
   // prominence and pace terms think of it.
   const maxTotal = progress > 0.8 && margin >= 25 ? 8 : null;
 
+  /*
+   * The rating never falls below what the game was billed as, until it has earned
+   * the fall.
+   *
+   * A floor rather than a component, so the number is exactly the one the planning
+   * list showed and the kickoff notification quoted, rather than that number put
+   * through a second formula and arriving somewhere else. `billing` already
+   * carries the two things that should erode it, the clock and the scoreboard, and
+   * it reaches zero at halftime.
+   *
+   * `maxTotal` still wins: a four-score game in the fourth quarter is over however
+   * good it was supposed to be.
+   */
+  const earned = combine(components, WEIGHTS, maxTotal);
+  const floor = maxTotal === null ? billing * 100 : Math.min(billing * 100, maxTotal);
+
   return {
     ...components,
     maxTotal,
     hasWinProb,
-    total: combine(components, WEIGHTS, maxTotal),
+    total: Math.round(Math.max(earned, floor) * 10) / 10,
   };
 }
 
@@ -703,17 +719,22 @@ const UPSET_DRAMA_SHARE = 0.75;
 /**
  * What a game's pregame billing is still worth once it has kicked off.
  *
- * The board knew Ohio State at Texas was the game of the week all week, rated it
- * 100, and then threw that away the moment it kicked off: a 0-0 first quarter has
- * no closeness and no lateness, so `core` is near zero and only `prominence` is
- * left holding it up, at 0.18 of the weighting. It sat at 32.8 while nothing had
- * happened yet, which is exactly when the billing is the only evidence there is.
+ * One, and the reason is consistency rather than generosity. The board knew Ohio
+ * State at Texas was the game of the week all week and threw that away the moment
+ * it kicked off: a 0-0 first quarter has no closeness and no lateness, so `core`
+ * is near zero and only `prominence` holds it up, at 0.18 of the weighting.
  *
- * Below one on purpose. A game still has to earn the top of the board, so the
- * best possible billing loses to a genuine late thriller scoring 0.95 on
- * closeness. It only has to beat the filler.
+ * Carrying it at some fraction was the first attempt and it produced a worse
+ * problem than the one it solved. The kickoff notification quotes the pregame
+ * rating, so a viewer was told "expected 80", opened the board a minute later and
+ * found the same game at 54. Two surfaces of one app printing different numbers
+ * for the same game is not something a curve can be tuned out of: they were
+ * different formulas, and any fraction below one leaves a gap.
+ *
+ * At one, and applied as a floor on the total rather than as a term inside it, the
+ * board simply *is* the planning list until the game says otherwise.
  */
-const BILLING_CARRY = 0.9;
+const BILLING_CARRY = 1;
 /**
  * When the billing has fully given way to what the game is actually doing.
  *

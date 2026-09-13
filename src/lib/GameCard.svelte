@@ -184,8 +184,8 @@
                 <span class="down mono" class:redzone={game.isRedZone}>{game.downDistance}</span>
               {/if}
             </div>
-            <!-- Draws itself only when the whole situation is present, so between
-                 plays it simply is not there rather than showing a stale field. -->
+            <!-- Always drawn, so the card keeps its height. The markers inside it
+                 come and go with the situation; the pitch does not. -->
             <FieldPosition {game} />
           {/if}
           <!-- Above the tags rather than below them: it belongs with the clock and

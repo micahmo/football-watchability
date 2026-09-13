@@ -5,34 +5,48 @@
   let { game }: { game: Game } = $props();
 
   /*
-   * Drawn only when the whole situation is there.
+   * The pitch is always drawn. Each marker asks only for what it actually needs.
    *
-   * `down`, `distance` and `yardLine` all go missing between plays, on kickoffs
-   * and during the stretches when ESPN drops the situation block, and a field
-   * showing the last known ball position as though it were current is a worse
-   * answer than no field at all. Possession is required too: without it there is
-   * no direction of play, and the arrow and the first-down line would both be
-   * guesses.
+   * Gating them together was the original mistake twice over. It made the card
+   * jump, because the field is tall and the gaps are frequent, so everything below
+   * moved each time the situation lapsed. And it hid markers whose data was right
+   * there: on the first play of a drive ESPN publishes a yard line and a
+   * "1st & 10 at BUF 38" while `down` is still -1 and possession is empty, and the
+   * ball and the line of scrimmage need neither of those.
+   *
+   * What genuinely cannot be drawn without possession is anything with a direction:
+   * the line to gain and the drive arrow. Possession is recoverable from
+   * `lastPlay.team`, and deliberately not used, because the moment it goes missing
+   * is the moment after a change of possession, when the team that ran the last
+   * play is the team that just gave the ball away. On the kickoff that prompted
+   * this, that would have pointed both of them at the wrong end zone.
    */
-  const situation = $derived(
-    game.state === "in" &&
-      game.yardLine !== null &&
-      game.down !== null &&
-      game.distance !== null &&
-      game.possessionTeamId !== null
-      ? { yardLine: game.yardLine, down: game.down, distance: game.distance }
-      : null,
+  /**
+   * Where the ball is, which needs nothing but a position.
+   *
+   * Kept separate from everything else because the markers do not all want the
+   * same facts, and gating them together hid the ones that were perfectly well
+   * known. On the first play of a drive ESPN publishes `downDistanceText` and a
+   * yard line while `down` is still -1 and possession is empty, so the card showed
+   * "1st & 10 at BUF 38" above a blank space for want of a number it was not using
+   * to draw either the ball or the line of scrimmage.
+   */
+  const ball = $derived(game.state === "in" && game.yardLine !== null ? game.yardLine : null);
+
+  /**
+   * Which way this possession is going, or null when nobody is credited with it.
+   *
+   * Home defends the zero end, so it attacks 100 and the away team attacks zero.
+   * Only the line to gain and the drive arrow need this; without it they are
+   * guesses, and are simply not drawn.
+   */
+  const towardHundred = $derived(
+    game.possessionTeamId === null ? null : game.possessionTeamId === game.home.id,
   );
 
-  const homeHasBall = $derived(game.possessionTeamId === game.home.id);
-  /** Home defends the zero end, so it attacks 100 and the away team attacks zero. */
-  const towardHundred = $derived(homeHasBall);
-
   const firstDown = $derived.by(() => {
-    if (situation === null) return null;
-    const raw = towardHundred
-      ? situation.yardLine + situation.distance
-      : situation.yardLine - situation.distance;
+    if (ball === null || game.distance === null || towardHundred === null) return null;
+    const raw = towardHundred ? ball + game.distance : ball - game.distance;
     // Clamped to the goal line: on first and goal the distance overshoots the
     // field, and a marker drawn past the end zone would be a line that does not
     // exist. Nothing is drawn at all once it lands on the goal line itself.
@@ -52,9 +66,9 @@
    * way play is going.
    */
   const drive = $derived.by(() => {
-    if (situation === null || game.driveStart === null) return null;
+    if (ball === null || towardHundred === null || game.driveStart === null) return null;
     const from = game.driveStart;
-    const to = situation.yardLine;
+    const to = ball;
     const sane = towardHundred ? from < to : from > to;
     return sane ? from : null;
   });
@@ -106,10 +120,9 @@
    * is no arrow.
    */
   const arrow = $derived.by(() => {
-    if (situation === null || drive === null) return null;
+    if (ball === null || towardHundred === null || drive === null) return null;
     const dir = towardHundred ? 1 : -1;
-    const ball = x(situation.yardLine);
-    const tip = ball - dir * GAP;
+    const tip = x(ball) - dir * GAP;
     const back = tip - dir * HEAD_LEN;
     const tail = x(drive);
     if ([tip, back, tail].some((at) => at < EZ || at > EZ + 100)) return null;
@@ -129,9 +142,11 @@
    */
   const MARKS = [10, 20, 30, 40, 50, 60, 70, 80, 90];
   const marks = $derived.by(() => {
-    if (situation === null) return [];
+    // Each line hides only its own neighbours, and a line that is not drawn hides
+    // nothing, so an empty field keeps every number.
     const clear = (yard: number) =>
-      Math.abs(yard - situation.yardLine) > 6 && (firstDown === null || Math.abs(yard - firstDown) > 6);
+      (ball === null || Math.abs(yard - ball) > 6) &&
+      (firstDown === null || Math.abs(yard - firstDown) > 6);
     // Numbered from the nearer goal line, the way a real field is painted.
     return MARKS.filter(clear).map((yard) => ({ yard, label: yard <= 50 ? yard : 100 - yard }));
   });
@@ -140,8 +155,7 @@
   const awayColor = $derived(teamColor(game.away));
 </script>
 
-{#if situation !== null}
-  <svg class="field" viewBox="0 0 {W} {H}" role="img" aria-label={game.downDistance ?? "field position"}>
+<svg class="field" viewBox="0 0 {W} {H}" role="img" aria-label={game.downDistance ?? "field position"}>
     <!-- Home defends the left end, always. A field that mirrored itself whenever
          possession changed would be unreadable at a glance, so the picture stays
          still and the arrow carries the direction instead. -->
@@ -149,7 +163,7 @@
     <rect x={EZ + 100} y="0" width={EZ} height={H} fill={awayColor} opacity="0.85" />
     <rect x={EZ} y="0" width="100" height={H} fill="var(--field)" />
 
-    {#if game.isRedZone}
+    {#if towardHundred !== null && game.isRedZone}
       <!-- The twenty the offence is attacking, not both. -->
       <rect
         x={towardHundred ? x(80) : x(0)}
@@ -172,7 +186,9 @@
     {#if firstDown !== null}
       <line x1={x(firstDown)} y1="0" x2={x(firstDown)} y2={H} class="first-down" />
     {/if}
-    <line x1={x(situation.yardLine)} y1="0" x2={x(situation.yardLine)} y2={H} class="scrimmage" />
+    {#if ball !== null}
+      <line x1={x(ball)} y1="0" x2={x(ball)} y2={H} class="scrimmage" />
+    {/if}
 
     <!-- Tail at the drive start where there is one, head always just behind the
          ball, so the length of the line is the ground this drive has made. -->
@@ -189,16 +205,17 @@
       />
     {/if}
 
-    <ellipse class="ball" cx={x(situation.yardLine)} cy={H / 2} rx="3" ry="1.9" />
+    {#if ball !== null}
+      <ellipse class="ball" cx={x(ball)} cy={H / 2} rx="3" ry="1.9" />
+    {/if}
 
     <text class="ez" x={EZ / 2} y={H / 2} transform="rotate(-90 {EZ / 2} {H / 2})">
       {game.home.abbrev}
     </text>
-    <text class="ez" x={EZ + 100 + EZ / 2} y={H / 2} transform="rotate(90 {EZ + 100 + EZ / 2} {H / 2})">
-      {game.away.abbrev}
-    </text>
-  </svg>
-{/if}
+  <text class="ez" x={EZ + 100 + EZ / 2} y={H / 2} transform="rotate(90 {EZ + 100 + EZ / 2} {H / 2})">
+    {game.away.abbrev}
+  </text>
+</svg>
 
 <style>
   .field {
