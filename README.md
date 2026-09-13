@@ -178,23 +178,37 @@ docker run -d --name football-watchability \
   ghcr.io/micahmo/football-watchability:latest
 ```
 
-The board itself needs no volume and no database. All of it is in memory and rebuilds from ESPN
-within a poll or two, so the container can be replaced freely. The only cost of a restart is that
-win-probability swing history resets, which suppresses the `RECENT SWINGS` tag for about fifteen
-minutes.
+The board needs no database. All of it is in memory and rebuilds from ESPN within a poll or two, so
+the container can be replaced. A restart is not free during a slate, though:
 
-**Notifications are the exception**, because a push keypair and its subscriptions cannot be
-rebuilt from anywhere. Mount a volume and point `NOTIFY_DIR` at it:
+- Closing lines are refetched one game at a time, so upset ratings read low until they are back.
+- Win-probability swing history resets, which suppresses `RECENT SWINGS` for about fifteen minutes.
+- Games already in progress are treated as old news, so their kickoff notification never arrives.
+
+None of it lasts more than a few minutes, but a quiet window is a better time to update than the
+middle of a Saturday.
+
+**Notifications need a volume**, because a push keypair and its subscriptions cannot be rebuilt from
+anywhere. `NOTIFY_DIR` also holds the history log. Mount it and point the variable at it:
 
 ```bash
-  -v /path/on/host:/config   -e NOTIFY_DIR=/config   --user 99:100 ```
+docker run -d --name football-watchability \
+  -p 8787:8787 \
+  -e TZ=America/New_York \
+  -v /path/on/host:/config \
+  -e NOTIFY_DIR=/config \
+  -e NOTIFY_CONTACT=mailto:you@example.com \
+  --user 99:100 \
+  --restart unless-stopped \
+  ghcr.io/micahmo/football-watchability:latest
+```
 
 The image runs as a non-root user and never chowns anything, so the uid has to match whoever owns
 the volume. `99:100` is Unraid's appdata owner; elsewhere, use your own.
 
-Without it the feature is simply unavailable and everything else is unchanged. The server checks
-that the directory is really a mounted volume rather than trusting the variable, so a forgotten
-`-v` hides the toggle instead of collecting subscriptions that vanish on the next update.
+Without it, notifications are unavailable and everything else is unchanged. The server checks that
+the directory is really a mounted volume rather than trusting the variable, so a forgotten `-v`
+hides the toggle instead of collecting subscriptions that vanish on the next update.
 
 **Set `TZ` to US Eastern or near it.** The poller asks ESPN for "yesterday through today", and
 those day boundaries are what keep a game running past midnight visible.
@@ -226,7 +240,7 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `SCHEDULE_POLL_MS` | `600000` | Schedule refresh interval |
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
-| `NOTIFY_DIR` | - | Where to keep push keys and subscriptions. Must be a mounted volume |
+| `NOTIFY_DIR` | - | Where to keep push keys, subscriptions and the history log. Must be a mounted volume |
 | `NOTIFY_CONTACT` | - | `mailto:` address sent to push services with each delivery |
 
 Replaying a past slate is the easiest way to see a full board on a quiet weeknight:
