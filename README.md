@@ -103,7 +103,7 @@ Why each term is shaped the way it is, and the games that forced those decisions
 | Pregame | Reads as |
 | --- | --- |
 | 80+ | Rare. Two good teams, tight line, big slot |
-| 70-79 | Clear the evening |
+| 70-79 | Should be a good one |
 | 55-69 | Worth having on |
 | under 55 | Background noise |
 

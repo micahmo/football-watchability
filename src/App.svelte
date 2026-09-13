@@ -156,6 +156,19 @@
   let boards = $state<Record<League, Snapshot | null>>({ nfl: null, cfb: null });
   let errors = $state<Record<League, string | null>>({ nfl: null, cfb: null });
   /**
+   * Leagues whose next snapshot must go straight to the screen.
+   *
+   * Changing the market re-asks the server for a differently annotated board, and
+   * the answer was going into the delay queue behind fifteen seconds of football.
+   * The board kept its old blackouts and the chip kept naming the old market, so
+   * clearing or redetecting looked like it had done nothing until the page was
+   * reloaded, which bypasses the queue by starting empty.
+   *
+   * The delay exists so the board does not spoil a broadcast. It was never meant
+   * to decide when the viewer's own settings take effect.
+   */
+  let showNext: Record<League, boolean> = { nfl: false, cfb: false };
+  /**
    * The build being served, taken from the feed rather than from the board.
    *
    * Everything else here is allowed to run behind so it does not spoil a
@@ -192,16 +205,15 @@
     errors[league] = null;
     if (next.build) latestBuild = next.build;
     feedUpdatedAt[league] = next.updatedAt;
-    if (prefs.delaySeconds <= 0) {
+    /*
+     * Straight to screen when the delay is off, when this league has never been
+     * shown, or when a setting has just changed and is waiting to be obeyed. The
+     * second is the one remaining way to be spoiled, and only ever once: a blank
+     * board for the length of the delay would be worse than starting level.
+     */
+    if (prefs.delaySeconds <= 0 || boards[league] === null || showNext[league]) {
+      showNext[league] = false;
       held[league] = [];
-      boards[league] = next;
-      now = Date.now();
-      return;
-    }
-    // Nothing has ever been shown for this league, so there is nothing to spoil
-    // and a blank board for the length of the delay would be worse than starting
-    // level. This is the one way left to be spoiled, and only ever once.
-    if (boards[league] === null) {
       boards[league] = next;
       now = Date.now();
       return;
@@ -307,6 +319,8 @@
   $effect(() => {
     const zip = prefs.zip;
     const marketOff = prefs.marketOff;
+    // Whatever is queued describes the market that was just abandoned.
+    showNext = { nfl: true, cfb: true };
 
     const stops = LEAGUES.map((league) => {
       void refresh(league);

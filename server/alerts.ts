@@ -430,10 +430,16 @@ export class AlertEngine {
   }
 }
 
-/** The pregame bands the board itself uses, in words rather than a bare number. */
+/**
+ * The pregame bands the board itself uses, in words rather than a bare number.
+ *
+ * Nothing here may assume a time of day. "Worth clearing the evening" arrived at
+ * one in the afternoon for a Sunday window, which reads as a template nobody
+ * checked. The NFL plays at one, four and eight, and college starts at noon.
+ */
 function expectation(score: number): string {
-  if (score >= 80) return "One of the best on the board";
-  if (score >= 70) return "Worth clearing the evening";
+  if (score >= 80) return "Among the best on the board";
+  if (score >= 70) return "Should be a good one";
   if (score >= 55) return "Worth having on";
   return "Not expected to be much";
 }

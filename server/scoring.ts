@@ -465,7 +465,8 @@ function billingCarry(input: ScoreInputs, progress: number): number {
     divisionGame: input.divisionGame,
     startDate: input.startDate,
   });
-  return clamp((expected / 100) * BILLING_CARRY * (1 - progress / BILLING_UNTIL) * contradiction);
+  const fade = 1 - Math.pow(progress / BILLING_UNTIL, 2);
+  return clamp((expected / 100) * BILLING_CARRY * fade * contradiction);
 }
 
 /**
@@ -712,13 +713,22 @@ const UPSET_DRAMA_SHARE = 0.75;
  * best possible billing loses to a genuine late thriller scoring 0.95 on
  * closeness. It only has to beat the filler.
  */
-const BILLING_CARRY = 0.8;
+const BILLING_CARRY = 0.9;
 /**
  * When the billing has fully given way to what the game is actually doing.
  *
  * Halftime. By then there is real evidence either way and an expectation formed
- * last Tuesday should not be competing with it. The decay is linear rather than
- * cliffed so a game does not drop off the board between two refreshes.
+ * last Tuesday should not be competing with it.
+ *
+ * The fade is a quarter circle rather than a straight line, so the billing keeps
+ * nearly all of itself while the game has said almost nothing and then falls away
+ * quickly. Linear was the first attempt and spent the billing too early: Bills at
+ * Texans, an 80 on the planning list, was down to three quarters of its billing
+ * seven minutes into the first quarter, at 3-0, which is not a game telling you
+ * anything yet.
+ *
+ *   kickoff  Q1 half  end Q1  Q2 half  halftime
+ *    0.90     0.84     0.68    0.39      0
  */
 const BILLING_UNTIL = 0.5;
 /** Roughly the start of the fourth quarter. */

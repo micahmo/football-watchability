@@ -1223,7 +1223,36 @@ sent, so the background sync does not repeat it, and a burst of changes is debou
 four conferences is one update. And a re-registration carrying no market must not erase a known
 one, since the zip is null until a snapshot resolves one, which on the college tab may be never.
 
-### Landing on the tab with the football
+#### The billing was being spent too early
+
+The fade from kickoff to halftime was linear, which sounds neutral and is not. Bills at Texans, an
+80 on the planning list, was down to three quarters of its billing seven minutes into the first
+quarter at 3-0, and 3-0 in the first is a game that has said nothing yet. The board was discounting
+the only evidence it had, on a clock, before any other evidence existed.
+
+A quarter-circle fade holds it while nothing is happening and then drops it quickly:
+
+```
+              kickoff  Q1 half  end Q1  Q2 half  halftime
+linear          0.80     0.60     0.40    0.20       0
+quarter circle  0.90     0.84     0.68    0.39       0
+```
+
+The scoreboard veto is unchanged and still squared, so this only slows the *clock* half of the
+decay. A game that is 21-0 still loses its billing immediately, because that is evidence rather than
+elapsed time.
+
+Measured against the deployed build on a live Sunday slate: most one o'clock games moved up four to
+nine points, which is the difference between a marquee kickoff sitting mid-board and sitting near the
+top where the planning list had it an hour earlier.
+
+### No notification may assume a time of day
+
+"Worth clearing the evening" arrived at one in the afternoon, for a Sunday window. The wording bands
+are comparative judgements about a game, and the moment one of them names a part of the day it reads
+as a template nobody checked. The NFL plays at one, four and eight; college starts at noon.
+
+## Landing on the tab with the football
 
 Opening the app on a Sunday and finding a college tab with nothing on it, because that is where the
 tab was left in September, is a small thing that happens every week. So when exactly one league has
