@@ -111,6 +111,13 @@ Read each tab against itself; the two leagues produce different distributions. P
 `anticipation` and the live score are different scales too. On the live board, `TURN THIS ON`
 fires at 75.
 
+## Which tab you land on
+
+When one league has football on and the other does not, the board opens on the one with the games,
+whichever tab you left it on. That choice is kept, so it is the tab you come back to.
+
+Tapping a tab always wins, and holds until the other league becomes the one with the games on.
+
 ## Keeping up with your television
 
 The push feed puts a play on the board about two seconds after it happens, and a broadcast runs

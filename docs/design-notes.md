@@ -1223,7 +1223,29 @@ sent, so the background sync does not repeat it, and a burst of changes is debou
 four conferences is one update. And a re-registration carrying no market must not erase a known
 one, since the zip is null until a snapshot resolves one, which on the college tab may be never.
 
-### What the delay must not hold back
+### Landing on the tab with the football
+
+Opening the app on a Sunday and finding a college tab with nothing on it, because that is where the
+tab was left in September, is a small thing that happens every week. So when exactly one league has
+live games the board picks that one and persists it, which makes it a selection rather than a hint.
+
+Two rules keep it from being irritating, and the second was got wrong first.
+
+A tap always wins. The board must never argue with somebody who has just told it where they want to
+be, so a manual choice suppresses the automatic one until the situation itself changes.
+
+**And "nothing on anywhere" is not a change in the situation.** The first version treated any change
+in the answer as grounds to re-decide, including the answer going empty. Caught in testing: the live
+count dips through zero whenever an afternoon's last game ends, and every dip revoked the viewer's
+own choice and re-picked for them, so a deliberate tap survived exactly one poll. Only a change in
+*which* league has the football counts. That also makes it immune to the live count wobbling, which
+this board has a history of.
+
+The decision waits for both leagues to have loaded. Deciding from whichever answered first would
+sometimes pick a league because the other had not replied yet rather than because it had nothing on,
+which is only possible to get right now that both leagues stream at once.
+
+## What the delay must not hold back
 
 The board delay is a blunt instrument by design: it buffers whole snapshots, so anything carried on
 one inherits it. The build id is carried on one, and `UpdatePrompt` was reading it from the delayed

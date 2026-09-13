@@ -9,6 +9,7 @@
   import MarketPicker from "./lib/MarketPicker.svelte";
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
+  import { setLeague, tabChoice } from "./lib/prefs.svelte";
   import { updateDelaySeconds } from "./lib/push";
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
 
@@ -223,6 +224,57 @@
       }
     }
   }
+  /**
+   * The league with football on, when exactly one of them has any.
+   *
+   * `undefined` until both boards have loaded, which matters: deciding from the
+   * first to arrive would sometimes pick a league because the other had not
+   * answered yet rather than because it had nothing on.
+   */
+  const onlyLive = $derived.by(() => {
+    const nfl = boards.nfl;
+    const cfb = boards.cfb;
+    if (nfl === null || cfb === null) return undefined;
+    const nflLive = nfl.live.length > 0;
+    const cfbLive = cfb.live.length > 0;
+    if (nflLive === cfbLive) return null;
+    return nflLive ? "nfl" : "cfb";
+  });
+
+  /*
+   * Opening the app on a Sunday should not show a college tab with nothing on it
+   * because that is where the tab was left in September.
+   *
+   * So when one league has games and the other does not, the board picks that one
+   * and persists it, which makes it a real selection rather than a hint. Two
+   * things stop it being annoying. A tap always wins, and holds until the
+   * situation itself changes, so the board never argues with somebody who has just
+   * told it where they want to be. And the pick only ever fires on a *transition*:
+   * re-evaluating continuously would drag the tab away mid-glance every time the
+   * last game of an afternoon ended.
+   */
+  let settledOn: League | null | undefined = undefined;
+
+  $effect(() => {
+    const only = onlyLive;
+    /*
+     * Nothing on anywhere is not an answer, so it neither moves the tab nor
+     * clears a tap. Treating it as a change was the first attempt and it fell
+     * over: the count dips through zero whenever an afternoon's last game ends,
+     * and every dip revoked the viewer's own choice and re-picked for them. Only
+     * a change in *which* league has the football is a change in the answer.
+     */
+    if (only === undefined || only === null) return;
+    if (only !== settledOn) {
+      settledOn = only;
+      // A different league has the games now, so an earlier tap does not speak
+      // to the situation the viewer is actually in.
+      tabChoice.manual = false;
+    }
+    if (tabChoice.manual) return;
+    setLeague(only, false);
+  });
+
   // Ticks once a second purely so the "updated Ns ago" label stays honest.
   let now = $state(Date.now());
 

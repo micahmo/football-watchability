@@ -91,6 +91,25 @@ export function setDelaySeconds(seconds: number): void {
   persist();
 }
 
+/**
+ * Whether the viewer has picked a tab themselves since the board last had reason
+ * to pick one for them.
+ *
+ * Lives here beside the league it qualifies, and deliberately not in `Prefs`: it
+ * is about this session, not about the viewer, and persisting it would mean a
+ * tap yesterday suppressed a sensible choice today.
+ */
+export const tabChoice = $state<{ manual: boolean }>({ manual: false });
+
+export function setLeague(league: League, manual: boolean): void {
+  tabChoice.manual = manual;
+  if (prefs.league === league) return;
+  prefs.league = league;
+  // Persisted either way, so an automatic pick is the tab you come back to, which
+  // is the whole point of making it rather than merely showing it.
+  persist();
+}
+
 export function setUpcomingOrder(order: Prefs["upcomingOrder"]): void {
   prefs.upcomingOrder = order;
   persist();

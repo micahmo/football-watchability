@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { League } from "../../shared/types";
-  import { persist, prefs } from "./prefs.svelte";
+  import { prefs, setLeague } from "./prefs.svelte";
 
   /* Order here is the tab order. */
   const LABELS: Record<League, string> = { nfl: "NFL", cfb: "College" };
 
   function choose(league: League) {
-    if (prefs.league === league) return;
-    prefs.league = league;
-    persist();
+    // Marked as the viewer's own even when it changes nothing: tapping the tab you
+    // are already on is still a statement that you want to be here.
+    setLeague(league, true);
   }
 </script>
 
