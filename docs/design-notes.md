@@ -670,12 +670,19 @@ The field draws home defending the left end, always. On a broadcast the directio
 depends on which end they took at the coin toss, so the diagram matches the screen about half the
 time, and the mismatch is noticeable.
 
-**It is not derivable.** Searched a full summary payload for `direction`, `coinToss`, `toss`,
-`defer` and `orientation`: none of them appear. The only spatial field is `yardsToEndzone`, which is
-distance to the end zone the offence is attacking, and that is the same information possession
-already gives in the absolute coordinate space. Nothing physical is published. CBS gets it right
-because CBS produces the video: orientation is an input to the broadcaster and an unknown to
-everyone downstream. ESPN's own app does not solve it either, it simply picks a fixed rule.
+**It is not derivable from ESPN.** Every spatial field on a play, in both the summary endpoint and
+the richer core play API, is one of `yardLine`, `yardsToEndzone`, `downDistanceText` and
+`possessionText`. The first two sum to 100 and both are team-relative, so they say which end a team
+attacks in the absolute coordinate space, which possession already told us. No field anywhere names
+a physical end. (`side` looks promising in a key dump and is injury data: `"type": "Knee", "side":
+"Not Specified"`.)
+
+**The information exists, we just cannot reach it.** The first explanation written here was that CBS
+gets it right because CBS produces the video, which is wrong: their apps have it right for games on
+other networks too. What a rights holder has is the NFL's official feed, where the coin toss is a
+recorded game event naming the goal each team defends. That is the missing piece, and ESPN's public
+API does not carry it. Worth re-checking occasionally, and worth inspecting the network responses
+behind any web scoreboard that does render it correctly.
 
 **Recoverable from the viewer, and rejected anyway.** Teams change ends at the end of the first and
 third quarters, so one tap to mirror the field would stay correct for the rest of that game if it
