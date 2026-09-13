@@ -818,21 +818,32 @@
   }
   .status {
     display: flex;
-    align-items: center;
+    /*
+     * Baseline, not centre. These are two pieces of text at different sizes, and
+     * centring aligns their boxes while the eye reads their baselines, so the
+     * smaller one sits high however its padding is tuned. Getting the two to line
+     * up by adjusting padding worked only for one pair of font sizes and was
+     * luck rather than a rule.
+     */
+    align-items: baseline;
     gap: 8px;
     font-size: 12px;
     color: var(--text-faint);
   }
+  /* The dot has no text, so it has no baseline worth aligning to. */
+  .status > .ok,
+  .status > .err {
+    align-self: center;
+  }
   .behind {
-    /* Top-heavy padding on purpose. Flex centres the pill's box, but the eye
-       follows the text, and "−15s" has no descender while "1m ago" does, so a
-       centred box reads high. The extra pixel up top pushes the glyphs down by
-       half of one and lands the two baselines together. */
-    padding: 2px 5px 1px;
+    /* Symmetric padding, because the row aligns on the baseline now and the box
+       can simply sit around its own text. Tuning padding to fake that was the
+       first attempt and only held for one pair of font sizes. */
+    padding: 1px 6px;
     border: 1px solid var(--border-hi);
     border-radius: 999px;
     font-size: 11px;
-    line-height: 1;
+    line-height: 1.35;
     opacity: 0.75;
   }
   .ok {

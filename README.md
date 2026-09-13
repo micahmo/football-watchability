@@ -189,15 +189,13 @@ None of it lasts more than a few minutes, but a quiet window is a better time to
 middle of a Saturday.
 
 **Notifications need a volume**, because a push keypair and its subscriptions cannot be rebuilt from
-anywhere. `NOTIFY_DIR` also holds the history log. Mount it and point the variable at it:
+anywhere. The same directory holds the history log. Mount one at `/config`:
 
 ```bash
 docker run -d --name football-watchability \
   -p 8787:8787 \
   -e TZ=America/New_York \
   -v /path/on/host:/config \
-  -e NOTIFY_DIR=/config \
-  -e NOTIFY_CONTACT=mailto:you@example.com \
   --user 99:100 \
   --restart unless-stopped \
   ghcr.io/micahmo/football-watchability:latest
@@ -206,9 +204,11 @@ docker run -d --name football-watchability \
 The image runs as a non-root user and never chowns anything, so the uid has to match whoever owns
 the volume. `99:100` is Unraid's appdata owner; elsewhere, use your own.
 
-Without it, notifications are unavailable and everything else is unchanged. The server checks that
-the directory is really a mounted volume rather than trusting the variable, so a forgotten `-v`
-hides the toggle instead of collecting subscriptions that vanish on the next update.
+`/config` is the default inside a container; set `NOTIFY_DIR` only to use a different path.
+
+Without a volume, notifications are unavailable and everything else is unchanged. The server reads
+the mount table rather than trusting the path, so a forgotten `-v` hides the toggle and says why,
+instead of collecting subscriptions that vanish on the next update.
 
 **Set `TZ` to US Eastern or near it.** The poller asks ESPN for "yesterday through today", and
 those day boundaries are what keep a game running past midnight visible.
@@ -240,8 +240,8 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `SCHEDULE_POLL_MS` | `600000` | Schedule refresh interval |
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
-| `NOTIFY_DIR` | - | Where to keep push keys, subscriptions and the history log. Must be a mounted volume |
-| `NOTIFY_CONTACT` | - | `mailto:` address sent to push services with each delivery |
+| `NOTIFY_DIR` | `/config` in a container | Where push keys, subscriptions and the history log live. Must be a mounted volume; the server checks |
+| `NOTIFY_CONTACT` | `mailto:nobody@example.com` | Who runs this server, as `mailto:` or `https:`. Web Push signs it into every request so a push service can contact you about a misbehaving server. A private board never needs it |
 
 Replaying a past slate is the easiest way to see a full board on a quiet weeknight:
 

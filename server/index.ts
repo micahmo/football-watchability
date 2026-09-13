@@ -49,9 +49,28 @@ const listings = new ListingsStore();
  * ESPN, so a notification problem must degrade to "alerts unavailable" rather
  * than taking the scoreboard down with it. It has done exactly that twice.
  */
+/**
+ * Where durable state goes, defaulting to the conventional mount point.
+ *
+ * Only inside a container, where `/config` means something and creating it is
+ * free. On a development machine it would resolve against the filesystem root and
+ * make a stray directory there, so the default simply does not apply.
+ *
+ * Safe as a default because the variable was never the safeguard: `checkDurability`
+ * reads the mount table and refuses anything sitting on the container's own layer
+ * or in tmpfs. Mount nothing at `/config` and notifications stay off exactly as
+ * they did when the variable was unset, with a message saying why.
+ */
+function notifyDir(): string | undefined {
+  if (process.env.NOTIFY_DIR) return process.env.NOTIFY_DIR;
+  return fs.existsSync("/.dockerenv") || fs.existsSync("/run/.containerenv")
+    ? "/config"
+    : undefined;
+}
+
 function startSubscriptions(): SubscriptionStore {
   try {
-    return new SubscriptionStore(process.env.NOTIFY_DIR);
+    return new SubscriptionStore(notifyDir());
   } catch (err) {
     console.error(
       `[notify] disabled after a startup failure: ${err instanceof Error ? err.message : err}`,
@@ -65,7 +84,7 @@ const subscriptions = startSubscriptions();
  * Shares the notification directory, which is the one path guaranteed to be a
  * real mount rather than container-local scratch.
  */
-const history = new History(process.env.NOTIFY_DIR);
+const history = new History(notifyDir());
 const alerts = new AlertEngine(subscriptions);
 
 /** Each league polls independently, so a quiet NFL week cannot slow a busy Saturday. */
