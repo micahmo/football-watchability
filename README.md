@@ -182,6 +182,7 @@ The board needs no database. All of it is in memory and rebuilds from ESPN withi
 the container can be replaced. A restart is not free during a slate, though:
 
 - Closing lines are refetched one game at a time, so upset ratings read low until they are back.
+- The TV listings cache empties, so the market reads as unset for a few seconds until it refetches.
 - Win-probability swing history resets, which suppresses `RECENT SWINGS` for about fifteen minutes.
 - Games already in progress are treated as old news, so their kickoff notification never arrives.
 
