@@ -664,6 +664,26 @@ is worse than no picture:
   When the start is not behind the ball, it falls back to a stub showing direction only.
 - **No field-goal range.** It is not derivable and would be invention.
 
+### The diagram cannot match the television, and should not try
+
+The field draws home defending the left end, always. On a broadcast the direction a team runs
+depends on which end they took at the coin toss, so the diagram matches the screen about half the
+time, and the mismatch is noticeable.
+
+**It is not derivable.** Searched a full summary payload for `direction`, `coinToss`, `toss`,
+`defer` and `orientation`: none of them appear. The only spatial field is `yardsToEndzone`, which is
+distance to the end zone the offence is attacking, and that is the same information possession
+already gives in the absolute coordinate space. Nothing physical is published. CBS gets it right
+because CBS produces the video: orientation is an input to the broadcaster and an unknown to
+everyone downstream. ESPN's own app does not solve it either, it simply picks a fixed rule.
+
+**Recoverable from the viewer, and rejected anyway.** Teams change ends at the end of the first and
+third quarters, so one tap to mirror the field would stay correct for the rest of that game if it
+auto-flipped on even quarters. Turned down deliberately: a tap per game, lost on reload and
+multiplied by however many games are being watched, is a worse deal than an orientation that is
+stable and occasionally backwards. The arrow already carries the direction of the drive, which is
+the part that means something.
+
 ### The arrow is drawn whole or not at all
 
 Four faults, reported within minutes of it going live, and three shared a cause. The caret was
