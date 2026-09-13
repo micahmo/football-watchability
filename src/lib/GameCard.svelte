@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
-  import { clockLabel, kickoffWhen, scoreColor, teamColor } from "./format";
+  import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
   import WinProbBar from "./WinProbBar.svelte";
@@ -153,7 +153,7 @@
           {/if}
           {#if team.rank}<span class="rank-badge mono">{team.rank}</span>{/if}
           <span class="team-name">{team.name}</span>
-          <span class="record mono">{team.record}</span>
+          {#if hasRecord(team.record)}<span class="record mono">{team.record}</span>{/if}
           {#if favoriteSide === team.homeAway}
             <span class="spread mono" title="Pregame closing line, not a live line.">
               {spreadLabel}

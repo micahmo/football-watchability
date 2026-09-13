@@ -151,3 +151,15 @@ export function clockLabel(game: {
   if (game.period > 4) return ordinalPeriod(game.period);
   return `${game.clock} ${ordinalPeriod(game.period)}`;
 }
+
+/**
+ * Whether a record says anything yet.
+ *
+ * "0-0" is not a standing, it is the absence of one, and in week one it is every
+ * team in the league. Printing it puts a column of noise beside thirty-two names
+ * and teaches the eye to skip the place a real record will appear next week.
+ */
+export function hasRecord(record: string | null | undefined): boolean {
+  if (!record) return false;
+  return /[1-9]/.test(record);
+}

@@ -1266,6 +1266,20 @@ Measured against the deployed build on a live Sunday slate: most one o'clock gam
 nine points, which is the difference between a marquee kickoff sitting mid-board and sitting near the
 top where the planning list had it an hour earlier.
 
+### Anything that shapes the rating has to live in `combine`
+
+The browser recombines the score components itself, so that picking a favourite conference reorders
+the board without a round trip. That makes `combine` the real definition of the rating, and anything
+applied outside it exists on one side only.
+
+The billing floor was added in `scoreGame`, which is server-side. The feed said 47 and the board
+drew 28, because the client recombined without it, and taking `billing` out of `primary` at the same
+time meant the client was now *worse* than before the change: the term had been removed from the one
+place the browser could see it and put somewhere the browser never looks.
+
+Moving the floor into `combine` fixes both sides at once and makes the divergence impossible rather
+than fixed. Checked card by card afterwards, every rating on screen matches the server to a tenth.
+
 ### Two surfaces, one game, two different numbers
 
 The kickoff notification quotes the pregame rating. The board, from the first snap, quotes the live

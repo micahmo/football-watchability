@@ -589,26 +589,16 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
   const maxTotal = progress > 0.8 && margin >= 25 ? 8 : null;
 
   /*
-   * The rating never falls below what the game was billed as, until it has earned
-   * the fall.
-   *
-   * A floor rather than a component, so the number is exactly the one the planning
-   * list showed and the kickoff notification quoted, rather than that number put
-   * through a second formula and arriving somewhere else. `billing` already
-   * carries the two things that should erode it, the clock and the scoreboard, and
-   * it reaches zero at halftime.
-   *
-   * `maxTotal` still wins: a four-score game in the fourth quarter is over however
-   * good it was supposed to be.
+   * `combine` applies the billing floor, so the rating never falls below what the
+   * game was billed as until it has earned the fall, and the browser gets the same
+   * number by calling the same function. `maxTotal` still outranks it: a four-score
+   * game in the fourth quarter is over however good it was supposed to be.
    */
-  const earned = combine(components, WEIGHTS, maxTotal);
-  const floor = maxTotal === null ? billing * 100 : Math.min(billing * 100, maxTotal);
-
   return {
     ...components,
     maxTotal,
     hasWinProb,
-    total: Math.round(Math.max(earned, floor) * 10) / 10,
+    total: combine(components, WEIGHTS, maxTotal),
   };
 }
 

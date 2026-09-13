@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
-  import { kickoffTime, scoreColor, teamColor } from "./format";
+  import { hasRecord, kickoffTime, scoreColor, teamColor } from "./format";
 
   let { game, score, now = Date.now() }: { game: Game; score?: number; now?: number } = $props();
 
@@ -47,6 +47,7 @@
           {/if}
           {#if team.rank}<span class="rk mono">{team.rank}</span>{/if}
           <span class="team-name">{team.name}</span>
+          {#if hasRecord(team.record)}<span class="record mono">{team.record}</span>{/if}
         </span>
       {/each}
     </span>
@@ -117,6 +118,11 @@
     align-items: center;
     gap: 5px;
     min-width: 0;
+  }
+  .record {
+    font-size: 11px;
+    color: var(--text-faint);
+    flex: none;
   }
   .team-name {
     white-space: nowrap;
