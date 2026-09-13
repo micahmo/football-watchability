@@ -1245,6 +1245,26 @@ The decision waits for both leagues to have loaded. Deciding from whichever answ
 sometimes pick a league because the other had not replied yet rather than because it had nothing on,
 which is only possible to get right now that both leagues stream at once.
 
+### The status line was reporting the delay as a fault
+
+`relativeTime(snapshot.updatedAt)` reads the board, and once the board is held back the board *is*
+the delay: at thirty-five seconds it said "35s ago" while pushes were arriving every two, which is
+indistinguishable from a stalled connection. Naming the delay outright, "35s behind", was the first
+attempt and no better, because the line is where a viewer looks to find out whether the thing is
+working.
+
+They are two facts and they now get two labels:
+
+```
+● just now   the feed is talking to us     read from `latest`, never from the board
+  −15s       we are behind on purpose      quieter, bordered, only shown when set
+```
+
+The freshness half had to move off the rendered snapshot and onto the received one, which is the
+same distinction the delay buffer already keeps for applying stream deltas. "50s ago" with nothing
+live is still correct and still shown: the poller backs off when there is no football, so the feed
+genuinely has not spoken, and that is worth knowing.
+
 ## What the delay must not hold back
 
 The board delay is a blunt instrument by design: it buffers whole snapshots, so anything carried on

@@ -166,6 +166,15 @@
    * poll and the stream.
    */
   let latestBuild = $state<string | null>(null);
+  /**
+   * When the feed last spoke, as opposed to what the board is showing.
+   *
+   * The status line is a health indicator, so it has to read the feed. Taken from
+   * the delayed board it reports the delay instead: at 35 seconds it said "35s
+   * ago" while updates were arriving every two, which looks exactly like a stalled
+   * connection. The delay is a separate fact and gets its own, quieter label.
+   */
+  let feedUpdatedAt = $state<Record<League, string | null>>({ nfl: null, cfb: null });
 
   const snapshot = $derived(boards[prefs.league]);
   const loadError = $derived(errors[prefs.league]);
@@ -182,6 +191,7 @@
     latest[league] = next;
     errors[league] = null;
     if (next.build) latestBuild = next.build;
+    feedUpdatedAt[league] = next.updatedAt;
     if (prefs.delaySeconds <= 0) {
       held[league] = [];
       boards[league] = next;
@@ -496,11 +506,8 @@
 
   const updatedLabel = $derived.by(() => {
     void now;
-    if (!snapshot) return "never";
-    /* With a delay set, "updated 30s ago" is true and reads as a fault. Naming the
-       delay instead says the board is behind on purpose. */
-    if (prefs.delaySeconds > 0) return `${prefs.delaySeconds}s behind`;
-    return relativeTime(snapshot.updatedAt);
+    const at = feedUpdatedAt[prefs.league];
+    return at === null ? "never" : relativeTime(at);
   });
 </script>
 
@@ -519,6 +526,13 @@
         <span class="ok"></span>
       {/if}
       <span class="mono updated">{updatedLabel}</span>
+      {#if prefs.delaySeconds > 0}
+        <!-- Deliberately quiet and deliberately separate. The dot and the time say
+             the feed is alive; this says the board is standing back from it. -->
+        <span class="mono behind" title="Board held {prefs.delaySeconds}s behind live"
+          >−{prefs.delaySeconds}s</span
+        >
+      {/if}
     </div>
   </div>
   <div class="settings-bar">
@@ -808,6 +822,13 @@
     gap: 8px;
     font-size: 12px;
     color: var(--text-faint);
+  }
+  .behind {
+    padding: 1px 5px;
+    border: 1px solid var(--border-hi);
+    border-radius: 999px;
+    font-size: 11px;
+    opacity: 0.75;
   }
   .ok {
     width: 7px;
