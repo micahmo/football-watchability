@@ -44,16 +44,30 @@ export class SwingStore {
     this.history.set(gameId, samples);
   }
 
-  /** How far win probability has travelled, end to end, inside the window. */
-  movement(gameId: string): number {
+  /**
+   * How far win probability has travelled, end to end, inside the window.
+   *
+   * The window is applied here and not only in `record`, because `record` stops
+   * being called the moment a game ends. Trimming on write alone meant the samples
+   * froze at the final whistle and this returned that value for the next six hours,
+   * until the staleness sweep removed the game entirely: a game that finished five
+   * hours ago was still wearing `RECENT SWINGS`, and the rolling window was not
+   * rolling at all once there was nothing left to roll it.
+   */
+  movement(gameId: string, now = Date.now()): number {
     const samples = this.history.get(gameId);
-    if (!samples || samples.length < 2) return 0;
-    let low = samples[0].wp;
-    let high = samples[0].wp;
+    if (!samples) return 0;
+    const cutoff = now - WINDOW_MS;
+    let low: number | null = null;
+    let high: number | null = null;
+    let seen = 0;
     for (const sample of samples) {
-      if (sample.wp < low) low = sample.wp;
-      if (sample.wp > high) high = sample.wp;
+      if (sample.t < cutoff) continue;
+      seen += 1;
+      if (low === null || sample.wp < low) low = sample.wp;
+      if (high === null || sample.wp > high) high = sample.wp;
     }
+    if (seen < 2 || low === null || high === null) return 0;
     return high - low;
   }
 

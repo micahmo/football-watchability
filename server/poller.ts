@@ -746,7 +746,7 @@ export class LeaguePoller {
     const started = (g: RawGame) => g.state === "in" && g.period >= 1;
     const live = games
       .filter(started)
-      .map((g) => this.withScore(g, this.swings.movement(g.id)))
+      .map((g) => this.withScore(g, this.swings.movement(g.id, now)))
       .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0));
 
     // Prefer the forward-looking fetch, falling back to whatever the current
@@ -768,7 +768,7 @@ export class LeaguePoller {
 
     const recent = games
       .filter((g) => g.state === "post" && now - Date.parse(g.startDate) < RECENT_WINDOW_MS)
-      .map((g) => this.withScore(g, this.swings.movement(g.id)))
+      .map((g) => this.withScore(g, this.swings.movement(g.id, now)))
       .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0))
       .slice(0, MAX_RECENT);
 

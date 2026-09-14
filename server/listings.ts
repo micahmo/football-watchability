@@ -141,6 +141,17 @@ export class ListingsStore {
   private inFlight = new Map<string, Promise<MarketListings | null>>();
   private failedAt = new Map<string, number>();
   private providerCache = new Map<string, Provider[]>();
+  /**
+   * The television market a postal code resolves to, by the lineup we picked.
+   *
+   * Satellite lineups are named after the market rather than the town, which is
+   * the whole reason `pickLineup` prefers them, so the answer is already in hand.
+   * Worth surfacing: the board used to label the market with the viewer's own city
+   * from the network's geolocation, which for somebody in Fitchburg read
+   * "Fitchburg" when the market is Boston, and a name you do not recognise invites
+   * you into a setting you did not need to touch.
+   */
+  private marketName = new Map<string, string>();
   private resolvedLineup = new Map<string, Lineup>();
 
   /** Lineups the viewer could plausibly be on, for the market picker. */
@@ -281,6 +292,11 @@ export class ListingsStore {
    * are scoped to the television market the postal code sits in, which makes them
    * the best answer available to "which market is this really".
    */
+  /** The market a postal code resolved to, once a lineup has been chosen for it. */
+  market(zip: string): string | null {
+    return this.marketName.get(zip) ?? null;
+  }
+
   async resolve(zip: string, games: Game[]): Promise<MarketListings | null> {
     const known = this.resolvedLineup.get(zip);
     if (known !== undefined) return this.get(zip, known, games);
@@ -292,6 +308,7 @@ export class ListingsStore {
         const narrowed = await this.get(zip, lineup, games);
         if (narrowed !== null) {
           this.resolvedLineup.set(zip, lineup);
+          if (provider.location) this.marketName.set(zip, provider.location);
           console.log(`[listings] ${zip}: reading ${provider.name}`);
           return narrowed;
         }

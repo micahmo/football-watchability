@@ -291,7 +291,11 @@ async function withMarket(
     ...snapshot,
     live: snapshot.live.map(annotate),
     upcoming: snapshot.upcoming.map(annotate),
-    recent: snapshot.recent.map(annotate),
+    // Deliberately not the recap. "Not on your channels" is advice about what to
+    // watch, and a game that has finished is not on any channel: the label reads
+    // as a reason it is listed low, and it was also feeding the board's
+    // watchable-first sort, so the recap was ordered by television carriage.
+    recent: snapshot.recent,
     market: {
       zip,
       // Local call signs only. ESPN and NFL Network appear in every lineup and
@@ -299,7 +303,8 @@ async function withMarket(
       // showing the list back to the viewer.
       stations: market.stations.filter((s) => /^[KW][A-Z]{2,3}$/.test(s)),
       detected,
-      city,
+      // The market the lineup belongs to, not the town the viewer is sitting in.
+      city: listings.market(zip) ?? city,
     },
   };
 }

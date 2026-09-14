@@ -735,6 +735,27 @@ HOME_CONF=5 AWAY_CONF=15 HOME_RANK=16 npx tsx scripts/replay.ts game.json
 teams as unranked FCS and understates everything. That produced a full round of wrong
 conclusions before it was noticed.
 
+## Three things the recap was saying that were not true
+
+**The rolling swing window stopped rolling.** `SwingStore.record` trimmed the fifteen-minute window
+on write, and `record` is only called for games in progress, so at the final whistle the samples
+froze and `movement()` returned that value until the six-hour staleness sweep. A game that finished
+five hours ago was still wearing `RECENT SWINGS`, and carrying its frozen swing into the recap
+rating. The window is now applied when the value is read, which is the only place it can be applied
+for something that has stopped being written.
+
+**"Not on your channels" on a finished game.** The market annotation was applied to the recap as well
+as the live board. It is advice about what to put on, and nothing is on: the label read as a reason a
+game was listed low, and worse, it fed the board's watchable-first sort, so the recap was ordered by
+television carriage. The recap is no longer annotated at all.
+
+**The market was labelled with the viewer's town.** It came from the network's geolocation, so
+somebody in Fitchburg saw "Fitchburg" when their market is Boston, and a name you do not recognise
+invites you into a setting you never needed to open. The answer was already in hand: `pickLineup`
+prefers satellite lineups precisely because they are named after the market rather than the
+headend, so the chosen provider's `location` is the market. It is used when present, with the
+geolocated city as the fallback.
+
 ## The field diagram asked for more than it needed
 
 Two faults with one cause: every marker was gated on the whole situation block being present.
