@@ -735,6 +735,21 @@ HOME_CONF=5 AWAY_CONF=15 HOME_RANK=16 npx tsx scripts/replay.ts game.json
 teams as unranked FCS and understates everything. That produced a full round of wrong
 conclusions before it was noticed.
 
+### The town cannot be recovered from the lineups, only the market
+
+The provider list holds both kinds of answer and only one of them is reliable. Satellite lineups are
+scoped to the television market and name it correctly everywhere tried: Fitchburg to Boston,
+Manhattan to New York, Beverly Hills to Los Angeles, State College to Johnstown, Bozeman and Bangor
+and Honolulu to themselves.
+
+The cable lineups looked like a way to recover the *town* when the network does not supply one, since
+they are named after the headend. Measured across sixteen postal codes it is right thirteen times and
+wrong in a way that matters: 60601 resolves to Marengo, sixty miles from downtown Chicago, and 75201
+to Keller, a Fort Worth suburb. The first cable lineup in the response is not necessarily the one
+serving that code. The town is only ever parenthetical context in the settings panel, so being
+confidently wrong about it is worse than omitting it, and it is omitted when Cloudflare has not
+supplied one.
+
 ## Three things the recap was saying that were not true
 
 **The rolling swing window stopped rolling.** `SwingStore.record` trimmed the fifteen-minute window

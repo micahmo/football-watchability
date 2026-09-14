@@ -119,8 +119,21 @@ function clockLabel(seconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+/*
+ * Which day to build the fabricated slate from.
+ *
+ * The pool is drawn from games that have not kicked off, so run late on a Sunday
+ * there is one game left and the screenshot has a single card on it. Pass
+ * `--dates 20260920` (or a `20260919-20260921` range) to borrow a full slate from
+ * a day that has one, which is what the screenshots want and what the time of day
+ * should not be deciding.
+ */
+const DATES = process.argv.includes("--dates")
+  ? process.argv[process.argv.indexOf("--dates") + 1]
+  : undefined;
+
 async function liveSlate(league) {
-  const { games, season, week } = await fetchScoreboard({ league, limit: 200 });
+  const { games, season, week } = await fetchScoreboard({ league, limit: 200, dates: DATES });
   if (league === "nfl") await new StandingsStore().enrich(games);
   /*
    * Only games the fabricated scores could plausibly belong to. Week one is full
