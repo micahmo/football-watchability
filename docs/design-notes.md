@@ -746,9 +746,12 @@ The cable lineups looked like a way to recover the *town* when the network does 
 they are named after the headend. Measured across sixteen postal codes it is right thirteen times and
 wrong in a way that matters: 60601 resolves to Marengo, sixty miles from downtown Chicago, and 75201
 to Keller, a Fort Worth suburb. The first cable lineup in the response is not necessarily the one
-serving that code. The town is only ever parenthetical context in the settings panel, so being
-confidently wrong about it is worse than omitting it, and it is omitted when Cloudflare has not
-supplied one.
+serving that code.
+
+So the town comes from a postal code lookup instead, in `places.ts`. Seventeen codes tried and
+seventeen right, including 00501 and 99950, and the two the lineups got wrong. Cached for the life of
+the process, misses included, since a town does not move and a code absent from the dataset will be
+absent next time. It decorates a label and is never load-bearing: a failure is a missing word.
 
 ## Three things the recap was saying that were not true
 

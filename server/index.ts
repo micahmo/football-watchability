@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { LeaguePoller } from "./poller.js";
 import { StandingsStore } from "./standings.js";
 import { History } from "./history.js";
+import { PlaceStore } from "./places.js";
 import { ListingsStore } from "./listings.js";
 import { SubscriptionStore, CATEGORIES, type Category } from "./subscriptions.js";
 import { AlertEngine } from "./alerts.js";
@@ -43,6 +44,7 @@ const BUILD = currentBuild();
 
 const standings = new StandingsStore();
 const listings = new ListingsStore();
+const places = new PlaceStore();
 /**
  * Notifications are the one feature that needs somewhere durable to live, and the
  * only one that can fail at startup. Everything else on this board is a cache of
@@ -303,7 +305,10 @@ async function withMarket(
       // showing the list back to the viewer.
       stations: market.stations.filter((s) => /^[KW][A-Z]{2,3}$/.test(s)),
       detected,
-      city,
+      // Cloudflare knows the town when the board came through the tunnel and knows
+      // nothing when a postal code was typed, which is the case somebody is least
+      // sure they got right.
+      city: city ?? (await places.town(zip)),
       marketName: listings.market(zip),
     },
   };
