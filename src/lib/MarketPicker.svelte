@@ -5,6 +5,7 @@
     stations,
     detected = null,
     city = null,
+    marketName = null,
     nudge = false,
     open = false,
     ontoggle,
@@ -13,8 +14,10 @@
     stations: string[];
     /** Postal code Cloudflare reported, when the network knew it. */
     detected?: string | null;
-    /** City for that postal code, so the chip names a place not a transmitter. */
+    /** The town the network placed them in. Shown only in the panel, as context. */
     city?: string | null;
+    /** The television market that postal code is served by. This is the label. */
+    marketName?: string | null;
     /** The slate splits by market and nothing has resolved one. */
     nudge?: boolean;
     open?: boolean;
@@ -30,14 +33,17 @@
   const valid = $derived(/^\d{5}$/.test(draft));
   /* A place, not a list of transmitters. The call signs mean nothing to someone
      who just wants to know the board is pointed at the right city. */
+  /*
+   * The market, and only the market.
+   *
+   * Showing both read as a contradiction: the postal code is the viewer's own
+   * town and the name is the television market it belongs to, so "Boston 01420"
+   * pairs a city with a code from somewhere else and looks like a mistake. The
+   * chip answers "which market is the board pointed at", which is the only
+   * question it has room for. The code is in the panel, where it is changed.
+   */
   const label = $derived(
-    active === null
-      ? prefs.marketOff
-        ? "Market off"
-        : "Set market"
-      : city !== null
-          ? `${city} ${active}`
-        : active,
+    active === null ? (prefs.marketOff ? "Market off" : "Set market") : (marketName ?? active),
   );
 
   function save(): void {
@@ -72,8 +78,12 @@
       {#if prefs.marketOff}
         Market filtering is off, so nothing is flagged as unavailable.
       {:else if prefs.zip === null && detected !== null}
-        Using <strong>{detected}</strong>, worked out from your connection. Enter a
-        postal code to override it.
+        <!-- All three, because any one on its own raises a question the other two
+             answer: the code is unfamiliar, the town is not where the channels come
+             from, and the market alone looks like somewhere the viewer does not live. -->
+        Worked out <strong>{detected}</strong>{city ? ` (${city})` : ""} from your connection{marketName
+          ? `, which is served by the ${marketName} market`
+          : ""}. Enter a postal code to override it.
       {:else}
         On Sunday afternoons the networks split the slate by market, so only one CBS
         and one FOX game reaches any given city. Your postal code is what turns

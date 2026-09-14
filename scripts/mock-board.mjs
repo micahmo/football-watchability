@@ -70,13 +70,31 @@ function recordFor(league, team) {
   return [`${wins}-${GAMES_IN - wins}`, wins / GAMES_IN];
 }
 
+/*
+ * Each situation carries real field coordinates, not only the text.
+ *
+ * The diagram needs `yardLine`, `distance` and possession to draw anything beyond
+ * the empty pitch, and without them the screenshots showed a blank field while
+ * the card above it read "3rd & 4". Possession alternates by index, home first,
+ * so the yard lines below are chosen to put the ball somewhere sensible for the
+ * side that has it: home attacks 100 and away attacks zero.
+ */
 const SITUATIONS = [
-  { period: 4, clock: 96, home: 27, away: 24, wp: 0.52, down: "3rd & 4 at 38", red: false },
-  { period: 4, clock: 214, home: 31, away: 28, wp: 0.44, down: "2nd & 7 at 45", red: false },
-  { period: 4, clock: 42, home: 20, away: 17, wp: 0.61, down: "1st & 10 at 22", red: true },
-  { period: 3, clock: 508, home: 21, away: 21, wp: 0.5, down: "2nd & 3 at 41", red: false },
-  { period: 4, clock: 631, home: 17, away: 14, wp: 0.55, down: "3rd & 8 at 33", red: false },
-  { period: 3, clock: 122, home: 24, away: 23, wp: 0.47, down: "1st & 10 at 50", red: false },
+  // Home, driving, a long way from where the drive began.
+  { period: 4, clock: 96, home: 27, away: 24, wp: 0.52, down: "3rd & 4 at 38", red: false,
+    yardLine: 62, downNo: 3, distance: 4, driveStart: 25 },
+  // Away, moving the other way, so the arrow points left.
+  { period: 4, clock: 214, home: 31, away: 28, wp: 0.44, down: "2nd & 7 at 45", red: false,
+    yardLine: 45, downNo: 2, distance: 7, driveStart: 78 },
+  // Home inside the twenty, so one screenshot shows the red zone shading.
+  { period: 4, clock: 42, home: 20, away: 17, wp: 0.61, down: "1st & 10 at 12", red: true,
+    yardLine: 88, downNo: 1, distance: 10, driveStart: 44 },
+  { period: 3, clock: 508, home: 21, away: 21, wp: 0.5, down: "2nd & 3 at 41", red: false,
+    yardLine: 41, downNo: 2, distance: 3, driveStart: 62 },
+  { period: 4, clock: 631, home: 17, away: 14, wp: 0.55, down: "3rd & 8 at 33", red: false,
+    yardLine: 33, downNo: 3, distance: 8, driveStart: 8 },
+  { period: 3, clock: 122, home: 24, away: 23, wp: 0.47, down: "1st & 10 at 50", red: false,
+    yardLine: 50, downNo: 1, distance: 10, driveStart: 72 },
 ];
 
 /**
@@ -136,6 +154,10 @@ async function liveSlate(league) {
       possessionTeamId: i % 2 === 0 ? raw.home.id : raw.away.id,
       downDistance: s.down,
       isRedZone: s.red,
+      yardLine: s.yardLine,
+      down: s.downNo,
+      distance: s.distance,
+      driveStart: s.driveStart,
       lastPlay: null,
     };
     // The real model, so the ratings are ones the board could actually produce.

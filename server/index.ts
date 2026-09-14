@@ -303,8 +303,8 @@ async function withMarket(
       // showing the list back to the viewer.
       stations: market.stations.filter((s) => /^[KW][A-Z]{2,3}$/.test(s)),
       detected,
-      // The market the lineup belongs to, not the town the viewer is sitting in.
-      city: listings.market(zip) ?? city,
+      city,
+      marketName: listings.market(zip),
     },
   };
 }

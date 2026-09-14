@@ -123,6 +123,7 @@
          summary would then omit a postal code the chip beside it is displaying. */
       if (prefs.marketOff) parts.push("no market");
       else if (prefs.zip) parts.push(prefs.zip);
+      else if (snapshot?.market?.marketName) parts.push(snapshot.market.marketName);
       else if (snapshot?.market?.city) parts.push(snapshot.market.city);
       else if (snapshot?.market?.zip) parts.push(`${snapshot.market.zip} (detected)`);
     }
@@ -575,6 +576,7 @@
         stations={snapshot?.market?.stations ?? []}
         detected={snapshot?.market?.detected === true ? snapshot.market.zip : null}
         city={snapshot?.market?.city ?? null}
+        marketName={snapshot?.market?.marketName ?? null}
         nudge={marketMatters}
         open={openPanel === "market"}
         ontoggle={() => togglePanel("market")}

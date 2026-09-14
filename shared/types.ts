@@ -172,6 +172,15 @@ export interface Snapshot {
     zip: string;
     stations: string[];
     detected: boolean;
-    city: string | null;
+    /** The town the network placed the viewer in, which is not the market. */
+  city: string | null;
+  /**
+   * The television market that postal code belongs to.
+   *
+   * A different thing from `city` and the one worth showing: somebody in
+   * Fitchburg is served by Boston, and labelling the board with their own town
+   * names a place whose channels they are not watching.
+   */
+  marketName: string | null;
   } | null;
 }
