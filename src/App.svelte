@@ -543,6 +543,15 @@
         <span class="ok"></span>
       {/if}
       <span class="mono updated">{updatedLabel}</span>
+      {#if prefs.delaySeconds > 0}
+        <!-- Deliberately quiet and deliberately separate. The dot and the time say
+             the feed is alive; this says the board is standing back from it. -->
+        <span class="mono behind" title="Board held {prefs.delaySeconds}s behind live"
+          >−{prefs.delaySeconds}s</span
+        >
+      {/if}
+      <!-- Last, not between the two. The time and the offset are one statement
+           about the same thing, and a control wedged between them splits it. -->
       <button
         type="button"
         class="help-toggle"
@@ -551,13 +560,6 @@
         title="How this works"
         onclick={() => (helpOpen = !helpOpen)}>?</button
       >
-      {#if prefs.delaySeconds > 0}
-        <!-- Deliberately quiet and deliberately separate. The dot and the time say
-             the feed is alive; this says the board is standing back from it. -->
-        <span class="mono behind" title="Board held {prefs.delaySeconds}s behind live"
-          >−{prefs.delaySeconds}s</span
-        >
-      {/if}
     </div>
   </div>
   <div class="settings-bar">

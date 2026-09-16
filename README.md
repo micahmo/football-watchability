@@ -42,8 +42,7 @@ between drives and on kickoffs there is simply no diagram rather than a stale on
 Live cards fold by default and open when tapped, six at a time with an expander for the rest. The
 best game on starts open. A folded card keeps the teams, records, line, possession, score, clock,
 network and tags; opening one adds the win probability, down and distance, and the last play.
-Finished games do not fold, since none of that applies to them, but the same six-at-a-time
-expander applies.
+Finished games do not fold, but the same six-at-a-time expander applies.
 
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
@@ -57,29 +56,24 @@ qualify than one. Tab, favorites and market all persist in the browser.
 
 ## Explaining itself
 
-The `?` beside the freshness indicator opens a plain-language account of what the rating means and
-what each setting does.
-
-It is kept current ahead of this file. Any change that alters what the board appears to do is made in
-[src/lib/HelpPanel.svelte](src/lib/HelpPanel.svelte) before the change is finished.
+The `?` in the header opens a plain-language account of what the rating means and what each setting
+does.
 
 ## How the score works
 
 Every live game gets a 0-100 score and the board sorts on it.
 
-**The main term is how close the game is, weighted by how late it is**, since a tie in the first
-quarter is not the event a tie with ninety seconds left is. Closeness comes from ESPN's live win
-probability, falling back to a margin curve when ESPN stops publishing one.
+**The main term is how close the game is, weighted by how late it is.** Closeness comes from
+ESPN's live win probability, falling back to a margin curve when ESPN stops publishing one.
 
 **Four other terms can take over when closeness misses the point.** A team down five with the
 ball and thirty seconds left has a terrible win probability and is the most watchable thing on
 television, so one-score games inside the final five minutes get a `clutch` score. An underdog
 running away from where the closing line put it gets an `upsetTension` score, so a blowout upset
 is not invisible to a board that otherwise only rewards close games. A finished game that a real
-underdog won gets a `decisiveness` score, since a recap is asking what mattered rather than what
-was tense. And a game that has only just kicked off keeps a fading share of what it was billed
-as, because a 0-0 first quarter is the one moment when the billing is the only evidence there is.
-The dominant term is whichever of the five is highest.
+underdog won gets a `decisiveness` score. And a game that has only just kicked off keeps a fading
+share of what it was billed as, gone by halftime and sooner if it turns into a blowout. The dominant
+term is whichever of the five is highest.
 
 Five smaller components adjust it, with fixed weights:
 
@@ -138,8 +132,7 @@ changes on screen at the same moment you see it change. Presets are rough starti
 near fifteen seconds and a streaming app near thirty-five.
 
 The setting is per browser, so two people watching different feeds each get their own. Notifications
-are held by the same amount, since a push that beats the television spoils exactly what the board is
-withholding.
+are held by the same amount.
 
 ## Can I actually watch it
 
@@ -152,9 +145,8 @@ and sort below the ones you can get.
 
 Behind Cloudflare you do not have to type a postal code: switch on the managed transform *Add
 visitor location headers* and the board uses `CF-Postal-Code` as the default market. The control
-has three states, since "work it out for me" and "do not filter at all" are different requests: a
-postal code you typed, the detected one, and explicitly off. **Clear** turns it off entirely and
-**Redetect** goes back to the network's answer.
+has three states: a postal code you typed, the detected one, and explicitly off. **Clear** turns it
+off entirely and **Redetect** goes back to the network's answer.
 
 With no postal code from any source, nothing is flagged and the board behaves as though the
 feature were not there.
@@ -197,8 +189,8 @@ the container can be replaced. A restart is not free during a slate, though:
 None of it lasts more than a few minutes, but a quiet window is a better time to update than the
 middle of a Saturday.
 
-**Notifications need a volume**, because a push keypair and its subscriptions cannot be rebuilt from
-anywhere. The same directory holds the history log. Mount one at `/config`:
+**Notifications need a volume.** A push keypair and its subscriptions cannot be rebuilt from
+anywhere, and the same directory holds the history log. Mount one at `/config`:
 
 ```bash
 docker run -d --name football-watchability \

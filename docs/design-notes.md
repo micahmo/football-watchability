@@ -791,6 +791,9 @@ the code.
 It is written for that reader and not for this one: no thresholds, no component names, no arithmetic.
 A sentence that needs a number to make sense belongs in these notes instead.
 
+So a change that alters what the board *appears* to do is not finished until `HelpPanel.svelte`
+agrees with it, ahead of the README and ahead of this file.
+
 ## Three things the recap was saying that were not true
 
 **The rolling swing window stopped rolling.** `SwingStore.record` trimmed the fifteen-minute window
