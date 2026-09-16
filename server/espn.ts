@@ -220,16 +220,53 @@ function markRegionalBroadcasts(games: RawGame[], league: League): void {
   }
 }
 
-export async function fetchScoreboard(opts: FetchOptions): Promise<ScoreboardResult> {
+/**
+ * Every day a `YYYYMMDD-YYYYMMDD` range covers, as single dates.
+ *
+ * ESPN accepted ranges for years and stopped, without notice and without a
+ * deprecation: on 2026-09-16 every range began returning 400 while the same days
+ * asked for singly returned 200. It took the board down for thirty-six polls
+ * across both leagues, and looked exactly like being rate limited.
+ *
+ * Capped, because the caller builds these from a day count and a bug there should
+ * not turn one poll into a thousand requests.
+ */
+const MAX_DATES = 16;
+
+function expandDates(dates: string): string[] {
+  const parts = dates.split("-");
+  if (parts.length !== 2) return [dates];
+  const [from, to] = parts;
+  if (!/^\d{8}$/.test(from) || !/^\d{8}$/.test(to)) return [dates];
+
+  const out: string[] = [];
+  const day = new Date(
+    Number(from.slice(0, 4)),
+    Number(from.slice(4, 6)) - 1,
+    Number(from.slice(6, 8)),
+  );
+  const end = new Date(Number(to.slice(0, 4)), Number(to.slice(4, 6)) - 1, Number(to.slice(6, 8)));
+  while (day <= end && out.length < MAX_DATES) {
+    const y = day.getFullYear();
+    const m = String(day.getMonth() + 1).padStart(2, "0");
+    const d = String(day.getDate()).padStart(2, "0");
+    out.push(`${y}${m}${d}`);
+    day.setDate(day.getDate() + 1);
+  }
+  return out.length > 0 ? out : [dates];
+}
+
+async function fetchOneDay(opts: FetchOptions, date: string | null): Promise<any> {
   const params = new URLSearchParams({ limit: String(opts.limit ?? 200) });
   // Sending groups to the NFL endpoint returns an empty slate.
   if (opts.league === "cfb") params.set("groups", opts.groups ?? "80");
-  if (opts.dates) params.set("dates", opts.dates);
+  if (date) params.set("dates", date);
 
   const res = await fetch(`${SITE_API}/${SPORT_PATH[opts.league]}/scoreboard?${params}`, {
     headers: {
       accept: "application/json",
-      // Identify ourselves rather than showing up as an anonymous bot.
+      // Identify ourselves rather than showing up as an anonymous bot. Not
+      // optional: ESPN answers a missing user-agent with 403.
       "user-agent": "football-watchability/0.1 (personal dashboard)",
     },
     signal: AbortSignal.timeout(15_000),
@@ -238,9 +275,27 @@ export async function fetchScoreboard(opts: FetchOptions): Promise<ScoreboardRes
     throw new RateLimitError(res.headers.get("retry-after"));
   }
   if (!res.ok) throw new Error(`ESPN scoreboard returned ${res.status} ${res.statusText}`);
+  return res.json();
+}
 
-  const body: any = await res.json();
-  const events: any[] = body?.events ?? [];
+export async function fetchScoreboard(opts: FetchOptions): Promise<ScoreboardResult> {
+  const days = opts.dates ? expandDates(opts.dates) : [null];
+  const bodies = await Promise.all(days.map((d) => fetchOneDay(opts, d)));
+
+  /*
+   * Merged by event id, because a single date already returns the games that run
+   * past midnight into the next one, so consecutive days overlap by design.
+   * Later days win, on the same reasoning the poller uses: the fresher document
+   * for a game is the one from the day it is still being played on.
+   */
+  const byId = new Map<string, any>();
+  for (const body of bodies) {
+    for (const event of body?.events ?? []) {
+      if (typeof event?.id === "string") byId.set(event.id, event);
+    }
+  }
+  const body: any = bodies[bodies.length - 1] ?? {};
+  const events: any[] = [...byId.values()];
 
   return {
     season: body?.season?.year ?? null,

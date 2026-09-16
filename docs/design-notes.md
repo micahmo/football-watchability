@@ -151,6 +151,34 @@ hanging around.
 twelve games before relying on it, because getting the sign backwards silently inverts which
 team is the underdog.
 
+## ESPN withdrew date ranges without notice
+
+On 2026-09-16 the board had been failing for thirty-six consecutive polls on both leagues, every one
+of them `400 Bad Request`. It reads exactly like being rate limited and is not: a 429 has its own
+path, and the container could still reach ESPN perfectly well.
+
+The scoreboard endpoint had simply stopped accepting `dates=YYYYMMDD-YYYYMMDD`. Every range 400s and
+every single date still answers:
+
+```
+20260912-20260913   HTTP 400
+20260912             80 events, days 2026-09-12 and 2026-09-13
+20260919-20260920   HTTP 400
+20260919             71 events, days 2026-09-19 and 2026-09-20
+```
+
+Both callers used a range, the live poll for yesterday-through-today and the schedule for eight days
+ahead, so the whole board went down at once.
+
+`fetchScoreboard` now expands a range into single dates, fetches them together and merges by event
+id, which leaves both callers untouched. Merging is required rather than tidy: a single date already
+returns the games that run past midnight into the next one, so consecutive days overlap by design.
+
+Two things worth keeping from the diagnosis. A missing `user-agent` gets 403, so the two failures are
+distinguishable and neither is a 429. And the expansion is capped at sixteen days, because the
+schedule caller builds its range from a day count and a bug there should not turn one poll into a
+thousand requests.
+
 ## Never trust the ESPN "current week" pointer
 
 The default scoreboard response returns whatever ESPN considers the current week, and **that
