@@ -142,8 +142,61 @@ async function liveSlate(league) {
    * card, and the picture stops describing a normal Saturday. Close lines first,
    * ranked teams ahead of unranked, so the slate looks like one worth watching.
    */
+  /*
+   * Any state, not only `pre`, and a line invented where the feed has none.
+   *
+   * Everything about these games is overwritten anyway: the state, the clock, the
+   * scores and the situation are all fabricated. Requiring `pre` only meant the
+   * slate had to be borrowed from the future, so a screenshot taken on a Tuesday
+   * drew on next weekend and one taken late on a Sunday found a single game left.
+   *
+   * ESPN drops the odds the moment a game kicks off, so a past day returns its
+   * matchups with no line at all: 20260912 gives eighty college games and zero
+   * spreads. A screenshot needs one on every card, so it is made up here, the same
+   * way the scores are. Derived from the event id rather than randomly, so the same
+   * day always produces the same picture.
+   */
+  /*
+   * The lines the feed no longer has, taken from the screenshots they produced.
+   *
+   * ESPN drops the odds the moment a game kicks off, so a past day returns its
+   * matchups with no spread at all: 20260912 gives eighty college games and zero
+   * lines. The cards print one, and the pool needs one to keep FCS visitors and
+   * their forty-five point mismatches out of the picture.
+   *
+   * A table rather than a heuristic, because both heuristics tried were worse than
+   * the problem. A tight invented line walked Howard at Indiana into a screenshot
+   * as a one-score fourth quarter, and sizing the line by rank collapses in college,
+   * where almost everybody is unranked and every game came out a pick 'em.
+   *
+   * Keyed `AWAY@HOME`, and negative means the home side is favoured. Being a table
+   * is the point: only these matchups are eligible on a day with no odds, so the
+   * slate is the one already known to make a good picture.
+   */
+  const KNOWN_LINES = {
+    // College, 2026-09-12.
+    "OSU@TEX": -1.5,
+    "ALA@UK": 10,
+    "ARIZ@BYU": -7.5,
+    "MSST@MINN": 1.5,
+    "ORE@OKST": 24.5,
+    "ISU@IOWA": -3.5,
+    // NFL, 2026-09-13.
+    "BUF@HOU": 1.5,
+    "CHI@CAR": 3,
+    "NO@DET": -7,
+    "DEN@KC": -2.5,
+    "WSH@PHI": -6.5,
+    "TB@CIN": -3.5,
+  };
+
   const pool = games
-    .filter((g) => g.state === "pre" && g.homeSpread !== null && Math.abs(g.homeSpread) <= 10)
+    .map((g) => {
+      if (g.homeSpread !== null) return g;
+      const known = KNOWN_LINES[`${g.away.abbrev}@${g.home.abbrev}`];
+      return known === undefined ? g : { ...g, homeSpread: known, odds: null };
+    })
+    .filter((g) => g.homeSpread !== null && Math.abs(g.homeSpread) <= 25)
     .sort((a, b) => quality(league, b) - quality(league, a) || Math.abs(a.homeSpread) - Math.abs(b.homeSpread))
     .slice(0, SITUATIONS.length);
 
@@ -190,7 +243,10 @@ async function liveSlate(league) {
       homeSpread: game.homeSpread,
       overUnder: game.overUnder,
     });
-    const full = { ...game, score, anticipation: null, pregameSpread: game.homeSpread, pregameOdds: game.odds, tags: [] };
+    const favouredAbbrev = game.homeSpread <= 0 ? game.home.abbrev : game.away.abbrev;
+    const odds =
+      game.odds ?? `${favouredAbbrev} ${(-Math.abs(game.homeSpread)).toFixed(1)}`;
+    const full = { ...game, score, anticipation: null, pregameSpread: game.homeSpread, pregameOdds: odds, tags: [] };
     full.tags = buildTags(full, score);
     return { full, season, week };
   });

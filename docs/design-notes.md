@@ -1677,6 +1677,23 @@ stays 30 seconds behind ESPN, which makes pushing to the client pointless. The t
 FastCast without SSE mostly wastes the freshness, and SSE without FastCast is a 20-second
 improvement on a 50-second problem. Either both, or neither.
 
+### The odds vanish with the game
+
+Reusing a past day's matchups needs the lines that day was played on, and ESPN drops the odds the
+moment a game kicks off: 20260912 returns eighty college games and not one spread. The cards print a
+line and the pool uses it to keep FCS visitors and their forty-five point mismatches out of the
+picture, so without it there is nothing to photograph.
+
+Two heuristics were tried and both were worse than the problem. Giving every game a tight invented
+line disabled the mismatch guard and walked Howard at Indiana into a screenshot as a one-score fourth
+quarter. Sizing the line by the rank gap collapses in college, where almost everybody is unranked, so
+every game came out a pick 'em.
+
+So `KNOWN_LINES` is a table, keyed `AWAY@HOME`, holding the lines those matchups were actually played
+on. Being a table is the point rather than a shortcut: on a day with no odds only the listed games are
+eligible, so the slate is the one already known to make a good picture. Add to it when a better
+Saturday comes along.
+
 ## Regenerating the screenshots
 
 The README shows four panels: live and upcoming, for each league. Only the upcoming pair can be

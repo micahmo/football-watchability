@@ -883,10 +883,20 @@
     flex: none;
     transition: color 120ms ease, border-color 120ms ease;
   }
-  .help-toggle:hover,
-  .help-toggle[aria-expanded="true"] {
+  .help-toggle:hover {
     color: var(--text);
-    border-color: var(--text-faint);
+  }
+  /*
+   * Open is filled, not merely brighter.
+   *
+   * Sharing one style with `:hover` made closing the panel look like it had not
+   * worked: the pointer is still on the button afterwards, so the highlight stays
+   * and reads as state rather than as hover. They have to be different marks.
+   */
+  .help-toggle[aria-expanded="true"] {
+    color: var(--bg);
+    background: var(--text-dim);
+    border-color: var(--text-dim);
   }
   .behind {
     /* Symmetric padding, because the row aligns on the baseline now and the box

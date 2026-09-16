@@ -54,7 +54,7 @@
     <h3>Your settings change it</h3>
     <ul>
       <li>
-        <strong>Favourites.</strong> Games involving a conference you follow get a boost up the board.
+        <strong>Favorites.</strong> Games involving a conference you follow get a boost up the board.
       </li>
       <li>
         <strong>Market.</strong> Games your channels are not carrying keep their real rating but stop
@@ -69,10 +69,10 @@
 
     <h3>Notifications</h3>
     <p>
-      Only when something is worth leaving what you are watching for: a game becoming the best thing
-      on, one turning into a classic, an underdog doing something it should not be, or the pick of a
-      kickoff window starting. A handful a day at most, and never for a game your channels are not
-      carrying.
+      Two kinds, and a handful a day at most. Something already on is worth switching to: it has
+      become the best thing available, it is turning into a classic, or an underdog is doing
+      something it should not be. Or something is about to start: the best game of a busy kickoff
+      window, or the only game in its slot. Never for a game your channels are not carrying.
     </p>
 
     <h3>The other two lists</h3>
