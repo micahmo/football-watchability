@@ -129,10 +129,23 @@ function favoriteBoost(game: Game, favorites: string[]): number {
   return FAVORITE_BONUS[matches];
 }
 
-/** The same number the viewer sees on their own board, favorites included. */
-function boosted(game: Game, favorites: string[]): number {
+/**
+ * What the game has actually done, with its pregame billing taken back out.
+ *
+ * `combine` floors the rating at what a game was billed as, so the board does not
+ * under-rate a marquee kickoff while nothing has happened yet. That is right for
+ * ranking and wrong for these alerts, every one of which claims something about
+ * how the game is *going*: Denver at Kansas City crossed the classic threshold at
+ * 0-0 with fifteen minutes on the clock, purely on an anticipation of 74 and
+ * thirteen for two favoured conferences, and went out as "is turning into
+ * something" before a snap.
+ *
+ * Kickoff and primetime are unaffected and still rank on anticipation, because
+ * saying a good game is starting is exactly what they are for.
+ */
+function earned(game: Game, favorites: string[]): number {
   if (!game.score) return 0;
-  const base = combine(game.score, WEIGHTS, game.score.maxTotal);
+  const base = combine({ ...game.score, billing: 0 }, WEIGHTS, game.score.maxTotal);
   return Math.min(100, base + favoriteBoost(game, favorites));
 }
 
@@ -210,7 +223,7 @@ export class AlertEngine {
     const out: Alert[] = [];
 
     for (const game of live) {
-      const score = boosted(game, favorites);
+      const score = earned(game, favorites);
       const alternatives = live.length - 1;
       const already = (c: Category) => this.sent.has(`${sub.id}:${game.id}:${c}`);
 
@@ -401,8 +414,23 @@ export class AlertEngine {
 
       // One buzz, not three. A chaotic finish should not machine-gun a phone.
       candidates.sort((a, b) => b.score - a.score);
+      /*
+       * And one *game*, not the same one twice.
+       *
+       * The live and kickoff paths are independent and can both answer for the
+       * same game: a primetime kickoff that also cleared the classic bar produced
+       * two candidates, so the notification led with one and then offered the
+       * other as "Also worth a look: DEN at KC", recommending the game it was
+       * already about. Sorted first, so the survivor is the better claim.
+       */
+      const seen = new Set<string>();
+      const unique = candidates.filter((c) => {
+        if (seen.has(c.game.id)) return false;
+        seen.add(c.game.id);
+        return true;
+      });
       // Judged on the best of them, and only now that there is a score to judge.
-      if (!this.allowed(sub, snapshot.league, now, candidates[0].score)) continue;
+      if (!this.allowed(sub, snapshot.league, now, unique[0].score)) continue;
 
       /*
        * Recorded as sent before it is sent, which is deliberate.
@@ -413,8 +441,8 @@ export class AlertEngine {
        * The payload describes the moment it was chosen, which is exactly the
        * moment this viewer's screen will be showing when it lands.
        */
-      const payload = buildPayload(candidates);
-      this.record(sub, snapshot.league, now, candidates, candidates[0].score);
+      const payload = buildPayload(unique);
+      this.record(sub, snapshot.league, now, unique, unique[0].score);
       sent += 1;
       const hold = Math.max(0, sub.delaySeconds ?? 0) * 1000;
       if (hold === 0) {
@@ -478,7 +506,16 @@ function detail(alert: Alert): string {
     const line = lineLabel(game);
     return `${expectation(alert.score)} · expected ${Math.round(alert.score)}${line ? ` · ${line}` : ""}${network}`;
   }
-  return `${game.away.abbrev} ${game.away.score}, ${game.home.abbrev} ${game.home.score} · ${game.clock} ${quarter(game.period)}${network}`;
+  /*
+   * The clock alone once nothing has been scored. "DEN 0, KC 0" reads as a fact
+   * being offered as a reason, and 0-0 is the one scoreline that says nothing
+   * about the game it describes.
+   */
+  const scoreline =
+    game.away.score === 0 && game.home.score === 0
+      ? ""
+      : `${game.away.abbrev} ${game.away.score}, ${game.home.abbrev} ${game.home.score} · `;
+  return `${scoreline}${game.clock} ${quarter(game.period)}${network}`;
 }
 
 export function buildPayload(alerts: Alert[]): unknown {

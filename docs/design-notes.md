@@ -1395,6 +1395,31 @@ quoted. By halftime the floor is zero and the live score has been on its own for
 `maxTotal` still outranks it: a four-score game in the fourth quarter is over however good it was
 supposed to be.
 
+### The billing floor started making claims the alerts could not support
+
+One primetime notification got three things wrong at once and two of them were the same fault.
+
+`combine` floors a rating at what the game was billed as, so the board does not under-rate a marquee
+kickoff while nothing has happened. The live alert path read that same number, so Denver at Kansas
+City cleared the classic threshold at **0-0 with fifteen minutes on the clock**, on an anticipation
+of 74 and thirteen for two favoured conferences, and went out titled "is turning into something".
+
+Live alerts now judge what a game has earned, with `billing` taken back out. Every one of them claims
+something about how the game is going, and the floor is explicitly not evidence of that. At kickoff
+the same game scores 37.8 rather than 87, below both thresholds, and the favourite bonus is still in
+that number: it is the billing that is removed, not the preference. Kickoff and primetime are
+untouched and still rank on anticipation, because announcing that a good game is starting is what
+they are for.
+
+The second symptom followed from the first. The live and kickoff paths are independent and both
+answered for that game, so the notification led with one and offered the other as "Also worth a look:
+DEN at KC", recommending the game it was already about. Candidates are now unique by game, taken
+after the sort so the better claim survives.
+
+The third was separate and simpler: the body quoted "DEN 0, KC 0" as though a scoreline were a reason.
+Nil-nil is the one score that says nothing about the game it describes, so it is omitted and the clock
+speaks alone.
+
 ### No notification may assume a time of day
 
 "Worth clearing the evening" arrived at one in the afternoon, for a Sunday window. The wording bands
