@@ -68,7 +68,7 @@
     contain-intrinsic-size: auto 57px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 9px 4px;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
@@ -86,8 +86,10 @@
   .when {
     flex: none;
     /* Wide enough for a two-digit hour ("12:00 PM") without wrapping, and fixed
-       so kickoff times stay aligned down the column. */
-    width: 72px;
+       so kickoff times stay aligned down the column. Sized to that string and a
+       few pixels, rather than roomily: everything this column does not use comes
+       off the team names, which are the part of the row worth reading. */
+    width: 64px;
     white-space: nowrap;
   }
   .time {
@@ -109,14 +111,17 @@
   .teams {
     display: flex;
     align-items: center;
-    gap: 6px;
+    /* Tightened when records joined the row. Each side now carries a logo, a rank,
+       a name and a record, and the name is the only one of the four that can give
+       ground, so the gaps give some first. */
+    gap: 4px;
     min-width: 0;
     overflow: hidden;
   }
   .team {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
     min-width: 0;
   }
   .record {
@@ -132,8 +137,8 @@
     text-overflow: ellipsis;
   }
   .logo {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
     flex: none;
   }

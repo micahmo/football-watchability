@@ -53,6 +53,19 @@ body {
   padding: 28px 20px 80px;
 }
 
+/*
+ * A narrower gutter on a phone.
+ *
+ * The gutter and the card padding are charged twice over on a small screen, and
+ * what they take comes off the only part of a row that carries meaning: on a
+ * 430px screen a third of the upcoming rows were truncating team names to fit.
+ */
+@media (max-width: 520px) {
+  #app {
+    padding: 22px 12px 80px;
+  }
+}
+
 h1, h2, h3 {
   margin: 0;
   font-weight: 650;

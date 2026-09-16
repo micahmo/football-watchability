@@ -997,6 +997,14 @@
   .panel.tight {
     padding: 4px 14px;
   }
+  @media (max-width: 520px) {
+    .panel {
+      padding: 14px 12px;
+    }
+    .panel.tight {
+      padding: 4px 10px;
+    }
+  }
   .show-all {
     display: block;
     width: 100%;
