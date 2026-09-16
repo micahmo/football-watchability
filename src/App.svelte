@@ -865,20 +865,28 @@
     align-self: center;
   }
   .help-toggle {
-    /* Beside the freshness indicator, because "is this working" and "what is it
-       doing" are the same question asked twice. */
-    width: 16px;
-    height: 16px;
+    /* Sits in a row of read-only readings, so it has to say it is a control. It
+       borrows the dimmer text and border of the settings buttons rather than the
+       faint grey of the status beside it, which made it read as another value. */
+    width: 17px;
+    height: 17px;
     padding: 0;
     border: 1px solid var(--border-hi);
     border-radius: 50%;
     background: none;
-    color: var(--text-faint);
+    color: var(--text-dim);
     font-size: 11px;
+    font-weight: 600;
     line-height: 1;
     cursor: pointer;
     align-self: center;
     flex: none;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  .help-toggle:hover,
+  .help-toggle[aria-expanded="true"] {
+    color: var(--text);
+    border-color: var(--text-faint);
   }
   .behind {
     /* Symmetric padding, because the row aligns on the baseline now and the box

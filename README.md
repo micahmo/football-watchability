@@ -36,8 +36,9 @@ shows kickoff time, the line, the over/under and the network.
 **Just finished**, the recent recap, best first. Games stay on the board for eighteen hours.
 
 An open live card draws the field: where the ball is, the line of scrimmage, the line to gain, how
-far the drive has come and which way the offence is going. It appears only while a play is set, so
-between drives and on kickoffs there is simply no diagram rather than a stale one.
+far the drive has come and which way the offence is going. The pitch is always drawn. Each marker
+appears only while the data behind it is current, so between drives and on kickoffs the field is
+there and empty.
 
 Live cards fold by default and open when tapped, six at a time with an expander for the rest. The
 best game on starts open. A folded card keeps the teams, records, line, possession, score, clock,
@@ -66,11 +67,9 @@ Every live game gets a 0-100 score and the board sorts on it.
 **The main term is how close the game is, weighted by how late it is.** Closeness comes from
 ESPN's live win probability, falling back to a margin curve when ESPN stops publishing one.
 
-**Four other terms can take over when closeness misses the point.** A team down five with the
-ball and thirty seconds left has a terrible win probability and is the most watchable thing on
-television, so one-score games inside the final five minutes get a `clutch` score. An underdog
-running away from where the closing line put it gets an `upsetTension` score, so a blowout upset
-is not invisible to a board that otherwise only rewards close games. A finished game that a real
+**Four other terms can take over when closeness misses the point.** A one-score game inside the final
+five minutes, with the trailing team holding the ball, gets a `clutch` score. An underdog running
+away from where the closing line put it gets an `upsetTension` score. A finished game that a real
 underdog won gets a `decisiveness` score. And a game that has only just kicked off keeps a fading
 share of what it was billed as, gone by halftime and sooner if it turns into a blowout. The dominant
 term is whichever of the five is highest.
