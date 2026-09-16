@@ -58,11 +58,10 @@ qualify than one. Tab, favorites and market all persist in the browser.
 ## Explaining itself
 
 The `?` beside the freshness indicator opens a plain-language account of what the rating means and
-what each setting does, written for somebody using the board rather than maintaining it.
+what each setting does.
 
-It is the only explanation most people will read, so it is kept current ahead of this file. Any
-change that alters what the board appears to do belongs in
-[src/lib/HelpPanel.svelte](src/lib/HelpPanel.svelte) before it is finished.
+It is kept current ahead of this file. Any change that alters what the board appears to do is made in
+[src/lib/HelpPanel.svelte](src/lib/HelpPanel.svelte) before the change is finished.
 
 ## How the score works
 

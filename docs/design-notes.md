@@ -781,6 +781,16 @@ seventeen right, including 00501 and 99950, and the two the lineups got wrong. C
 the process, misses included, since a town does not move and a code absent from the dataset will be
 absent next time. It decorates a label and is never load-bearing: a failure is a missing word.
 
+## The in-app explanation outranks the README
+
+The `?` panel is kept current ahead of every other document here, and that ordering is deliberate.
+It is the only explanation anybody reads while actually using the board, so a stale sentence in it
+misleads a person mid-use. A stale sentence in the README misleads a maintainer, who can go and read
+the code.
+
+It is written for that reader and not for this one: no thresholds, no component names, no arithmetic.
+A sentence that needs a number to make sense belongs in these notes instead.
+
 ## Three things the recap was saying that were not true
 
 **The rolling swing window stopped rolling.** `SwingStore.record` trimmed the fifteen-minute window
