@@ -9,6 +9,7 @@
   import MarketPicker from "./lib/MarketPicker.svelte";
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
+  import HelpPanel from "./lib/HelpPanel.svelte";
   import { setLeague, tabChoice } from "./lib/prefs.svelte";
   import { updateDelaySeconds } from "./lib/push";
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
@@ -102,6 +103,7 @@
    * room and is worth incomparably more.
    */
   let settingsOpen = $state(false);
+  let helpOpen = $state(false);
 
   function toggleSettings(): void {
     settingsOpen = !settingsOpen;
@@ -541,6 +543,14 @@
         <span class="ok"></span>
       {/if}
       <span class="mono updated">{updatedLabel}</span>
+      <button
+        type="button"
+        class="help-toggle"
+        aria-expanded={helpOpen}
+        aria-label="How this works"
+        title="How this works"
+        onclick={() => (helpOpen = !helpOpen)}>?</button
+      >
       {#if prefs.delaySeconds > 0}
         <!-- Deliberately quiet and deliberately separate. The dot and the time say
              the feed is alive; this says the board is standing back from it. -->
@@ -564,6 +574,7 @@
       <span class="settings-summary">{settingsSummary}</span>
     {/if}
   </div>
+  <HelpPanel open={helpOpen} onclose={() => (helpOpen = false)} />
   <div class="controls-row" hidden={!settingsOpen}>
     <FavoriteConferences
       {conferences}
@@ -850,6 +861,22 @@
   .status > .ok,
   .status > .err {
     align-self: center;
+  }
+  .help-toggle {
+    /* Beside the freshness indicator, because "is this working" and "what is it
+       doing" are the same question asked twice. */
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--border-hi);
+    border-radius: 50%;
+    background: none;
+    color: var(--text-faint);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    align-self: center;
+    flex: none;
   }
   .behind {
     /* Symmetric padding, because the row aligns on the baseline now and the box

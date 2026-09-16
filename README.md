@@ -55,6 +55,15 @@ market is not carrying. The screen stays awake while the board is open.
 conferences** push the games you care about up the board, weighted higher when both teams
 qualify than one. Tab, favorites and market all persist in the browser.
 
+## Explaining itself
+
+The `?` beside the freshness indicator opens a plain-language account of what the rating means and
+what each setting does, written for somebody using the board rather than maintaining it.
+
+It is the only explanation most people will read, so it is kept current ahead of this file. Any
+change that alters what the board appears to do belongs in
+[src/lib/HelpPanel.svelte](src/lib/HelpPanel.svelte) before it is finished.
+
 ## How the score works
 
 Every live game gets a 0-100 score and the board sorts on it.
