@@ -471,9 +471,20 @@
   const topScore = $derived(top ? scoreOf(top) : 0);
   /* The label has to match what is actually on. Shouting "turn this on" at a
      mediocre 30 on a quiet weeknight is the same overpromise as calling a
-     15-minute window a trend. */
+     15-minute window a trend.
+
+     Both superlatives need a field to be superlative over. On a Thursday there is
+     one game, and "best of what is on" ranks it against nothing: it reads as a
+     sentence assembled without looking at the board it describes. "Turn this on"
+     survives because it is an instruction rather than a comparison. */
   const heroLabel = $derived(
-    topScore >= 75 ? "TURN THIS ON" : topScore >= 55 ? "BEST GAME ON" : "BEST OF WHAT IS ON",
+    topScore >= 75
+      ? "TURN THIS ON"
+      : live.length === 1
+        ? "THE ONLY GAME ON"
+        : topScore >= 55
+          ? "BEST GAME ON"
+          : "BEST OF WHAT IS ON",
   );
   const rest = $derived(live.slice(1));
   // No slice here any more: folding made the list cheap, so MAX_CARDS decides how

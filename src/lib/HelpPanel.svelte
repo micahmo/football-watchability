@@ -57,9 +57,9 @@
         <strong>Favorites.</strong> Games involving a conference you follow get a boost up the board.
       </li>
       <li>
-        <strong>Market.</strong> Your postal code works out which regional game your own channels are
-        carrying. The channel chip then names the station showing it, or says the game is out of
-        market. Nothing is pushed down for it unless you ask.
+        <strong>Market.</strong> Your postal code works out which of your own channels is showing
+        each game, in both leagues. The chip then names the station, or marks the game as one your
+        channels are not carrying. Nothing is pushed down for it unless you ask.
       </li>
       <li>
         <strong>My channels first.</strong> Sorts games your channels are not carrying to the bottom,

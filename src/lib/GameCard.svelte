@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
   import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
-  import { channelLabel } from "../../shared/channel";
+  import ChannelChip from "./ChannelChip.svelte";
   import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
@@ -76,7 +76,6 @@
   /* Only faded when the viewer asked for their own channels first. Otherwise the
      game is marked in the chip and otherwise treated like any other. */
   const unavailable = $derived(outOfMarket && prefs.inMarketFirst);
-  const channel = $derived(channelLabel(game));
   const showPossession = $derived(variant === "live" && game.possessionTeamId !== null);
 
   /** Home-relative spread: negative means the home team was favoured. */
@@ -227,7 +226,7 @@
       {#if variant === "final"}
         <span class="played mono">{kickoffWhen(game.startDate)}</span>
       {/if}
-      {#if channel}<span class="channel-chip">{channel}</span>{/if}
+      <ChannelChip {game} />
       {#if !game.nationalBroadcast}<span class="note warn">local feed</span>{/if}
       <!-- Only shown once a postal code makes the answer real. Before that every
            1:00 game is equally "regional", which is noise rather than a signal. -->

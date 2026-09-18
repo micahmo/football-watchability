@@ -143,6 +143,10 @@ The board reads the Gracenote listings grid for your postal code and reports whi
 own affiliates are carrying. The channel chip names the station showing a game, or says the game
 is out of market.
 
+College is covered too. Those games are never split by market, so none of them is ever out of
+market, but a college game on ABC, CBS, FOX or the CW is on your local affiliate and the chip
+names it.
+
 **My channels first**, off by default, sorts games your market is not showing to the bottom, fades
 them and leaves them out of notifications. It appears once a market is set.
 
@@ -257,7 +261,7 @@ ESPN_DATES=20260905 RECENT_WINDOW_HOURS=120 npm run dev:server
 
 - `GET /api/snapshot?league=nfl|cfb` - the full ranked board (`live`, `upcoming`, `recent`)
 - `GET /api/snapshot?league=nfl&zip=02134` - the same board, annotated with what that market is
-  carrying. Ignored for college
+  carrying. Both leagues
 - `GET /api/stream` - the same board as a live event stream, same query parameters
 - `GET /api/health` - per-league poller status, last update, failure count, next poll
 - `GET /api/notifications/config` - whether alerts are available, and the public push key

@@ -6,7 +6,7 @@ import { LeaguePoller } from "./poller.js";
 import { StandingsStore } from "./standings.js";
 import { History } from "./history.js";
 import { PlaceStore } from "./places.js";
-import { ListingsStore } from "./listings.js";
+import { ListingsStore, isLocalStation } from "./listings.js";
 import { SubscriptionStore, CATEGORIES, type Category } from "./subscriptions.js";
 import { AlertEngine } from "./alerts.js";
 import type { Game, League, Snapshot } from "../shared/types.js";
@@ -120,8 +120,14 @@ function viewerFor(raw: string, req: http.IncomingMessage): Viewer {
 
 /** The board as one viewer sees it, market annotations included. */
 function resolveView(viewer: Viewer, base: Snapshot): Promise<Snapshot> {
-  // Only the NFL splits a slate by market; college games are on cable.
-  if (viewer.zip === null || viewer.league !== "nfl") return Promise.resolve(base);
+  /*
+   * Both leagues now. Only the NFL splits a slate by market, and only the NFL can
+   * be out of market, but a college game on ABC is on the local ABC station just
+   * as an NFL one is and that is the channel worth naming. College carries no
+   * regional peers, so a lookup that finds nothing leaves it unmarked rather than
+   * calling it unavailable.
+   */
+  if (viewer.zip === null) return Promise.resolve(base);
   return Promise.race([
     withMarket(base, viewer.zip, viewer.detected, viewer.city),
     new Promise<Snapshot>((resolve) => setTimeout(() => resolve(base), MARKET_BUDGET_MS)),
@@ -277,7 +283,7 @@ async function withMarket(
   city: string | null,
 ): Promise<Snapshot> {
   const games = [...snapshot.live, ...snapshot.upcoming, ...snapshot.recent];
-  const market = await listings.resolve(zip, games);
+  const market = await listings.resolve(zip, games, snapshot.league);
   if (market === null) return snapshot;
 
   /*
@@ -297,11 +303,11 @@ async function withMarket(
    * called out of market.
    */
   const annotate = (game: Game): Game => {
-    const found = (listings.lookup(market, game)?.stations ?? []).filter(
-      // The cable channel lists itself. Measured for 02108: Giants at Rams came
-      // back as WCVB, WMUR, ESPN, and "ESPN · ESPN" is not a chip.
-      (station) => station.toUpperCase() !== (game.broadcast ?? "").toUpperCase(),
-    );
+    // Local stations only. The grid lists the cable network against its own game
+    // too, so Giants at Rams in Boston arrives as WCVB, WMUR, ESPN and a college
+    // game on the SEC Network arrives as SEC: neither restatement tells anybody
+    // where to find it, and one of them reads as "ESPN · ESPN".
+    const found = (listings.lookup(market, game)?.stations ?? []).filter(isLocalStation);
     // All of them, not just the nearest. The grid is this viewer's own lineup, so
     // every station in it is one they receive: a Boston lineup carries Manchester's
     // WMUR beside WCVB and a Monday night simulcast is genuinely on both. A game

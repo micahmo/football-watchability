@@ -112,20 +112,20 @@
          no out-of-market games to sort, so the toggle would do nothing and still
          ask to be understood. -->
     {#if active !== null}
-      <label class="item" class:on={prefs.inMarketFirst}>
+      <label class="toggle" class:on={prefs.inMarketFirst}>
+        <span class="copy">
+          <span class="name">My channels first</span>
+          <span class="blurb">
+            Games you cannot get sort to the bottom and stop sending notifications.
+          </span>
+        </span>
         <input
           type="checkbox"
+          role="switch"
           checked={prefs.inMarketFirst}
           onchange={() => setInMarketFirst(!prefs.inMarketFirst)}
         />
-        <span>
-          <span class="name">My channels first</span>
-          <span class="blurb">
-            Sort games your channels are not carrying to the bottom, fade them, and
-            leave them out of notifications. Off, every game ranks on merit and the
-            channel chip is what tells you it is out of market.
-          </span>
-        </span>
+        <span class="track" aria-hidden="true"></span>
       </label>
     {/if}
     {#if active !== null && stations.length}
@@ -135,31 +135,76 @@
 {/if}
 
 <style>
-  .item {
+  /* A row, not a tick and a paragraph. The setting is a switch, so it reads left
+     to right like one: what it does, then whether it is on. */
+  .toggle {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-top: 10px;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
     font-size: 12px;
-    color: var(--text-dim);
     cursor: pointer;
   }
-  .item input {
-    margin-top: 2px;
-    flex: none;
+  .copy {
+    min-width: 0;
   }
-  .item .name {
+  .name {
     display: block;
     font-weight: 600;
+    color: var(--text-dim);
   }
-  .item.on .name {
+  .toggle.on .name {
     color: var(--text);
   }
-  .item .blurb {
+  .blurb {
     display: block;
     margin-top: 2px;
     color: var(--text-faint);
     line-height: 1.4;
+  }
+  /* The input still takes the click, the focus and the keyboard; the track is
+     what gets drawn. Hidden with opacity rather than display so it stays
+     focusable. */
+  .toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .track {
+    flex: none;
+    position: relative;
+    width: 32px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    transition: background 140ms ease, border-color 140ms ease;
+  }
+  .track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    transition: transform 140ms ease, background 140ms ease;
+  }
+  .toggle.on .track {
+    background: var(--cool);
+    border-color: var(--cool);
+  }
+  .toggle.on .track::after {
+    background: var(--bg);
+    transform: translateX(14px);
+  }
+  .toggle input:focus-visible ~ .track {
+    outline: 2px solid var(--cool);
+    outline-offset: 2px;
   }
   .dot {
     width: 6px;

@@ -1,4 +1,4 @@
-import type { Game } from "../shared/types.js";
+import type { Game, League } from "../shared/types.js";
 
 /**
  * Which regional NFL game your own television is actually going to show.
@@ -93,6 +93,19 @@ export interface MarketListings {
 
 /** A complete US broadcast call sign: K or W, then two or three letters. */
 const CALL_SIGN = /^[KW][A-Z]{2,3}$/;
+
+/**
+ * Whether a call sign belongs to a local broadcast station rather than a cable
+ * network.
+ *
+ * The grid lists both against a game, so Giants at Rams in Boston comes back as
+ * WCVB, WMUR and ESPN, and a college game on the SEC Network comes back as SEC.
+ * Only the first kind answers "which channel here", and the FCC convention makes
+ * the test easy: a licensed station's call sign starts with K or W.
+ */
+export function isLocalStation(station: string): boolean {
+  return CALL_SIGN.test(station);
+}
 
 /**
  * "WBZDT", "KIROLD5" and "WBTSCD" are all just "WBZ", "KIRO" and "WBTS" to a
@@ -212,10 +225,22 @@ export class ListingsStore {
       if (!station) continue;
       for (const event of channel?.events ?? []) {
         const title = String(event?.program?.title ?? "");
-        // Specifically NFL: a loose "football" test also matches the college
-        // games, which are on cable and never split by market, and those extra
-        // stations then muddy the market chip.
-        if (!/^NFL Football/i.test(title)) continue;
+        /*
+         * Both leagues, anchored at the start of the title.
+         *
+         * College was excluded on the grounds that it is cable-only, which is not
+         * true: on one Saturday window a Boston lineup had Florida State at
+         * Alabama on WCVB, USC at Rutgers on WBZ, Utah State at Utah on WFXT and
+         * Stanford at Duke on WLVI. A college game on ABC is on the local ABC
+         * station exactly as an NFL one is, and that is the channel worth naming.
+         *
+         * Anchored because a loose "football" test reaches "Football Ligue 1", and
+         * anchored at the title rather than matched loosely because "FS1 College
+         * Football Extra" and "CW College Football Countdown" are studio shows.
+         * Those carry no episode title and would be dropped below regardless, but
+         * only by accident.
+         */
+        if (!/^(NFL|College) Football/i.test(title)) continue;
         // "Buffalo Bills at Houston Texans". Without it we know a game is on but
         // not which one, which is no better than the scoreboard.
         const episode = String(event?.program?.episodeTitle ?? "");
@@ -248,8 +273,13 @@ export class ListingsStore {
     );
   }
 
-  private async refresh(zip: string, lineup: Lineup, games: Game[]): Promise<MarketListings | null> {
-    const key = `${zip}|${lineup.id}`;
+  private async refresh(
+    zip: string,
+    lineup: Lineup,
+    games: Game[],
+    league: League,
+  ): Promise<MarketListings | null> {
+    const key = `${zip}|${lineup.id}|${league}`;
     const listings: MarketListings = { zip, stations: [], byMatchup: new Map() };
     let anySucceeded = false;
     for (const start of windowsFor(games)) {
@@ -297,15 +327,23 @@ export class ListingsStore {
     return this.marketName.get(zip) ?? null;
   }
 
-  async resolve(zip: string, games: Game[]): Promise<MarketListings | null> {
+  /*
+   * Keyed by league as well as by market.
+   *
+   * The windows fetched are derived from the games handed in, and the two slates
+   * do not overlap: college is Saturday, the NFL is Sunday. One cache entry for
+   * both meant whichever league asked first filled it, and the other read back
+   * listings that had never covered its own kickoffs.
+   */
+  async resolve(zip: string, games: Game[], league: League): Promise<MarketListings | null> {
     const known = this.resolvedLineup.get(zip);
-    if (known !== undefined) return this.get(zip, known, games);
+    if (known !== undefined) return this.get(zip, known, games, league);
 
     try {
       const provider = this.pickLineup(await this.providers(zip));
       if (provider !== null) {
         const lineup = lineupFromId(provider.lineupId, provider.device);
-        const narrowed = await this.get(zip, lineup, games);
+        const narrowed = await this.get(zip, lineup, games, league);
         if (narrowed !== null) {
           this.resolvedLineup.set(zip, lineup);
           if (provider.location) this.marketName.set(zip, provider.location);
@@ -319,11 +357,16 @@ export class ListingsStore {
       );
     }
     // No market lineup, or it came back empty. Over the air is worse but real.
-    return this.get(zip, lineupFromId(null, null), games);
+    return this.get(zip, lineupFromId(null, null), games, league);
   }
 
-  async get(zip: string, lineup: Lineup, games: Game[]): Promise<MarketListings | null> {
-    const key = `${zip}|${lineup.id}`;
+  async get(
+    zip: string,
+    lineup: Lineup,
+    games: Game[],
+    league: League,
+  ): Promise<MarketListings | null> {
+    const key = `${zip}|${lineup.id}|${league}`;
     const cached = this.byZip.get(key);
     if (cached && Date.now() - cached.fetchedAt < TTL_MS) return cached.listings;
 
@@ -341,7 +384,7 @@ export class ListingsStore {
     const running = this.inFlight.get(key);
     if (running) return running;
 
-    const task = this.refresh(zip, lineup, games)
+    const task = this.refresh(zip, lineup, games, league)
       .catch((err) => {
         console.error(`[listings] ${zip} failed: ${err instanceof Error ? err.message : err}`);
         return null;
@@ -354,7 +397,24 @@ export class ListingsStore {
     return task;
   }
 
+  /**
+   * Two spellings, because the grid names the two leagues differently.
+   *
+   * An NFL game is "Detroit Lions at Buffalo Bills", which is `displayName`. A
+   * college game is "Florida State at Alabama", the school without the mascot,
+   * which is `name`: matching college on `displayName` looks for "Florida State
+   * Seminoles" and found nothing at all, 0 of 81 games on one Saturday.
+   *
+   * Some college names still will not match, since ESPN says UTEP where the grid
+   * says Texas-El Paso. That costs nothing: a miss leaves the game unmarked, and
+   * college has no regional peers, so it can never be read as out of market. Of
+   * the games actually on a local station, all six matched.
+   */
   lookup(listings: MarketListings, game: Game): GameAvailability | null {
-    return listings.byMatchup.get(matchupKey(game.away.displayName, game.home.displayName)) ?? null;
+    return (
+      listings.byMatchup.get(matchupKey(game.away.displayName, game.home.displayName)) ??
+      listings.byMatchup.get(matchupKey(game.away.name, game.home.name)) ??
+      null
+    );
   }
 }
