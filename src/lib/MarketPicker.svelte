@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { clearMarket, prefs, redetectMarket, setZip } from "./prefs.svelte";
+  import { clearMarket, prefs, redetectMarket, setInMarketFirst, setZip } from "./prefs.svelte";
 
   let {
     stations,
@@ -108,6 +108,26 @@
         <button type="button" class="clear" onclick={redetect}>Redetect</button>
       {/if}
     </div>
+    <!-- Only once a market is resolved. With nothing to compare against there are
+         no out-of-market games to sort, so the toggle would do nothing and still
+         ask to be understood. -->
+    {#if active !== null}
+      <label class="item" class:on={prefs.inMarketFirst}>
+        <input
+          type="checkbox"
+          checked={prefs.inMarketFirst}
+          onchange={() => setInMarketFirst(!prefs.inMarketFirst)}
+        />
+        <span>
+          <span class="name">My channels first</span>
+          <span class="blurb">
+            Sort games your channels are not carrying to the bottom, fade them, and
+            leave them out of notifications. Off, every game ranks on merit and the
+            channel chip is what tells you it is out of market.
+          </span>
+        </span>
+      </label>
+    {/if}
     {#if active !== null && stations.length}
       <p class="stations">Reading {stations.join(", ")}.</p>
     {/if}
@@ -115,6 +135,32 @@
 {/if}
 
 <style>
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .item input {
+    margin-top: 2px;
+    flex: none;
+  }
+  .item .name {
+    display: block;
+    font-weight: 600;
+  }
+  .item.on .name {
+    color: var(--text);
+  }
+  .item .blurb {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-faint);
+    line-height: 1.4;
+  }
   .dot {
     width: 6px;
     height: 6px;

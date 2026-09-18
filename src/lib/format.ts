@@ -163,3 +163,4 @@ export function hasRecord(record: string | null | undefined): boolean {
   if (!record) return false;
   return /[1-9]/.test(record);
 }
+

@@ -57,8 +57,15 @@
         <strong>Favorites.</strong> Games involving a conference you follow get a boost up the board.
       </li>
       <li>
-        <strong>Market.</strong> Games your channels are not carrying keep their real rating but stop
-        being offered first, because recommending something you cannot watch is no recommendation.
+        <strong>Market.</strong> Your postal code works out which regional game your own channels are
+        carrying. The channel chip then names the station showing it, or says the game is out of
+        market. Nothing is pushed down for it unless you ask.
+      </li>
+      <li>
+        <strong>My channels first.</strong> Sorts games your channels are not carrying to the bottom,
+        fades them, and leaves them out of notifications. Off by default, since a good game is worth
+        following whether or not you can watch it, and a league subscription makes all of them
+        watchable anyway.
       </li>
       <li>
         <strong>Delay.</strong> Television runs behind live, so the board can spoil the game it is
@@ -72,7 +79,8 @@
       Two kinds, and a handful a day at most. Something already on is worth switching to: it has
       become the best thing available, it is turning into a classic, or an underdog is doing
       something it should not be. Or something is about to start: the best game of a busy kickoff
-      window, or the only game in its slot. Never for a game your channels are not carrying.
+      window, or the only game in its slot. Each one names the channel, and says when a game is out
+      of market. Turn on My channels first and those stop arriving altogether.
     </p>
 
     <h3>The other two lists</h3>

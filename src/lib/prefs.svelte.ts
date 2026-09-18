@@ -18,6 +18,21 @@ export interface Prefs {
    * means "work it out for me": this one means "do not, even if you can".
    */
   marketOff: boolean;
+  /**
+   * Whether a game this viewer's own channels are not carrying is sorted down,
+   * faded and kept out of notifications.
+   *
+   * Off by default, and deliberately so. Suppressing out-of-market games assumes
+   * the only reason to look at one is to watch it on an aerial, which is wrong
+   * twice over: a good game is worth following whether or not it can be watched,
+   * and Sunday Ticket makes every game watchable regardless of what the local
+   * affiliates carry. The board still says which games are out of market, in the
+   * channel chip, so the information survives without the judgement attached.
+   *
+   * Labelled "My channels first" rather than anything about hiding, because the
+   * games are demoted rather than removed.
+   */
+  inMarketFirst: boolean;
   /** Alert categories per league. Empty everywhere means notifications are off. */
   alerts: Record<League, Category[]>;
   /**
@@ -42,6 +57,7 @@ const DEFAULTS: Prefs = {
   favorites: { nfl: [], cfb: [] },
   zip: null,
   marketOff: false,
+  inMarketFirst: false,
   alerts: { nfl: [], cfb: [] },
   upcomingOrder: "rank",
   delaySeconds: 0,
@@ -144,5 +160,10 @@ export function toggleFavorite(league: League, conference: string): void {
   prefs.favorites[league] = current.includes(conference)
     ? current.filter((c) => c !== conference)
     : [...current, conference];
+  persist();
+}
+
+export function setInMarketFirst(on: boolean): void {
+  prefs.inMarketFirst = on;
   persist();
 }

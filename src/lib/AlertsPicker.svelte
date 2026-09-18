@@ -109,7 +109,14 @@
     if (syncTimer !== null) clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
       synced = key;
-      void subscribe({ publicKey, wants, zip, favorites, delaySeconds }).then((ok) => {
+      void subscribe({
+        publicKey,
+        wants,
+        zip,
+        favorites,
+        delaySeconds,
+        inMarketFirst: prefs.inMarketFirst,
+      }).then((ok) => {
         // Let the next change try again rather than leaving the server behind.
         if (!ok) synced = null;
       });
@@ -144,7 +151,8 @@
           wants,
           zip: marketZip,
           favorites: prefs.favorites,
-      delaySeconds: prefs.delaySeconds,
+          delaySeconds: prefs.delaySeconds,
+          inMarketFirst: prefs.inMarketFirst,
         });
         if (!ok) {
           // Permission refused, or the push service said no. Put the switch back

@@ -73,6 +73,12 @@ export interface SubscribeInput {
   favorites: Record<League, string[]>;
   /** Seconds the viewer holds their board behind live; pushes wait the same. */
   delaySeconds: number;
+  /**
+   * Whether this viewer asked for their own channels first. Sent because it is
+   * what decides whether an out-of-market game is worth interrupting them for,
+   * and the server evaluates alerts the way their board would.
+   */
+  inMarketFirst: boolean;
 }
 
 /**
@@ -115,20 +121,22 @@ export async function subscribe(input: SubscribeInput): Promise<boolean> {
       zip: input.zip,
       favorites: input.favorites,
       delaySeconds: input.delaySeconds,
+      inMarketFirst: input.inMarketFirst,
     }),
   });
   return res.ok;
 }
 
 /**
- * Pushes a changed delay to an existing subscription, and does nothing otherwise.
+ * Pushes changed board settings to an existing subscription, and does nothing
+ * otherwise.
  *
- * Separate from `subscribe` because it must never create one: the delay control
- * is a board setting, and nudging it should not prompt somebody for notification
- * permission they never asked for. Reuses the browser subscription already in
- * hand, so there is no key to fetch and no prompt to raise.
+ * Separate from `subscribe` because it must never create one: the delay and the
+ * channel preference are board settings, and nudging either should not prompt
+ * somebody for notification permission they never asked for. Reuses the browser
+ * subscription already in hand, so there is no key to fetch and no prompt to raise.
  */
-export async function updateDelaySeconds(
+export async function updateBoardSettings(
   input: Omit<SubscribeInput, "publicKey">,
 ): Promise<void> {
   if (!pushSupported() || Notification.permission !== "granted") return;
@@ -148,6 +156,7 @@ export async function updateDelaySeconds(
         zip: input.zip,
         favorites: input.favorites,
         delaySeconds: input.delaySeconds,
+        inMarketFirst: input.inMarketFirst,
       }),
     });
   } catch {

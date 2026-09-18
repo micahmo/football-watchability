@@ -280,14 +280,36 @@ async function withMarket(
   const market = await listings.resolve(zip, games);
   if (market === null) return snapshot;
 
-  const annotate = (game: Game): Game => ({
-    ...game,
-    // Only the market-split games need an answer. A national broadcast is on
-    // everywhere, and saying "not on your channels" because the grid happens not
-    // to list ESPN would be worse than saying nothing.
-    marketStations:
-      (game.regionalPeers ?? 0) > 1 ? (listings.lookup(market, game)?.stations ?? []) : null,
-  });
+  /*
+   * Three answers, not two.
+   *
+   * Every NFL game in the viewer's lineup is in the grid, national ones included:
+   * the Sunday night game is on their own NBC affiliate and a Monday night game
+   * is on their ABC affiliate whenever it is simulcast there. Looking those up
+   * costs nothing, since the grid has already been fetched and keyed by matchup,
+   * and it answers the only question the chip is for, which is where to find the
+   * game rather than which network sells it.
+   *
+   * What cannot be widened is the verdict. Absence from the grid means "not on
+   * your channels" only for a game the networks actually split by market; a game
+   * on Prime or Netflix is equally absent and is on for everybody. So a lookup
+   * that finds nothing falls back to the old test, and only a split game is
+   * called out of market.
+   */
+  const annotate = (game: Game): Game => {
+    const found = (listings.lookup(market, game)?.stations ?? []).filter(
+      // The cable channel lists itself. Measured for 02108: Giants at Rams came
+      // back as WCVB, WMUR, ESPN, and "ESPN · ESPN" is not a chip.
+      (station) => station.toUpperCase() !== (game.broadcast ?? "").toUpperCase(),
+    );
+    // All of them, not just the nearest. The grid is this viewer's own lineup, so
+    // every station in it is one they receive: a Boston lineup carries Manchester's
+    // WMUR beside WCVB and a Monday night simulcast is genuinely on both. A game
+    // the networks split comes back with exactly one station in every market
+    // measured, so the list only ever grows for a national broadcast.
+    if (found.length > 0) return { ...game, marketStations: found };
+    return { ...game, marketStations: (game.regionalPeers ?? 0) > 1 ? [] : null };
+  };
 
   return {
     ...snapshot,
@@ -381,7 +403,8 @@ function parseSubscription(body: unknown): Parameters<SubscriptionStore["upsert"
   // browser is trusted and this one schedules a timer.
   const raw = Number(b?.delaySeconds);
   const delaySeconds = Number.isFinite(raw) ? Math.min(120, Math.max(0, Math.round(raw))) : 0;
-  return { endpoint, keys: { p256dh, auth }, wants, zip, favorites, delaySeconds };
+  const inMarketFirst = b?.inMarketFirst === true;
+  return { endpoint, keys: { p256dh, auth }, wants, zip, favorites, delaySeconds, inMarketFirst };
 }
 
 function leagueFrom(url: string): League {

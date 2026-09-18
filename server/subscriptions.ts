@@ -27,6 +27,15 @@ export interface Subscription {
    */
   delaySeconds: number;
   favorites: Record<League, string[]>;
+  /**
+   * Whether this viewer sorts their own channels first on the board.
+   *
+   * Off, an out-of-market game is worth a notification like any other, because
+   * the viewer said they want to know about a good game whether or not their
+   * local affiliates carry it. The body says it is out of market, so the choice
+   * of whether to go looking for it stays theirs.
+   */
+  inMarketFirst: boolean;
   createdAt: string;
   /**
    * When a push service last accepted a message for this endpoint, and when a

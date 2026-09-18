@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
   import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
+  import { channelLabel } from "../../shared/channel";
+  import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
   import WinProbBar from "./WinProbBar.svelte";
@@ -70,7 +72,11 @@
   );
   const clockText = $derived(clockLabel(game));
   /** Null until a postal code is set, so absence means unknown, not unavailable. */
-  const unavailable = $derived(game.marketStations !== null && game.marketStations.length === 0);
+  const outOfMarket = $derived(game.marketStations !== null && game.marketStations.length === 0);
+  /* Only faded when the viewer asked for their own channels first. Otherwise the
+     game is marked in the chip and otherwise treated like any other. */
+  const unavailable = $derived(outOfMarket && prefs.inMarketFirst);
+  const channel = $derived(channelLabel(game));
   const showPossession = $derived(variant === "live" && game.possessionTeamId !== null);
 
   /** Home-relative spread: negative means the home team was favoured. */
@@ -221,14 +227,10 @@
       {#if variant === "final"}
         <span class="played mono">{kickoffWhen(game.startDate)}</span>
       {/if}
-      {#if game.broadcast}<span class="channel-chip">{game.broadcast}</span>{/if}
+      {#if channel}<span class="channel-chip">{channel}</span>{/if}
       {#if !game.nationalBroadcast}<span class="note warn">local feed</span>{/if}
       <!-- Only shown once a postal code makes the answer real. Before that every
            1:00 game is equally "regional", which is noise rather than a signal. -->
-      <!-- Only the exclusion. The channel chip already says CBS or FOX, and the
-           grid's call signs span neighbouring markets whose affiliates this viewer
-           cannot receive, so naming them was noise at best and wrong at worst. -->
-      {#if unavailable}<span class="note">not on your channels</span>{/if}
       <!-- Not gated on being open. Every other chip in this row shows when folded,
            and the row already wraps for multiple tags, so holding this one back was
            an exception with no rule behind it. -->

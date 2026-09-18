@@ -1,5 +1,6 @@
 import type { Game, League, Snapshot } from "../shared/types.js";
 import { WEIGHTS, combine } from "../shared/weights.js";
+import { channelLabel } from "../shared/channel.js";
 import type { Category, Subscription, SubscriptionStore } from "./subscriptions.js";
 
 /** Live score a game must reach to be worth interrupting somebody for. */
@@ -138,8 +139,8 @@ function favoriteBoost(game: Game, favorites: string[]): number {
  * ranking and wrong for these alerts, every one of which claims something about
  * how the game is *going*: Denver at Kansas City crossed the classic threshold at
  * 0-0 with fifteen minutes on the clock, purely on an anticipation of 74 and
- * thirteen for two favoured conferences, and went out as "is turning into
- * something" before a snap.
+ * thirteen for two favoured conferences, and went out as "is getting good"
+ * before a snap.
  *
  * Kickoff and primetime are unaffected and still rank on anticipation, because
  * saying a good game is starting is exactly what they are for.
@@ -150,7 +151,15 @@ function earned(game: Game, favorites: string[]): number {
   return Math.min(100, base + favoriteBoost(game, favorites));
 }
 
-/** Their own market says this is not on, so there is nothing to switch to. */
+/**
+ * Their own market is not carrying this one.
+ *
+ * Only a reason to skip the alert for viewers who asked for their own channels
+ * first. Off, an out-of-market game is worth mentioning like any other and the
+ * body says which it is, because a good game is worth knowing about whether or
+ * not the local affiliates carry it, and a Sunday Ticket subscriber can watch it
+ * regardless of what they do.
+ */
 function unavailable(game: Game): boolean {
   return game.marketStations !== null && game.marketStations.length === 0;
 }
@@ -220,7 +229,7 @@ export class AlertEngine {
     if (wants.length === 0) return [];
 
     const favorites = sub.favorites[league] ?? [];
-    const live = snapshot.live.filter((g) => !unavailable(g));
+    const live = snapshot.live.filter((g) => !(sub.inMarketFirst && unavailable(g)));
     const out: Alert[] = [];
 
     for (const game of live) {
@@ -301,7 +310,9 @@ export class AlertEngine {
        */
       const rank = (g: Game) =>
         (g.anticipation ?? this.anticipation.get(g.id) ?? 0) + favoriteBoost(g, favorites);
-      const best = games.filter((g) => !unavailable(g)).sort((a, b) => rank(b) - rank(a))[0];
+      const best = games
+        .filter((g) => !(sub.inMarketFirst && unavailable(g)))
+        .sort((a, b) => rank(b) - rank(a))[0];
       if (!best) continue;
 
       /*
@@ -507,7 +518,14 @@ function lineLabel(game: Game): string {
 
 function detail(alert: Alert): string {
   const game = alert.game;
-  const network = game.broadcast ? ` · ${game.broadcast}` : "";
+  /*
+   * The same label the board's channel chip shows, so an alert for a game the
+   * viewer's own affiliates are not carrying says as much. Without it, turning
+   * the channel preference off buys notifications for games with no hint that
+   * watching one means a subscription rather than the aerial.
+   */
+  const channel = channelLabel(game);
+  const network = channel ? ` · ${channel}` : "";
   if (alert.category === "kickoff" || alert.category === "primetime") {
     // "Kicking off now" only repeats the title. What is useful before a game is
     // how good it is expected to be, which matters most for the primetime alert,

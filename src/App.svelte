@@ -11,7 +11,7 @@
   import DelayPicker from "./lib/DelayPicker.svelte";
   import HelpPanel from "./lib/HelpPanel.svelte";
   import { setLeague, tabChoice } from "./lib/prefs.svelte";
-  import { updateDelaySeconds } from "./lib/push";
+  import { updateBoardSettings } from "./lib/push";
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
 
   import GameCard from "./lib/GameCard.svelte";
@@ -361,16 +361,19 @@
     release(Date.now());
   });
 
-  /* Debounced, because the control is a slider: telling the server on every
-     intermediate value would be a request per pixel dragged. */
+  /* Debounced, because one of these controls is a slider: telling the server on
+     every intermediate value would be a request per pixel dragged. The channel
+     preference rides along rather than opening a second path to say one thing. */
   $effect(() => {
     const seconds = prefs.delaySeconds;
+    const inMarketFirst = prefs.inMarketFirst;
     const timer = setTimeout(() => {
-      void updateDelaySeconds({
+      void updateBoardSettings({
         wants: prefs.alerts,
         zip: lastMarketZip,
         favorites: prefs.favorites,
         delaySeconds: seconds,
+        inMarketFirst,
       });
     }, 1500);
     return () => clearTimeout(timer);
@@ -414,10 +417,14 @@
 
   /**
    * A game the viewer's own channels are not carrying still gets its real score,
-   * because the score says how good the game is. It just stops being offered
-   * first, since recommending something unwatchable is no recommendation at all.
+   * because the score says how good the game is. Whether it also stops being
+   * offered first is the viewer's call: sorting it down assumes they only care
+   * about a game they can watch on an aerial, and a Sunday Ticket subscriber can
+   * watch every one of them. Off, everything ranks on merit alone and the channel
+   * chip is what says a game is out of market.
    */
   function watchable(game: Game): boolean {
+    if (!prefs.inMarketFirst) return true;
     return game.marketStations === null || game.marketStations.length > 0;
   }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
   import { hasRecord, kickoffTime, scoreColor, teamColor } from "./format";
+  import { channelLabel } from "../../shared/channel";
+  import { prefs } from "./prefs.svelte";
 
   let { game, score, now = Date.now() }: { game: Game; score?: number; now?: number } = $props();
 
@@ -25,7 +27,10 @@
 
   const shown = $derived(score ?? game.anticipation ?? 0);
 
-  const unavailable = $derived(game.marketStations !== null && game.marketStations.length === 0);
+  const unavailable = $derived(
+    game.marketStations !== null && game.marketStations.length === 0 && prefs.inMarketFirst,
+  );
+  const channel = $derived(channelLabel(game));
 
   const accent = $derived(scoreColor(shown));
 </script>
@@ -52,7 +57,7 @@
       {/each}
     </span>
     <span class="line mono">
-      {#if game.broadcast}<span class="channel-chip">{game.broadcast}</span>{/if}
+      {#if channel}<span class="channel-chip">{channel}</span>{/if}
       {#if game.odds}<span>{game.odds}</span>{/if}
       {#if game.overUnder}<span>o/u {game.overUnder}</span>{/if}
       {#if !game.nationalBroadcast}<span class="local">local feed</span>{/if}

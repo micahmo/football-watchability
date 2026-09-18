@@ -48,8 +48,9 @@ Finished games do not fold, but the same six-at-a-time expander applies.
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
 kickoff window, and NFL primetime, where the only game in its slot is starting and the alert says
-plainly how good it is expected to be. At most three a day per league, never for a game your
-market is not carrying. The screen stays awake while the board is open.
+plainly how good it is expected to be. At most three a day per league. Each one names the channel
+and says when a game is out of market; **My channels first** stops those arriving at all. The
+screen stays awake while the board is open.
 
 **League tabs** switch between NFL and college; the NFL opens by default. **Favorite
 conferences** push the games you care about up the board, weighted higher when both teams
@@ -135,12 +136,15 @@ are held by the same amount.
 
 ## Can I actually watch it
 
-A great game you cannot get is not a recommendation. On Sunday afternoons the networks split the
-slate by market: eight games kick at 1:00, but only one CBS and one FOX game reaches any city.
+On Sunday afternoons the networks split the slate by market: eight games kick at 1:00, but only
+one CBS and one FOX game reaches any city.
 
 The board reads the Gracenote listings grid for your postal code and reports which of them your
-own affiliates are carrying. Games your market is not showing keep their real score but fade back
-and sort below the ones you can get.
+own affiliates are carrying. The channel chip names the station showing a game, or says the game
+is out of market.
+
+**My channels first**, off by default, sorts games your market is not showing to the bottom, fades
+them and leaves them out of notifications. It appears once a market is set.
 
 Behind Cloudflare you do not have to type a postal code: switch on the managed transform *Add
 visitor location headers* and the board uses `CF-Postal-Code` as the default market. The control
