@@ -33,7 +33,8 @@ games are never buried under a better game later in the week. Every game on a da
 runs chronologically, for reading the day in order and seeing which slots are worth it. Each row
 shows kickoff time, the line, the over/under and the network.
 
-**Just finished**, the recent recap, best first. Games stay on the board for eighteen hours.
+**Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
+kickoff.
 
 An open live card draws the field: where the ball is, the line of scrimmage, the line to gain, how
 far the drive has come and which way the offence is going. The pitch is always drawn. Each marker

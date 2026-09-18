@@ -771,7 +771,10 @@
 
   {#if recent.length}
     <section>
-      <h2 class="section-head">Just finished, best first</h2>
+      <!-- "Recently", not "just": the window is eighteen hours from kickoff, so a
+           Thursday night game is still here on Friday afternoon and a 1:00 Sunday
+           game is still here at bedtime. -->
+      <h2 class="section-head">Recently finished, best first</h2>
       <div class="stack">
         {#each showAllRecent ? recent : recent.slice(0, MAX_CARDS) as game (game.id)}
           <!-- Not collapsible. Everything a folded card hides is live-only: the win

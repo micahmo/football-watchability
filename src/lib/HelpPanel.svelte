@@ -95,7 +95,7 @@
     <p>
       <strong>Worth planning around</strong> rates games that have not kicked off, on the matchup
       rather than on anything that has happened.
-      <strong>Just finished</strong> is the recap, and asks whether a game mattered rather than
+      <strong>Recently finished</strong> is the recap, and asks whether a game mattered rather than
       whether it stayed close, so a big upset ranks alongside a thriller.
     </p>
 
