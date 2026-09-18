@@ -1156,18 +1156,29 @@
   .day-group + .day-group {
     margin-top: 14px;
   }
-  /* A label inside the card, quieter than the day heading above it: the day is
-     the structure, a window is a division within it. */
-  .window-head {
-    margin: 10px 0 2px;
+  /* The same mark as the "not on your channels" divider, because it does the same
+     job: an entry in the list that labels the rows under it rather than a title
+     floating above them. Scoped under .panel for the same reason, to outrank
+     ".panel p". No arrow, though: that one points down because it is a demotion
+     and the rows below are the ones being pushed away, where a window heading is
+     simply the name of what follows. */
+  .panel .window-head {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 9px 4px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
     font-size: 10px;
-    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
     color: var(--text-faint);
   }
-  .window-head:first-child {
-    margin-top: 2px;
+  /* The card's own edge is already a line. A second one directly under it reads
+     as an empty row. */
+  .panel .window-head:first-child {
+    border-top: none;
+    padding-top: 4px;
   }
   .day-head {
     display: flex;
