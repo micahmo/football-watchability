@@ -37,9 +37,10 @@ const KICKOFF_MIN_SLATE = 4;
  * kicking off together met the bar: Mercer at New Mexico, Northern Colorado at
  * Wyoming, Alabama State at Troy and UC Davis at SMU, best of them rated 26.
  *
- * Fifty-five because that is exactly where `expectation()` stops being negative.
- * Below it the notification's own body reads "Not expected to be much", and
- * interrupting somebody to tell them a game is not worth watching is self-defeating.
+ * Fifty-five because that is where a game stops being worth mentioning at all:
+ * it is the point below which `expectation()` tells a primetime viewer the game
+ * is not expected to be much, and interrupting somebody to say that the pick of
+ * a whole window is not worth watching is self-defeating.
  *
  * Primetime is deliberately exempt. Its premise is the opposite, that the only
  * game in its slot might not be good and is worth saying so about.
@@ -459,16 +460,26 @@ export class AlertEngine {
 }
 
 /**
- * The pregame bands the board itself uses, in words rather than a bare number.
+ * What the body says about a game nobody has seen yet.
  *
- * Nothing here may assume a time of day. "Worth clearing the evening" arrived at
- * one in the afternoon for a Sunday window, which reads as a template nobody
- * checked. The NFL plays at one, four and eight, and college starts at noon.
+ * Split by category, because the two alerts know different things. A kickoff
+ * alert picked this game out of a full window, so saying so is the useful part
+ * and no band is needed on top of it. A primetime alert has nothing to compare
+ * against, so it reports the game on its own terms.
+ *
+ * A comparison in the shared path produced a notification that argued with its
+ * own title: "Football is on: Lions at Bills", and directly underneath, "Among
+ * the best on the board", about the only game on the board.
+ *
+ * Nothing here may assume a time of day either. "Worth clearing the evening"
+ * arrived at one in the afternoon for a Sunday window. The NFL plays at one,
+ * four and eight, and college starts at noon.
  */
-function expectation(score: number): string {
-  if (score >= 80) return "Among the best on the board";
-  if (score >= 70) return "Should be a good one";
-  if (score >= 55) return "Worth having on";
+function expectation(alert: Alert): string {
+  if (alert.category === "kickoff") return "Best of the games kicking off";
+  if (alert.score >= 80) return "Should be a good one";
+  if (alert.score >= 70) return "Should be decent";
+  if (alert.score >= 55) return "Worth having on";
   return "Not expected to be much";
 }
 
@@ -504,7 +515,7 @@ function detail(alert: Alert): string {
     // earns its place for the same reason: the board shows it on every row, so a
     // notification without it asks someone to open the app to learn what it knew.
     const line = lineLabel(game);
-    return `${expectation(alert.score)} · expected ${Math.round(alert.score)}${line ? ` · ${line}` : ""}${network}`;
+    return `${expectation(alert)} · expected ${Math.round(alert.score)}${line ? ` · ${line}` : ""}${network}`;
   }
   /*
    * The clock alone once nothing has been scored. "DEN 0, KC 0" reads as a fact
@@ -534,9 +545,12 @@ export function buildPayload(alerts: Alert[]): unknown {
    */
   const title =
     lead.category === "classic"
-      ? `${matchup} is turning into something`
+      ? `${matchup} is getting good`
       : lead.category === "primetime"
-        ? // Not a claim that it is good. The point is that it is the only one on.
+        ? // Not a claim that it is good. The point is that it is the only one on,
+          // and it has to read as an offer rather than as an answer to a question
+          // nobody asked: "Only game on: Lions at Bills" lists a fact, where this
+          // invites somebody to put it on.
           `Football is on: ${matchup}`
         : lead.category === "kickoff"
           ? `${matchup} kicks off now`
