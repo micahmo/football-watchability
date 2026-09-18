@@ -2,7 +2,7 @@
   import type { Game } from "../../shared/types";
   import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
-  import { isHidden, reveal } from "./spoilers.svelte";
+  import { isHidden, isProtected, reveal, unreveal } from "./spoilers.svelte";
   import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
@@ -84,6 +84,9 @@
     reveal(game.id);
     asking = false;
   }
+  /* Shown once a protected game has been looked at, so the curtain can be drawn
+     again without reloading the page. */
+  const revealedByHand = $derived(!hidden && game.state !== "pre" && isProtected(game));
 
   const accent = $derived(hidden ? "var(--calm)" : scoreColor(score));
   const showWp = $derived(
@@ -151,12 +154,12 @@
   role={hidden || collapsible ? "button" : undefined}
   tabindex={hidden || collapsible ? 0 : undefined}
   aria-expanded={hidden ? undefined : collapsible ? expanded : undefined}
-  onclick={hidden ? () => (asking = true) : collapsible ? () => ontoggle?.() : undefined}
+  onclick={hidden ? () => (asking = !asking) : collapsible ? () => ontoggle?.() : undefined}
   onkeydown={hidden || collapsible
     ? (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          if (hidden) asking = true;
+          if (hidden) asking = !asking;
           else ontoggle?.();
         }
       }
@@ -291,6 +294,18 @@
       {:else}
         <span class="tag spoiler">no spoilers · tap to show</span>
       {/if}
+      {#if revealedByHand}
+        <button
+          type="button"
+          class="tag spoiler rehide"
+          onclick={(e: MouseEvent) => {
+            e.stopPropagation();
+            unreveal(game.id);
+          }}
+        >
+          hide again
+        </button>
+      {/if}
     </div>
 
     {#if !collapsible && !hidden && variant === "live" && game.lastPlay}
@@ -301,7 +316,11 @@
          board, and what is being confirmed is about this one game. -->
     {#if asking}
       <div class="ask" transition:slide={{ duration: ms() }}>
-        <p>Show how this game is going?</p>
+        <!-- Present tense only while there is a game in progress. On the recap a
+             finished game is not "going" anywhere, and asking about it in the
+             present reads as a string written for one case and reused in the
+             other. -->
+        <p>{variant === "final" ? "Show how this game turned out?" : "Show how this game is going?"}</p>
         <div class="ask-row">
           <button
             type="button"
@@ -354,6 +373,16 @@
     border-color: var(--border-hi);
     background: none;
     font-weight: 600;
+  }
+  .rehide {
+    font: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rehide:hover {
+    color: var(--text-dim);
+    border-color: var(--text-faint);
   }
   .ask {
     margin-top: 10px;

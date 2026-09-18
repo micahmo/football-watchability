@@ -46,6 +46,17 @@ export function reveal(gameId: string): void {
   if (!revealed.includes(gameId)) revealed = [...revealed, gameId];
 }
 
+/**
+ * Put a game back behind the curtain.
+ *
+ * Looking once is not a decision to keep looking. Somebody who checks a score at
+ * half past four and then starts the recording wants the board back the way it
+ * was, and reloading the page to get it is a workaround, not a feature.
+ */
+export function unreveal(gameId: string): void {
+  revealed = revealed.filter((id) => id !== gameId);
+}
+
 /** Whether this game involves a team the viewer is avoiding. */
 export function isProtected(game: Game): boolean {
   if (game.league !== "nfl") return false;
