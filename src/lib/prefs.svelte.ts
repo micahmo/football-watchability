@@ -33,6 +33,19 @@ export interface Prefs {
    * games are demoted rather than removed.
    */
   inMarketFirst: boolean;
+  /**
+   * NFL team ids whose games must not be given away.
+   *
+   * For somebody who watches their own team's games in full, recorded, hours
+   * after they finish. A board that exists to say which game is worth watching
+   * is exactly the thing that ruins one, and it gives the result away in more
+   * ways than the score: the rating, the position in the list, the colour of the
+   * card and which of the two names is greyed out all say who is winning.
+   *
+   * NFL only. The use case is a team somebody follows every week, and a college
+   * team plays too few games for the same relationship.
+   */
+  noSpoilers: string[];
   /** Alert categories per league. Empty everywhere means notifications are off. */
   alerts: Record<League, Category[]>;
   /**
@@ -58,6 +71,7 @@ const DEFAULTS: Prefs = {
   zip: null,
   marketOff: false,
   inMarketFirst: false,
+  noSpoilers: [],
   alerts: { nfl: [], cfb: [] },
   upcomingOrder: "rank",
   delaySeconds: 0,
@@ -165,5 +179,10 @@ export function toggleFavorite(league: League, conference: string): void {
 
 export function setInMarketFirst(on: boolean): void {
   prefs.inMarketFirst = on;
+  persist();
+}
+
+export function setNoSpoilers(teamIds: string[]): void {
+  prefs.noSpoilers = [...teamIds];
   persist();
 }

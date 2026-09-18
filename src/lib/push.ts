@@ -79,6 +79,8 @@ export interface SubscribeInput {
    * and the server evaluates alerts the way their board would.
    */
   inMarketFirst: boolean;
+  /** NFL team ids to never notify about, so no payload is composed for them. */
+  noSpoilers: string[];
 }
 
 /**
@@ -122,6 +124,7 @@ export async function subscribe(input: SubscribeInput): Promise<boolean> {
       favorites: input.favorites,
       delaySeconds: input.delaySeconds,
       inMarketFirst: input.inMarketFirst,
+      noSpoilers: input.noSpoilers,
     }),
   });
   return res.ok;
@@ -157,6 +160,7 @@ export async function updateBoardSettings(
         favorites: input.favorites,
         delaySeconds: input.delaySeconds,
         inMarketFirst: input.inMarketFirst,
+        noSpoilers: input.noSpoilers,
       }),
     });
   } catch {

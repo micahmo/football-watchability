@@ -7,6 +7,7 @@
   import LeagueTabs from "./lib/LeagueTabs.svelte";
   import FavoriteConferences from "./lib/FavoriteConferences.svelte";
   import MarketPicker from "./lib/MarketPicker.svelte";
+  import NoSpoilers from "./lib/NoSpoilers.svelte";
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
   import HelpPanel from "./lib/HelpPanel.svelte";
@@ -15,6 +16,7 @@
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
 
   import GameCard from "./lib/GameCard.svelte";
+  import { isHidden } from "./lib/spoilers.svelte";
   import UpcomingRow from "./lib/UpcomingRow.svelte";
 
   const REFRESH_MS = 20_000;
@@ -68,7 +70,7 @@
    * because they share a row: two panels open at once would overlap, and a panel
    * that is a flex sibling of its own button wedges the row apart when it opens.
    */
-  let openPanel = $state<"favorites" | "market" | "alerts" | "delay" | null>(null);
+  let openPanel = $state<"favorites" | "market" | "spoilers" | "alerts" | "delay" | null>(null);
 
   /**
    * The last market the board resolved, kept across tab switches.
@@ -84,7 +86,7 @@
     if (zip) lastMarketZip = zip;
   });
 
-  function togglePanel(which: "favorites" | "market" | "alerts" | "delay"): void {
+  function togglePanel(which: "favorites" | "market" | "spoilers" | "alerts" | "delay"): void {
     openPanel = openPanel === which ? null : which;
   }
 
@@ -367,6 +369,7 @@
   $effect(() => {
     const seconds = prefs.delaySeconds;
     const inMarketFirst = prefs.inMarketFirst;
+    const noSpoilers = [...prefs.noSpoilers];
     const timer = setTimeout(() => {
       void updateBoardSettings({
         wants: prefs.alerts,
@@ -374,6 +377,7 @@
         favorites: prefs.favorites,
         delaySeconds: seconds,
         inMarketFirst,
+        noSpoilers,
       });
     }, 1500);
     return () => clearTimeout(timer);
@@ -463,8 +467,23 @@
     return [...names].sort();
   });
 
+  /*
+   * Hidden games sink, before anything else is considered.
+   *
+   * Position is itself a spoiler: a board that sorts by how good a game is says
+   * how good the game is, and a card sitting second on a busy Sunday has already
+   * told you it is close. The bottom is the only place that says nothing.
+   */
+  const spoilerLast = (rank: (game: Game) => number) => (a: Game, b: Game) =>
+    Number(isHidden(a)) - Number(isHidden(b)) || rank(b) - rank(a);
+
   const live = $derived.by(() =>
-    [...(snapshot?.live ?? [])].sort(byWatchableThen(scoreOf)),
+    [...(snapshot?.live ?? [])].sort(
+      (a, b) =>
+        Number(isHidden(a)) - Number(isHidden(b)) ||
+        Number(watchable(b)) - Number(watchable(a)) ||
+        scoreOf(b) - scoreOf(a),
+    ),
   );
 
   const top = $derived(live[0] ?? null);
@@ -478,9 +497,13 @@
      sentence assembled without looking at the board it describes. "Turn this on"
      survives because it is an instruction rather than a comparison. */
   const heroLabel = $derived(
-    topScore >= 75
-      ? "TURN THIS ON"
-      : live.length === 1
+    top !== null && isHidden(top)
+      ? // Every live game is one being kept quiet, so the hero slot is holding a
+        // card with nothing on it. Any of the labels below would describe it.
+        "NO SPOILERS"
+      : topScore >= 75
+        ? "TURN THIS ON"
+        : live.length === 1
         ? "THE ONLY GAME ON"
         : topScore >= 55
           ? "BEST GAME ON"
@@ -490,9 +513,7 @@
   // No slice here any more: folding made the list cheap, so MAX_CARDS decides how
   // many show and the expander reaches the rest. Cutting at five before the
   // expander existed meant the server sent twelve and seven were unreachable.
-  const recent = $derived(
-    [...(snapshot?.recent ?? [])].sort((a, b) => scoreOf(b) - scoreOf(a)),
-  );
+  const recent = $derived([...(snapshot?.recent ?? [])].sort(spoilerLast(scoreOf)));
   // Grouped by day, days in chronological order, ranked within each day. You plan
   // Friday before you plan Saturday, so a better Saturday game must not outrank
   // an earlier day's games in the list.
@@ -612,6 +633,13 @@
         open={openPanel === "market"}
         ontoggle={() => togglePanel("market")}
         onclose={() => (openPanel = null)}
+      />
+      <!-- NFL only. The use case is a team somebody watches every week, recorded
+           when they cannot watch it live, and a college team plays too few games
+           to be followed that way. -->
+      <NoSpoilers
+        open={openPanel === "spoilers"}
+        ontoggle={() => togglePanel("spoilers")}
       />
     {/if}
     <AlertsPicker

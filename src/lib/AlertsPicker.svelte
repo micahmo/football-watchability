@@ -116,6 +116,7 @@
         favorites,
         delaySeconds,
         inMarketFirst: prefs.inMarketFirst,
+        noSpoilers: prefs.noSpoilers,
       }).then((ok) => {
         // Let the next change try again rather than leaving the server behind.
         if (!ok) synced = null;
@@ -153,6 +154,7 @@
           favorites: prefs.favorites,
           delaySeconds: prefs.delaySeconds,
           inMarketFirst: prefs.inMarketFirst,
+          noSpoilers: prefs.noSpoilers,
         });
         if (!ok) {
           // Permission refused, or the push service said no. Put the switch back

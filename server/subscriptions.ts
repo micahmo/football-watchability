@@ -36,6 +36,14 @@ export interface Subscription {
    * of whether to go looking for it stays theirs.
    */
   inMarketFirst: boolean;
+  /**
+   * NFL team ids this viewer is avoiding spoilers for.
+   *
+   * Held server-side so no notification about one is ever built. The board hides
+   * these games after they arrive, which is enough for a screen somebody opens on
+   * purpose; a push shows itself.
+   */
+  noSpoilers: string[];
   createdAt: string;
   /**
    * When a push service last accepted a message for this endpoint, and when a

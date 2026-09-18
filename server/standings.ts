@@ -16,6 +16,12 @@ const STANDINGS = "https://site.api.espn.com/apis/v2/sports/football/nfl/standin
 const TTL_MS = 60 * 60 * 1000;
 
 export interface TeamStanding {
+  /* Carried so the standings can also answer "which teams exist". The scoreboard
+     only knows the teams playing this week, and a viewer setting a preference for
+     their own team should not have to wait out its bye. */
+  name: string;
+  abbrev: string;
+  logo: string | null;
   divisionId: string;
   divisionName: string;
   /** "AFC" or "NFC", the level a preference is worth expressing at. */
@@ -36,6 +42,17 @@ export class StandingsStore {
 
   get(teamId: string): TeamStanding | null {
     return this.byTeamId.get(teamId) ?? null;
+  }
+
+  /**
+   * Every team the standings know, fetching them first if need be.
+   *
+   * `enrich` cannot stand in for this: it returns immediately when handed no
+   * games, so a request that arrived before the first poll got an empty league.
+   */
+  async roster(): Promise<(TeamStanding & { id: string })[]> {
+    await this.ensureFresh();
+    return [...this.byTeamId].map(([id, team]) => ({ id, ...team }));
   }
 
   private async refresh(): Promise<void> {
@@ -72,7 +89,11 @@ export class StandingsStore {
         // are games behind it.
         const played =
           Number(stats.wins ?? 0) + Number(stats.losses ?? 0) + Number(stats.ties ?? 0);
+        const logos = entry?.team?.logos ?? [];
         next.set(teamId, {
+          name: String(entry?.team?.displayName ?? entry?.team?.name ?? ""),
+          abbrev: String(entry?.team?.abbreviation ?? ""),
+          logo: typeof logos[0]?.href === "string" ? logos[0].href : null,
           divisionId,
           divisionName: divisionName ?? divisionId,
           conferenceName: confName ?? "",

@@ -68,6 +68,13 @@
         watchable anyway.
       </li>
       <li>
+        <strong>No spoilers.</strong> Pick any NFL teams whose games you watch in full, later. While
+        one of those games is on, the board hides the score, the clock, the rating and everything
+        else that says how it is going, drops it to the bottom of the list, and sends you no
+        notifications about it. Tap the card to look anyway; it asks first, and it forgets you
+        looked as soon as you reload. Games that have not kicked off are left alone.
+      </li>
+      <li>
         <strong>Delay.</strong> Television runs behind live, so the board can spoil the game it is
         meant to help you watch. Hold it back by however many seconds your feed is behind. Nudge it
         until the score changes on screen at the same moment you see it. Notifications wait too.
@@ -80,7 +87,8 @@
       become the best thing available, it is turning into a classic, or an underdog is doing
       something it should not be. Or something is about to start: the best game of a busy kickoff
       window, or the only game in its slot. Each one names the channel, and says when a game is out
-      of market. Turn on My channels first and those stop arriving altogether.
+      of market. Turn on My channels first and those stop arriving altogether, and a team on your no
+      spoilers list is never the subject of one.
     </p>
 
     <h3>The other two lists</h3>

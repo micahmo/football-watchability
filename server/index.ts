@@ -410,7 +410,19 @@ function parseSubscription(body: unknown): Parameters<SubscriptionStore["upsert"
   const raw = Number(b?.delaySeconds);
   const delaySeconds = Number.isFinite(raw) ? Math.min(120, Math.max(0, Math.round(raw))) : 0;
   const inMarketFirst = b?.inMarketFirst === true;
-  return { endpoint, keys: { p256dh, auth }, wants, zip, favorites, delaySeconds, inMarketFirst };
+  const noSpoilers = (Array.isArray(b?.noSpoilers) ? b.noSpoilers : [])
+    .filter((x: unknown) => typeof x === "string" && x.length <= 20)
+    .slice(0, 32);
+  return {
+    endpoint,
+    keys: { p256dh, auth },
+    wants,
+    zip,
+    favorites,
+    delaySeconds,
+    inMarketFirst,
+    noSpoilers,
+  };
 }
 
 function leagueFrom(url: string): League {
@@ -614,6 +626,35 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
     };
     req.on("close", close);
     res.on("close", close);
+    return;
+  }
+
+  /*
+   * Every NFL team, for the no-spoiler control.
+   *
+   * From the standings rather than the slate: a control that lists only the teams
+   * playing this week cannot be used to protect a team on its bye, which is
+   * exactly the week somebody would be setting it up for.
+   */
+  if (url === "/api/teams") {
+    void standings
+      .roster()
+      .catch((err) => {
+        console.error(`[standings] roster: ${err instanceof Error ? err.message : err}`);
+        return [];
+      })
+      .then((roster) => {
+        json(res, {
+          teams: roster.map((team) => ({
+            id: team.id,
+            name: team.name,
+            abbrev: team.abbrev,
+            logo: team.logo,
+            divisionName: team.divisionName,
+            conferenceName: team.conferenceName,
+          })),
+        });
+      });
     return;
   }
 

@@ -164,6 +164,20 @@ function unavailable(game: Game): boolean {
   return game.marketStations !== null && game.marketStations.length === 0;
 }
 
+/**
+ * A game involving a team this viewer refuses to be told about.
+ *
+ * Filtered here rather than hidden on arrival, so no payload is ever composed.
+ * The board can only decline to draw a score it has already been sent, which is
+ * enough for a screen somebody chooses to look at; a notification arrives on a
+ * lock screen without being asked for and stays in a notification list, so the
+ * only way to be sure is for it never to exist.
+ */
+function avoided(game: Game, sub: Subscription): boolean {
+  if (game.league !== "nfl" || sub.noSpoilers.length === 0) return false;
+  return sub.noSpoilers.includes(game.away.id) || sub.noSpoilers.includes(game.home.id);
+}
+
 function dayKey(now: number): string {
   return new Date(now).toISOString().slice(0, 10);
 }
@@ -229,7 +243,9 @@ export class AlertEngine {
     if (wants.length === 0) return [];
 
     const favorites = sub.favorites[league] ?? [];
-    const live = snapshot.live.filter((g) => !(sub.inMarketFirst && unavailable(g)));
+    const live = snapshot.live.filter(
+      (g) => !avoided(g, sub) && !(sub.inMarketFirst && unavailable(g)),
+    );
     const out: Alert[] = [];
 
     for (const game of live) {
@@ -311,7 +327,7 @@ export class AlertEngine {
       const rank = (g: Game) =>
         (g.anticipation ?? this.anticipation.get(g.id) ?? 0) + favoriteBoost(g, favorites);
       const best = games
-        .filter((g) => !(sub.inMarketFirst && unavailable(g)))
+        .filter((g) => !avoided(g, sub) && !(sub.inMarketFirst && unavailable(g)))
         .sort((a, b) => rank(b) - rank(a))[0];
       if (!best) continue;
 

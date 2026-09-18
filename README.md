@@ -52,6 +52,11 @@ plainly how good it is expected to be. At most three a day per league. Each one 
 and says when a game is out of market; **My channels first** stops those arriving at all. The
 screen stays awake while the board is open.
 
+**No spoilers**, NFL only. Name the teams whose games you watch in full and late, and while one is
+on the board hides its score, clock, rating, win probability, drive, last play, records and labels,
+sorts it to the bottom and sends no notifications about it. A tap asks before it shows you, and
+reloading forgets that you asked. Games that have not kicked off are untouched.
+
 **League tabs** switch between NFL and college; the NFL opens by default. **Favorite
 conferences** push the games you care about up the board, weighted higher when both teams
 qualify than one. Tab, favorites and market all persist in the browser.
@@ -263,6 +268,7 @@ ESPN_DATES=20260905 RECENT_WINDOW_HOURS=120 npm run dev:server
 - `GET /api/snapshot?league=nfl&zip=02134` - the same board, annotated with what that market is
   carrying. Both leagues
 - `GET /api/stream` - the same board as a live event stream, same query parameters
+- `GET /api/teams` - every NFL team with division and conference, for the no-spoiler control
 - `GET /api/health` - per-league poller status, last update, failure count, next poll
 - `GET /api/notifications/config` - whether alerts are available, and the public push key
 - `POST /api/notifications/subscribe` - register a push subscription and its preferences

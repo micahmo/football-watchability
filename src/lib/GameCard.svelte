@@ -2,6 +2,7 @@
   import type { Game } from "../../shared/types";
   import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
+  import { isHidden, reveal } from "./spoilers.svelte";
   import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
@@ -59,24 +60,54 @@
       ? 0
       : MOTION_MS;
 
-  const accent = $derived(scoreColor(score));
-  const showWp = $derived(open && variant === "live" && game.score?.hasWinProb === true);
+  /*
+   * Everything that says how the game is going, withheld.
+   *
+   * Adding a field to this card? Read the standing note at the top of
+   * `spoilers.svelte.ts` first and gate it here if it could give a game away.
+   *
+   * Not only the score. The rating is a measure of how close it is, the rail is
+   * that rating in colour, the clock says whether it went to overtime, and the
+   * dimmed side names the loser outright. Any one of them alone gives the game
+   * away, so the card keeps the matchup and nothing else.
+   */
+  const hidden = $derived(isHidden(game));
+  /* Asked every time rather than remembered. Somebody who checked at half past
+     four may be starting the recording at five. */
+  let asking = $state(false);
+  $effect(() => {
+    // A new game in the same card slot must not inherit an open prompt.
+    game.id;
+    asking = false;
+  });
+  function show(): void {
+    reveal(game.id);
+    asking = false;
+  }
+
+  const accent = $derived(hidden ? "var(--calm)" : scoreColor(score));
+  const showWp = $derived(
+    !hidden && open && variant === "live" && game.score?.hasWinProb === true,
+  );
   // Dimming the team that is behind reads as "this one lost", which is only true
   // once the game is over. Mid-game both teams stay at full weight.
   const leader = $derived(
-    variant !== "final" || game.home.score === game.away.score
+    hidden || variant !== "final" || game.home.score === game.away.score
       ? null
       : game.home.score > game.away.score
         ? "home"
         : "away",
   );
   const clockText = $derived(clockLabel(game));
+
   /** Null until a postal code is set, so absence means unknown, not unavailable. */
   const outOfMarket = $derived(game.marketStations !== null && game.marketStations.length === 0);
   /* Only faded when the viewer asked for their own channels first. Otherwise the
      game is marked in the chip and otherwise treated like any other. */
   const unavailable = $derived(outOfMarket && prefs.inMarketFirst);
-  const showPossession = $derived(variant === "live" && game.possessionTeamId !== null);
+  const showPossession = $derived(
+    !hidden && variant === "live" && game.possessionTeamId !== null,
+  );
 
   /** Home-relative spread: negative means the home team was favoured. */
   const favoriteSide = $derived(
@@ -116,15 +147,17 @@
   class:collapsible
   class:folded={collapsible && !expanded}
   style="--accent: {accent}"
-  role={collapsible ? "button" : undefined}
-  tabindex={collapsible ? 0 : undefined}
-  aria-expanded={collapsible ? expanded : undefined}
-  onclick={collapsible ? () => ontoggle?.() : undefined}
-  onkeydown={collapsible
+  class:hidden
+  role={hidden || collapsible ? "button" : undefined}
+  tabindex={hidden || collapsible ? 0 : undefined}
+  aria-expanded={hidden ? undefined : collapsible ? expanded : undefined}
+  onclick={hidden ? () => (asking = true) : collapsible ? () => ontoggle?.() : undefined}
+  onkeydown={hidden || collapsible
     ? (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          ontoggle?.();
+          if (hidden) asking = true;
+          else ontoggle?.();
         }
       }
     : undefined}
@@ -132,15 +165,26 @@
   <div class="rail"></div>
 
   <div class="score-col">
-    <div class="score-num mono">{Math.round(score)}</div>
+    {#if hidden}
+      <!-- The rating is a measure of how close the game is, so the number is as
+           much of a giveaway as the score. -->
+      <svg class="masked" viewBox="0 0 16 16" role="img" aria-label="Hidden">
+        <path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" />
+        <circle cx="8" cy="8" r="2.1" />
+        <line class="gap" x1="2.5" y1="13.5" x2="13.5" y2="2.5" />
+        <line class="slash" x1="2.5" y1="13.5" x2="13.5" y2="2.5" />
+      </svg>
+    {:else}
+      <div class="score-num mono">{Math.round(score)}</div>
+    {/if}
     <!-- Folded, the clock rides here rather than on a line of its own. "Close and
          late" is the question the board answers and lateness drives the rating, so
          a folded 24-21 with no quarter on it is missing what makes it worth a look.
          This column is empty below the number, so it costs width, not height. -->
-    {#if !open && variant === "live"}
+    {#if !hidden && !open && variant === "live"}
       <div class="score-clock mono">{clockText}</div>
     {/if}
-    {#if collapsible}
+    {#if collapsible && !hidden}
       <svg class="chev" class:open={expanded} viewBox="0 0 12 8" aria-hidden="true">
         <path d="M1 1.5 L6 6.5 L11 1.5" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
@@ -158,7 +202,11 @@
           {/if}
           {#if team.rank}<span class="rank-badge mono">{team.rank}</span>{/if}
           <span class="team-name">{team.name}</span>
-          {#if hasRecord(team.record)}<span class="record mono">{team.record}</span>{/if}
+          <!-- A record is a result: once the game is final it reads 2-1 beside a
+               team that was 2-0 and gives away the score sitting hidden next to it. -->
+          {#if !hidden && hasRecord(team.record)}
+            <span class="record mono">{team.record}</span>
+          {/if}
           {#if favoriteSide === team.homeAway}
             <span class="spread mono" title="Pregame closing line, not a live line.">
               {spreadLabel}
@@ -170,13 +218,13 @@
               <line x1="5.4" y1="5" x2="10.6" y2="5" stroke="var(--bg-card)" stroke-width="1.3" />
             </svg>
           {/if}
-          <span class="team-score mono">{team.score}</span>
+          {#if !hidden}<span class="team-score mono">{team.score}</span>{/if}
         </div>
       {/each}
     </div>
 
     {#if collapsible}
-      {#if open}
+      {#if open && !hidden}
         <div class="detail" transition:slide={{ duration: ms() }}>
           {#if variant === "live" && game.score?.hasWinProb === true}
             <WinProbBar home={game.home} away={game.away} homeWinProb={game.homeWinProb ?? 0.5} />
@@ -208,7 +256,7 @@
 
     <!-- Where the game is right now: clock and situation together. A finished game
          has no clock or situation, so it skips this line entirely. -->
-    {#if !collapsible && variant === "live"}
+    {#if !collapsible && !hidden && variant === "live"}
       <div class="meta">
         <span class="live-dot"></span>
         <span class="mono clock">{clockText}</span>
@@ -234,18 +282,111 @@
            and the row already wraps for multiple tags, so holding this one back was
            an exception with no rule behind it. -->
       {#if game.conferenceGame}<span class="note">conference game</span>{/if}
-      {#each game.tags as tag (tag)}
-        <span class="tag" class:hot={hot(tag)}>{tag}</span>
-      {/each}
+      <!-- "INSTANT CLASSIC" and "2OT" describe how the game is going, which is the
+           whole of what is being withheld. -->
+      {#if !hidden}
+        {#each game.tags as tag (tag)}
+          <span class="tag" class:hot={hot(tag)}>{tag}</span>
+        {/each}
+      {:else}
+        <span class="tag spoiler">no spoilers · tap to show</span>
+      {/if}
     </div>
 
-    {#if !collapsible && variant === "live" && game.lastPlay}
+    {#if !collapsible && !hidden && variant === "live" && game.lastPlay}
       <p class="last-play">{game.lastPlay}</p>
+    {/if}
+
+    <!-- Inside the card rather than over the page. A dialogue would cover the
+         board, and what is being confirmed is about this one game. -->
+    {#if asking}
+      <div class="ask" transition:slide={{ duration: ms() }}>
+        <p>Show how this game is going?</p>
+        <div class="ask-row">
+          <button
+            type="button"
+            class="ask-yes"
+            onclick={(e: MouseEvent) => {
+              e.stopPropagation();
+              show();
+            }}
+          >
+            Show me
+          </button>
+          <button
+            type="button"
+            class="ask-no"
+            onclick={(e: MouseEvent) => {
+              e.stopPropagation();
+              asking = false;
+            }}
+          >
+            Keep it hidden
+          </button>
+        </div>
+      </div>
     {/if}
   </div>
 </article>
 
 <style>
+  /* The eye in the score column, and the slash across it, drawn the same way as
+     the channel chip's pin: a thick cut in the card colour so the line still
+     reads where it crosses the shape. */
+  .masked {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--text-faint);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+  }
+  .masked .gap {
+    stroke: var(--bg-card);
+    stroke-width: 3.2;
+  }
+  .masked .slash {
+    stroke-width: 1.4;
+  }
+  /* Says why, not what. An absence with no explanation reads as a broken card. */
+  .tag.spoiler {
+    color: var(--text-faint);
+    border-color: var(--border-hi);
+    background: none;
+    font-weight: 600;
+  }
+  .ask {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .ask p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .ask-row {
+    display: flex;
+    gap: 8px;
+  }
+  .ask button {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .ask-yes {
+    border: 1px solid var(--cool);
+    background: var(--cool);
+    color: var(--bg);
+  }
+  .ask-no {
+    border: 1px solid var(--border-hi);
+    background: none;
+    color: var(--text-dim);
+  }
   .card.collapsible {
     cursor: pointer;
     /* The whole card is the target rather than a chevron: a 196px row reduced to
