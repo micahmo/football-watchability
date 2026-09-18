@@ -164,3 +164,107 @@ export function hasRecord(record: string | null | undefined): boolean {
   return /[1-9]/.test(record);
 }
 
+
+/**
+ * The kickoff window a game belongs to, as an Eastern-time hour.
+ *
+ * Eastern because that is the calendar the NFL windows are actually set on, and
+ * an hour because 4:05 and 4:25 are one window to everybody who watches them.
+ * The same bucketing the server uses to spot a regional split.
+ */
+export function easternHour(startDate: string): string | null {
+  const at = Date.parse(startDate);
+  if (!Number.isFinite(at)) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(at));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}`;
+}
+
+/**
+ * Whether a day's kickoffs form windows worth grouping by, measured rather than
+ * assumed about a league.
+ *
+ * A Sunday NFL slate falls into three: 1:00 with eight games, 4:00 with five and
+ * one at 8:20. A Saturday in college is not windowed at all, it is a continuous
+ * smear of eleven distinct kickoff hours between 11:00 and 23:00, and grouping it
+ * would produce eleven headings, several of them over a single game.
+ *
+ * So the test is on the shape of the day: a handful of windows, each holding
+ * several games. College fails it on its own data rather than on its name, which
+ * means a college day that ever does look like this gets the grouping too.
+ */
+const MAX_WINDOWS = 4;
+const MIN_PER_WINDOW = 2;
+
+export function windowsOf<T extends { startDate: string }>(games: T[]): Map<string, T[]> | null {
+  const by = new Map<string, T[]>();
+  for (const game of games) {
+    const hour = easternHour(game.startDate);
+    if (hour === null) return null;
+    const bucket = by.get(hour);
+    if (bucket) bucket.push(game);
+    else by.set(hour, [game]);
+  }
+  if (by.size < 2 || by.size > MAX_WINDOWS) return null;
+  if (games.length / by.size < MIN_PER_WINDOW) return null;
+  return by;
+}
+
+/**
+ * What to call each kickoff window.
+ *
+ * The broadcast names, where broadcast names exist. A Sunday slate is the early
+ * window and the late window, which is what the networks, the listings and
+ * everybody watching call them, and the 8:20 game is primetime.
+ *
+ * Deliberately not "early afternoon" or "evening". Those are claims about a clock
+ * and they are false outside Eastern: the early window kicks off at ten in the
+ * morning in Los Angeles. "Early" and "late" describe position within the day's
+ * slate rather than time of day, so they survive the translation, and every row
+ * states its own local kickoff underneath anyway.
+ *
+ * Any day that does not fall into this shape keeps plain times, so nothing is
+ * given a name that does not fit it. Two windows that would take the same name
+ * means the guess was wrong about the whole day, and it falls back wholesale.
+ */
+export function windowLabels(hours: string[]): string[] {
+  const at = hours.map((hour) => Number(hour.slice(-2)));
+  if (at.some((hour) => !Number.isFinite(hour))) return [];
+  // A London kickoff is half past nine in New York and half past six in Los
+  // Angeles, so it is morning wherever it is watched. Without it a week with an
+  // international game had two afternoon windows called "Late" and gave up.
+  const firstAfternoon = at.findIndex((hour) => hour >= 12 && hour < 19);
+  const named = at.map((hour, index) => {
+    if (hour < 12) return "Morning";
+    if (hour >= 19) return "Primetime";
+    return index === firstAfternoon ? "Early" : "Late";
+  });
+  return new Set(named).size === named.length ? named : [];
+}
+
+/**
+ * A time heading for a window that has no name, covering every game under it.
+ *
+ * A single time only when every kickoff in the window really is that time. The
+ * alternative was the window's earliest, which put "4:05 PM" above a 4:25 game
+ * and made the heading look like it belonged to the row below it. Where they
+ * differ the heading says so, and the shared meridiem is not repeated.
+ */
+export function windowTimeLabel(startDates: string[]): string {
+  const times = [...startDates]
+    .sort((a, b) => Date.parse(a) - Date.parse(b))
+    .map((date) => kickoffTime(date));
+  const first = times[0] ?? "";
+  const last = times[times.length - 1] ?? "";
+  if (first === last) return first;
+  const [open, openSuffix] = first.split(" ");
+  const [, closeSuffix] = last.split(" ");
+  return openSuffix === closeSuffix ? `${open} - ${last}` : `${first} - ${last}`;
+}

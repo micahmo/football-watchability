@@ -50,9 +50,11 @@ export interface Prefs {
   alerts: Record<League, Category[]>;
   /**
    * How the planning list is ordered within a day. Ranked answers "what is worth
-   * my evening", chronological answers "what is on next and is it any good".
+   * my evening", chronological answers "what is on next and is it any good", and
+   * windowed answers "what are my choices at one o'clock", which is the question
+   * an NFL Sunday actually poses.
    */
-  upcomingOrder: "rank" | "time";
+  upcomingOrder: "rank" | "time" | "window";
   /**
    * How far behind live to hold the board, in seconds.
    *

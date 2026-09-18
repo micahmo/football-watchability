@@ -94,7 +94,9 @@
     <h3>The other two lists</h3>
     <p>
       <strong>Worth planning around</strong> rates games that have not kicked off, on the matchup
-      rather than on anything that has happened.
+      rather than on anything that has happened. Sort it by rating, by time, or, on a day whose
+      kickoffs fall into proper windows, by window: an NFL Sunday reads as early, late and
+      primetime, which is how everybody talks about it anyway.
       <strong>Recently finished</strong> is the recap, and asks whether a game mattered rather than
       whether it stayed close, so a big upset ranks alongside a thriller.
     </p>

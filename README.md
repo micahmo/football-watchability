@@ -30,8 +30,13 @@ situation, who has the ball, the network, the pregame line, and any tags that ap
 
 **Worth planning around**, the next few days grouped by day, days in order, so an earlier day's
 games are never buried under a better game later in the week. Every game on a day is listed. Within a day, **Best** ranks by rating and **Time**
-runs chronologically, for reading the day in order and seeing which slots are worth it. Each row
-shows kickoff time, the line, the over/under and the network.
+runs chronologically, for reading the day in order and seeing which slots are worth it. **Window**
+splits the day into its kickoff windows and ranks within each, so an NFL Sunday reads as **Early**,
+**Late** and **Primetime**, with a **Morning** window on the weeks there is a game from London. Any
+window the naming does not fit keeps its kickoff time. It appears only on days whose kickoffs
+actually form windows, which in practice means the NFL: a Saturday in college spans eleven distinct
+kickoff hours and has none.
+Each row shows kickoff time, the line, the over/under and the network.
 
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
 kickoff.

@@ -17,6 +17,7 @@
 
   import GameCard from "./lib/GameCard.svelte";
   import { isHidden } from "./lib/spoilers.svelte";
+  import { windowLabels, windowTimeLabel, windowsOf } from "./lib/format";
   import UpcomingRow from "./lib/UpcomingRow.svelte";
 
   const REFRESH_MS = 20_000;
@@ -452,6 +453,8 @@
       ),
   );
 
+
+
   /** Conferences present in the current league's slate, for the preference list. */
   const conferences = $derived.by(() => {
     const all = [
@@ -510,6 +513,7 @@
           : "BEST OF WHAT IS ON",
   );
   const rest = $derived(live.slice(1));
+
   // No slice here any more: folding made the list cheap, so MAX_CARDS decides how
   // many show and the expander reaches the rest. Cutting at five before the
   // expander existed meant the server sent twelve and seven were unreachable.
@@ -541,6 +545,34 @@
                   Date.parse(a.startDate) - Date.parse(b.startDate),
               )
             : [...games].sort(byWatchableThen(anticipationOf));
+        /*
+         * Built from the whole day, not from the capped list, and shown without a
+         * cap of its own.
+         *
+         * The point of the view is the shape of the day, and a cap defeats it: the
+         * best six games on a Sunday can all be in the one o'clock window, which
+         * would leave the afternoon and the night game missing entirely from a
+         * grouping whose whole job is to show they exist. The grouping rule bounds
+         * the size anyway, since a day only qualifies with four windows or fewer.
+         */
+        const grouped = windowsOf(games);
+        const ordered =
+          grouped === null ? [] : [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+        const names = windowLabels(ordered.map(([hour]) => hour));
+        const windows =
+          grouped === null
+            ? null
+            : ordered.map(([hour, inWindow], index) => {
+                  const byRank = [...inWindow].sort(byWatchableThen(anticipationOf));
+                  return {
+                    key: hour,
+                    // The broadcast name where there is one, and a time that covers
+                    // every game in the window where there is not.
+                    label: names[index] ?? windowTimeLabel(inWindow.map((g) => g.startDate)),
+                    available: byRank.filter((g) => watchable(g)),
+                    unavailable: byRank.filter((g) => !watchable(g)),
+                  };
+                });
         const showAll = expanded[key] === true;
         const shown = showAll ? ranked : ranked.slice(0, MAX_PER_DAY);
         return {
@@ -550,6 +582,7 @@
              tell whether it covered one or all of them. */
           available: shown.filter((g) => watchable(g)),
           unavailable: shown.filter((g) => !watchable(g)),
+          windows,
           label: dayLabel(games[0].startDate),
           date: dayDate(games[0].startDate),
           total: ranked.length,
@@ -559,6 +592,18 @@
         };
       });
   });
+
+  /*
+   * Whether grouping by window is worth offering at all.
+   *
+   * Only when some day on the board actually has windows. On a Sunday evening
+   * with the night game left there is one window and nothing to group, and a
+   * control that reorders nothing is a control that has to be explained.
+   */
+  const windowsOffered = $derived(upcomingByDay.some((day) => day.windows !== null));
+  /* Chosen once and then the slate moved on. The preference is kept, so it comes
+     back on its own next Sunday, but the list has to render as something today. */
+  const groupByWindow = $derived(prefs.upcomingOrder === "window" && windowsOffered);
 
   const updatedLabel = $derived.by(() => {
     void now;
@@ -721,7 +766,11 @@
             type="button"
             class:on={prefs.upcomingOrder === "time"}
             onclick={() => setUpcomingOrder("time")}>Time</button
-          >
+          >{#if windowsOffered}<button
+              type="button"
+              class:on={prefs.upcomingOrder === "window"}
+              onclick={() => setUpcomingOrder("window")}>Window</button
+            >{/if}
         </span>
       </h2>
       {#each upcomingByDay as day (day.key)}
@@ -731,6 +780,29 @@
             <span class="day-date">{day.date}</span>
           </h3>
           <div class="panel tight">
+            {#if groupByWindow && day.windows}
+              {#each day.windows as slot (slot.key)}
+                <p class="window-head">{slot.label}</p>
+                <div class="tier">
+                  {#each slot.available as game (game.id)}
+                    <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                  {/each}
+                </div>
+                {#if slot.unavailable.length > 0}
+                  <div class="blocked">
+                    <p class="cutoff">
+                      not on your channels
+                      <svg class="down" viewBox="0 0 10 12" aria-hidden="true">
+                        <path d="M5 1 V9 M1.5 6 L5 9.5 L8.5 6" />
+                      </svg>
+                    </p>
+                    {#each slot.unavailable as game (game.id)}
+                      <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                    {/each}
+                  </div>
+                {/if}
+              {/each}
+            {:else}
             <!-- Wrapped so the last available row is a :last-child and drops its
                  bottom border. That border drew a line directly above the header
                  below, which together with the first unavailable row's own border
@@ -754,7 +826,8 @@
                 {/each}
               </div>
             {/if}
-            {#if day.hidden > 0 || day.showAll}
+            {/if}
+            {#if (day.hidden > 0 || day.showAll) && !groupByWindow}
               <button
                 type="button"
                 class="show-all"
@@ -1082,6 +1155,19 @@
   }
   .day-group + .day-group {
     margin-top: 14px;
+  }
+  /* A label inside the card, quieter than the day heading above it: the day is
+     the structure, a window is a division within it. */
+  .window-head {
+    margin: 10px 0 2px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+  }
+  .window-head:first-child {
+    margin-top: 2px;
   }
   .day-head {
     display: flex;
