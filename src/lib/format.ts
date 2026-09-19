@@ -17,11 +17,47 @@ export function teamColor(team: TeamSide): string {
   return luminance(alt) > 0.12 ? alt : "#7c8aa5";
 }
 
+/**
+ * The rating's colour, as a continuum rather than four bands.
+ *
+ * Banding invited waiting for the colour to change: a 57 and a 61 were drawn as
+ * different kinds of game when nothing about them differs, and the boundaries
+ * were never real anyway. They moved twice in one afternoon on nothing but a
+ * fresh look at the distribution. Worse, they disagreed with the heading above
+ * the board, which banded at 55 and 35 while this banded at 78, 58 and 35, so a
+ * game could be called worth turning on while its number was still blue.
+ *
+ * Same four palette colours as before, and the same values at the ends. Only the
+ * middle stops being a staircase.
+ */
+const STOPS: [number, string, string][] = [
+  // Each stop carries the interpolation space used to reach the next one.
+  [15, "var(--calm)", "oklab"],
+  /*
+   * The long way round the hue wheel, and only on this leg.
+   *
+   * Blue to orange is nearly opposite on the wheel, so the direct path crosses
+   * the low-chroma axis and the forties came out grey, which is where most games
+   * live. Going the other way rotates through teal, green and yellow at full
+   * chroma. It is confined to this one segment because the neighbouring pairs are
+   * close in hue already, and asking those to take the long way would send them
+   * right around the wheel through colours the board has no business showing.
+   */
+  [35, "var(--cool)", "oklch longer hue"],
+  [60, "var(--warm)", "oklab"],
+  [85, "var(--hot)", "oklab"],
+];
+
 export function scoreColor(total: number): string {
-  if (total >= 78) return "var(--hot)";
-  if (total >= 58) return "var(--warm)";
-  if (total >= 35) return "var(--cool)";
-  return "var(--calm)";
+  if (!Number.isFinite(total) || total <= STOPS[0][0]) return STOPS[0][1];
+  for (let i = 1; i < STOPS.length; i++) {
+    const [from, color, space] = STOPS[i - 1];
+    const [to, next] = STOPS[i];
+    if (total > to) continue;
+    const share = Math.round((1 - (total - from) / (to - from)) * 100);
+    return `color-mix(in ${space}, ${color} ${share}%, ${next})`;
+  }
+  return STOPS[STOPS.length - 1][1];
 }
 
 export function kickoffTime(iso: string): string {

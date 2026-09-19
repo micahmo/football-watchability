@@ -16,10 +16,17 @@ const HERO = 85;
 /**
  * The point at which it stops being a good game and becomes a memorable one.
  *
- * Likewise: the old 85 was reached by exactly one game in the sample and would now
- * be reached by five.
+ * Set to 90 when the scale was reweighted, to hold volume at the one game in the
+ * sample that had reached the old 85. That calibration was done before the
+ * prominence contest scaling and the clutch two-possession gate, both of which
+ * pulled the top of the scale back down, and nobody rechecked it: the best rating
+ * anywhere in the corpus is now 88.0, so 90 could not be reached and this alert
+ * had quietly stopped existing.
+ *
+ * Eighty-seven is one game on a college Saturday and none on an NFL Sunday, which
+ * is what "turning into a classic" should mean.
  */
-const CLASSIC = 90;
+const CLASSIC = 87;
 /**
  * Game clock that must remain for a `hero` alert.
  *

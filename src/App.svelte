@@ -512,24 +512,29 @@
      one game, and "best of what is on" ranks it against nothing: it reads as a
      sentence assembled without looking at the board it describes. "Turn this on"
      survives because it is an instruction rather than a comparison. */
-  /* The bars come from what the board actually shows. Measured over every minute
-     of live football on record, the old 75 and 55 left the apologetic label up
-     81% of the time in college and 84% in the NFL, because a one-score game only
-     medians 40 in the fourth quarter and 64 inside the last two minutes. At 55
-     and 35 the three labels split roughly evenly, which is what a board that
-     recommends things should sound like. */
+  /*
+   * The heading names the slot. It does not grade the game.
+   *
+   * There were four of these, gated at 75 and 55, then at 55 and 35 after a look
+   * at the distribution, and the fact that they moved at all is the argument
+   * against them: no threshold in here was ever a boundary in the world. Worse,
+   * they invited waiting for the board to promote a game before watching it, when
+   * the whole point is that a 54 and a 56 are the same thing.
+   *
+   * So one heading, which is true whatever the number: it really is the best game
+   * on. The pill takes its colour from the rating, and that colour is now a
+   * continuum, so it shouts at 87 and sits quietly at 31 without anything having
+   * to decide which of those it is.
+   *
+   * The other two stay, because they are facts about the slate and this viewer's
+   * settings rather than opinions about the football.
+   */
   const heroLabel = $derived(
     top !== null && isHidden(top)
-      ? // Every live game is one being kept quiet, so the hero slot is holding a
-        // card with nothing on it. Any of the labels below would describe it.
-        "NO SPOILERS"
-      : topScore >= 55
-        ? "TURN THIS ON"
-        : live.length === 1
+      ? "NO SPOILERS"
+      : live.length === 1
         ? "THE ONLY GAME ON"
-        : topScore >= 35
-          ? "BEST GAME ON"
-          : "BEST OF WHAT IS ON",
+        : "BEST GAME ON",
   );
   const rest = $derived(live.slice(1));
 
@@ -727,7 +732,7 @@
 {#if top}
   <section class="hero">
     <div class="hero-label">
-      <span class="pill" class:hot={topScore >= 75} style="--pill: {scoreColor(topScore)}">
+      <span class="pill" style="--pill: {scoreColor(topScore)}">
         {heroLabel}
       </span>
     </div>
@@ -1074,11 +1079,6 @@
     border: 1px solid var(--pill);
     padding: 3px 9px;
     border-radius: 999px;
-    opacity: 0.9;
-  }
-  .pill.hot {
-    background: rgba(255, 77, 79, 0.1);
-    opacity: 1;
   }
   /* Sits in the heading rather than the top controls row: it changes this list
      only, and putting it here keeps it next to what it affects. */

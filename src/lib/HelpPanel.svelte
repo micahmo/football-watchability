@@ -105,6 +105,8 @@
     <p class="foot">
       Ratings are worth comparing within a tab, not across them. College and the NFL produce
       different spreads of numbers, and a game that has not started is on its own scale again.
+      There is no number at which a game becomes worth watching: the colour runs as a continuum,
+      and a good game in amber is a good game.
     </p>
   </div>
 {/if}

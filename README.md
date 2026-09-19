@@ -123,8 +123,9 @@ Why each term is shaped the way it is, and the games that forced those decisions
 | under 55 | Background noise |
 
 Read each tab against itself; the two leagues produce different distributions. Pregame
-`anticipation` and the live score are different scales too. On the live board, `TURN THIS ON`
-fires at 75.
+`anticipation` and the live score are different scales too. There is no threshold at which a
+game becomes worth watching: the rating's color runs as a continuum from slate through blue,
+green and amber to red, and the heading above the top game takes that same color.
 
 ## Which tab you land on
 

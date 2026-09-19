@@ -256,9 +256,9 @@ Three renames, all the same mistake:
   additionally requires the underdog to be level or ahead. `UPSET POTENTIAL` covers
   behind-but-within-one-score late.
 
-The hero label follows the same discipline. It only says `TURN THIS ON` above 75, and degrades
-to `BEST GAME ON` and `BEST OF WHAT IS ON`, because shouting at a mediocre 30 on a quiet
-weeknight is the same overpromise.
+The hero label used to follow the same discipline, saying `TURN THIS ON` above 75 and degrading
+through `BEST GAME ON` to `BEST OF WHAT IS ON`. It no longer does; see the entry on the rating
+being a continuum.
 
 ### `SHOOTOUT` was a fourth instance, and the bug has a shape
 
@@ -1790,7 +1790,10 @@ apologetic one up four minutes in five.
 The alert bars had to move with the scale rather than stay put, or the reweighting would have
 silently doubled the notifications. The old `HERO` bar of 75 was cleared by five of the 58 games and
 would now be cleared by nine; 85 lets the same five through. `CLASSIC` moves 85 to 90 for the same
-reason. `KICKOFF_MIN_SCORE` is deliberately untouched, because it is compared against anticipation,
+reason, and later to 87: the 90 was calibrated before the contest scaling and the clutch gate
+pulled the top of the scale down, after which the best rating in the whole corpus was 88.0 and the
+alert could not fire at all. Recalibrating a threshold before making further changes to the thing
+it measures is how that happened. `KICKOFF_MIN_SCORE` is deliberately untouched, because it is compared against anticipation,
 which has its own weighting and never passes through `combine`.
 
 **The lateness ramp then moved too**, once it was clear the complaint was specifically that a close
@@ -1858,3 +1861,39 @@ moved, rather than dropping it. Fewer fallbacks is not the goal.
 between unequal teams genuinely has a lopsided win probability, and `upsetDrama` exists to catch the
 case where that feels wrong. Making the number mean "how good is this game" rather than "how urgent
 is it right now" is a redesign of `coreScore`, and 58 games is too thin a corpus to attempt it on.
+
+
+## The rating is a continuum, so it stopped being drawn as four categories
+
+Micah, on why the ratings had been bothering him: "it seems like the only barn burners are the red
+games. but yellow games can be very very good too... I won't necessarily be mentally waiting for a
+game to go red before turning it on." And: "since the rating will never be perfect then we shouldn't
+be so definitive."
+
+He is right, and the code had the evidence sitting in it. The colors banded at 78, 58 and 35 while
+the hero label banded at 75 and 55, so a game could be called worth turning on while its number was
+still blue. Two different stories about the same number, both looking authoritative. The label
+thresholds then moved twice in one afternoon on nothing but a fresh look at the distribution, which
+is the argument against having them at all: a boundary that moves when you squint differently was
+never a boundary in the world.
+
+It is also dishonest about the error bars. `tension` leans on win probability and undersells close
+games, close NFL finals outrun their live peak by thirteen points, and the corpus is 58 games. A 54
+and a 56 are indistinguishable given all that, and drawing a hard line between them claims a
+precision the model does not have.
+
+So `scoreColor` interpolates instead of banding, over the same four palette colors and with the same
+values at the ends. One wrinkle: blue to orange is nearly opposite on the hue wheel, so a direct
+blend crosses the low-chroma axis and the forties came out grey, which is where most games live.
+That one leg takes `oklch longer hue` and rotates through teal, green and yellow at full chroma.
+Only that leg: the neighbouring pairs are close in hue already, and sending those the long way would
+take them right around the wheel.
+
+An explicit green anchor at 48 was tried instead and rejected. It keeps green to a narrower band,
+but blending green to orange in a straight line crosses olive, and the mid-fifties looked wrong.
+
+The hero label collapses to one. `BEST GAME ON` is true whatever the number, the pill already took
+its color from the rating, and that color is now a continuum, so it shouts at 87 and sits quietly at
+31 with nothing deciding which. `THE ONLY GAME ON` and `NO SPOILERS` stay, because they are facts
+about the slate and about this viewer's settings rather than opinions about the football. Three
+thresholds are gone: 55, 35, and the `hot` class at 75 that washed the pill red.
