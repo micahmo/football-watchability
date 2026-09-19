@@ -263,6 +263,7 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
 | `NOTIFY_DIR` | `/config` in a container | Where push keys, subscriptions and the history log live. Must be a mounted volume; the server checks |
+| `REPORT_KEY` | - | Enables rating feedback. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
 | `NOTIFY_CONTACT` | `mailto:nobody@example.com` | Who runs this server, as `mailto:` or `https:`. Web Push signs it into every request so a push service can contact you about a misbehaving server. A private board never needs it |
 
 Replaying a past slate is the easiest way to see a full board on a quiet weeknight:
@@ -272,6 +273,18 @@ ESPN_DATES=20260905 RECENT_WINDOW_HOURS=120 npm run dev:server
 ```
 
 ## Tuning
+
+Long press any card, or right click it, to say the rating should be higher, lower, or
+that it is right. Optional one-tap reasons, an optional note, nothing else: there is no
+field for what the number should have been, because a viewer can tell you a direction
+and not a value. Feedback needs `REPORT_KEY`, asked for once and then remembered in that
+browser. A live game collects a verdict every time one is given, since the conditions
+change; a fixed one keeps only the latest.
+
+Each report stores the whole situation, not the verdict alone: every component, the
+score and clock, what the browser was showing against what the server had, what else was
+live and how it was rated, and a stamp of the tuning constants in force. That stamp is
+what says whether a report is still about the model that is running.
 
 The scoring model is tuned against two things. `docs/design-notes.md` records why each
 term is shaped the way it is, and `docs/calibration-log.md` records where the rating
@@ -288,6 +301,9 @@ with every component, kept for 21 days under `HISTORY_DIR`.
   carrying. Both leagues
 - `GET /api/stream` - the same board as a live event stream, same query parameters
 - `GET /api/teams` - every NFL team with division and conference, for the no-spoiler control
+- `POST /api/reports` - record a verdict on a rating. Needs `x-report-key`
+- `GET /api/reports` - read them back, with the current tuning stamp. Needs `x-report-key`
+- `POST /api/reports/review` - mark reports looked at, with an outcome. Needs `x-report-key`
 - `GET /api/health` - per-league poller status, last update, failure count, next poll
 - `GET /api/notifications/config` - whether alerts are available, and the public push key
 - `POST /api/notifications/subscribe` - register a push subscription and its preferences

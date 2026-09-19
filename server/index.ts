@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { LeaguePoller } from "./poller.js";
 import { StandingsStore } from "./standings.js";
+import { ReportStore } from "./reports.js";
 import { History } from "./history.js";
 import { PlaceStore } from "./places.js";
 import { ListingsStore, isLocalStation } from "./listings.js";
@@ -43,6 +44,21 @@ function currentBuild(): string | null {
 const BUILD = currentBuild();
 
 const standings = new StandingsStore();
+/*
+ * Ratings feedback, behind a key.
+ *
+ * The board is a public URL, so an open endpoint is an invitation to poison the
+ * one dataset that says whether the model is any good. Unset the variable and the
+ * feature is simply off rather than open.
+ */
+const reports = new ReportStore(notifyDir());
+const REPORT_KEY = process.env.REPORT_KEY ?? "";
+
+function reportKeyOk(req: http.IncomingMessage): boolean {
+  if (REPORT_KEY.length === 0) return false;
+  const given = req.headers["x-report-key"];
+  return typeof given === "string" && given === REPORT_KEY;
+}
 const listings = new ListingsStore();
 const places = new PlaceStore();
 /**
@@ -552,6 +568,80 @@ async function handleNotificationWrite(
   json(res, { ok: true });
 }
 
+const VERDICTS = new Set(["higher", "lower", "right"]);
+/* A closed set, so the field stays analysable. Free text goes in `note`. */
+const REASONS = new Set([
+  "close", "exciting", "big teams", "late drama", "comeback", "blowout", "dull", "my team",
+]);
+
+async function handleReport(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!reports.available) {
+    json(res, { error: "reports are not configured" }, 503);
+    return;
+  }
+  if (!reportKeyOk(req)) {
+    json(res, { error: "not authorised" }, 401);
+    return;
+  }
+  let body: unknown;
+  try {
+    body = await readJson(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "bad request";
+    json(res, { error: message }, message === "body too large" ? 413 : 400);
+    req.destroy();
+    return;
+  }
+  const b = body as Record<string, any> | null;
+  const league: League = b?.league === "cfb" ? "cfb" : "nfl";
+  const gameId = typeof b?.gameId === "string" ? b.gameId : null;
+  const verdict = typeof b?.verdict === "string" && VERDICTS.has(b.verdict) ? b.verdict : null;
+  if (gameId === null || verdict === null) {
+    json(res, { error: "gameId and verdict required" }, 400);
+    return;
+  }
+  const reasons = (Array.isArray(b?.reasons) ? b.reasons : [])
+    .filter((x: unknown) => typeof x === "string" && REASONS.has(x))
+    .slice(0, REASONS.size);
+  const note =
+    typeof b?.note === "string" && b.note.trim().length > 0 ? b.note.trim().slice(0, 300) : null;
+  const shown = Number.isFinite(Number(b?.shown)) ? Number(b?.shown) : null;
+
+  // The snapshot is the source of truth for everything except what was on screen.
+  const stored = reports.record(
+    { league, gameId, verdict: verdict as "higher" | "lower" | "right", reasons, note, shown },
+    pollers[league].snapshot,
+  );
+  if (stored === null) {
+    json(res, { error: "no such game on the current board" }, 404);
+    return;
+  }
+  json(res, { ok: true });
+}
+
+async function handleReview(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!reportKeyOk(req)) {
+    json(res, { error: "not authorised" }, 401);
+    return;
+  }
+  let body: unknown;
+  try {
+    body = await readJson(req);
+  } catch {
+    json(res, { error: "bad request" }, 400);
+    req.destroy();
+    return;
+  }
+  const b = body as Record<string, any> | null;
+  const ids = (Array.isArray(b?.ids) ? b.ids : []).filter((x: unknown) => typeof x === "string");
+  const outcome = typeof b?.outcome === "string" ? b.outcome.slice(0, 500) : "";
+  if (ids.length === 0 || outcome.length === 0) {
+    json(res, { error: "ids and outcome required" }, 400);
+    return;
+  }
+  json(res, { reviewed: reports.review(ids, outcome) });
+}
+
 function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   const raw = req.url ?? "/";
   const url = raw.split("?")[0];
@@ -561,7 +651,13 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
   const writable =
     url === "/api/notifications/subscribe" ||
     url === "/api/notifications/unsubscribe" ||
-    url === "/api/notifications/ack";
+    url === "/api/notifications/ack" ||
+    url === "/api/reports" ||
+    url === "/api/reports/review";
+  if (req.method === "POST" && (url === "/api/reports" || url === "/api/reports/review")) {
+    void (url === "/api/reports" ? handleReport(req, res) : handleReview(req, res));
+    return;
+  }
   if (req.method === "POST" && writable) {
     void handleNotificationWrite(url, req, res);
     return;
@@ -636,6 +732,19 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
    * playing this week cannot be used to protect a team on its bye, which is
    * exactly the week somebody would be setting it up for.
    */
+  /* Read back behind the same key, so the corpus can be pulled without shelling
+     into the box. */
+  if (url === "/api/reports") {
+    if (!reportKeyOk(req)) {
+      json(res, { error: "not authorised" }, 401);
+      return;
+    }
+    /* The current stamp rides along, so a reader can see at a glance which
+       reports were about the model that is running now. */
+    json(res, { model: reports.model, reports: reports.all });
+    return;
+  }
+
   if (url === "/api/teams") {
     void standings
       .roster()

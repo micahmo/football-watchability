@@ -804,6 +804,48 @@ const BILLING_CARRY = 1;
  *    0.90     0.84     0.68    0.39      0
  */
 const BILLING_UNTIL = 0.5;
+
+/**
+ * Every number that decides what a rating comes out as, in one place.
+ *
+ * Not used by the scoring itself. It exists so a rating can be stamped with the
+ * model that produced it, because feedback is about a particular model and stops
+ * being directly actionable the moment one of these moves: a "should be higher"
+ * from before a reweighting may already have been answered by it.
+ *
+ * Add to this whenever a new constant starts shaping the number, or the stamp
+ * will quietly claim two different models were the same.
+ */
+export const TUNING: Record<string, number> = {
+  ...WEIGHTS,
+  latenessFloor: 0.2,
+  latenessExponent: 1.3,
+  clutchWindowSeconds: CLUTCH_WINDOW_SECONDS,
+  clutchTwoScoreSeconds: CLUTCH_TWO_SCORE_SECONDS,
+  oneScore: ONE_SCORE,
+  upsetMinSpread: UPSET_MIN_SPREAD,
+  upsetDramaShare: UPSET_DRAMA_SHARE,
+  maxVsLine: MAX_VS_LINE,
+  latenessFloorUpset: LATENESS_FLOOR,
+  contestFloor: CONTEST_FLOOR,
+  contestScale: CONTEST_SCALE,
+  billingCarry: BILLING_CARRY,
+  billingUntil: BILLING_UNTIL,
+};
+
+/** A short, stable stamp for `TUNING`, so two reports can be compared. */
+export function tuningStamp(): string {
+  const text = Object.keys(TUNING)
+    .sort()
+    .map((k) => `${k}=${TUNING[k]}`)
+    .join(";");
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(36);
+}
 /** Roughly the start of the fourth quarter. */
 const LATE_GAME_PROGRESS = 0.75;
 

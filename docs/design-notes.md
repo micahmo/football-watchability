@@ -1932,3 +1932,44 @@ that direction should prompt a look for the inverse.
 **It will asymptote rather than converge.** Some error is irreducible. The model
 cannot know a quarterback limped off or that a game matters for reasons no feed
 carries. The target is "rarely wrong in a way that annoys him", not zero error.
+
+
+## Feedback on a rating has to carry the situation that produced it
+
+Micah supplies the judgements; the point of collecting them in the app rather than in
+conversation is that a verdict given in the moment is worth more than one reconstructed from
+memory a day later, and there are more of them.
+
+**A verdict alone is nearly useless.** "Clemson should have been higher" cannot be checked
+against anything, because what has to be checked is which term was wrong, and that is gone the
+moment the game moves on. So a report stores every component, the score, clock, spread and win
+probability, and both numbers: what the browser was showing and what the server had. Those differ,
+routinely. The board runs a broadcast delay and adds the favourite bonus in the browser, so the
+verdict is about `shown` and the diagnosis is about `total`.
+
+**It also stores the rest of the board.** Most of these judgements are really orderings: "this
+should be above that". Without what else was live and how it was rated, that is unrecoverable, and
+it is the more useful half.
+
+**No field for what the rating should have been.** Proposed and rejected by the person who would
+have filled it in: "it's not a calculator so i can't determine what I think it should be, just that
+it should be higher or lower". A number invented to satisfy a form is worse than no number.
+
+**The reasons are optional and so is the note.** "What if I can't put my finger on it? What if it's
+just exciting?" A form that insists on a category gets a wrong one or gets nothing, so a bare
+verdict is a complete report. `exciting` is in the list in its own right, because it is a real
+reason even though it maps to no single term.
+
+**Each report is stamped with the tuning constants in force.** A verdict is about the numbers a
+particular model produced, so moving any of them leaves it unanswered rather than wrong: the change
+may already have addressed it. `TUNING` in `scoring.ts` gathers every constant that shapes a rating
+and `tuningStamp()` hashes them. **Anything new that shapes the number has to be added there**, or
+the stamp will quietly claim two different models were the same.
+
+**Reviewed is not the same as actioned.** Most reports should end up reviewed with an outcome saying
+the board was right, or that it was real but too rare to chase. On 2026-09-18 two alarms turned out
+to be bad metrics rather than defects, and a store that only recorded changes would have lost both
+of those conclusions.
+
+**One report is not a reason to change anything.** His instruction, and the right one: wait until
+there are several before deciding a pattern exists.

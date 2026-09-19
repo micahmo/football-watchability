@@ -2,9 +2,21 @@
   import type { Game } from "../../shared/types";
   import { hasRecord, kickoffTime, scoreColor, teamColor } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
+  import { longPress } from "./longPress";
   import { prefs } from "./prefs.svelte";
 
-  let { game, score, now = Date.now() }: { game: Game; score?: number; now?: number } = $props();
+  let {
+    game,
+    score,
+    now = Date.now(),
+    onreport,
+  }: {
+    game: Game;
+    score?: number;
+    now?: number;
+    /** Long press, or right click, to say what this rating should have been. */
+    onreport?: () => void;
+  } = $props();
 
   /*
    * What the time column says when the scheduled time has gone by.
@@ -34,7 +46,7 @@
   const accent = $derived(scoreColor(shown));
 </script>
 
-<div class="row" class:unavailable>
+<div class="row" class:unavailable use:longPress={() => onreport?.()}>
   <div class="score mono" style="color: {accent}">{Math.round(shown)}</div>
   <div class="when mono">
     <span class="time" class:imminent>{when}</span>

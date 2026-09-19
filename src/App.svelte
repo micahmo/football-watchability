@@ -8,6 +8,7 @@
   import FavoriteConferences from "./lib/FavoriteConferences.svelte";
   import MarketPicker from "./lib/MarketPicker.svelte";
   import NoSpoilers from "./lib/NoSpoilers.svelte";
+  import ReportDialog from "./lib/ReportDialog.svelte";
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
   import HelpPanel from "./lib/HelpPanel.svelte";
@@ -540,6 +541,12 @@
   );
   const rest = $derived(live.slice(1));
 
+  /* Which game a verdict is being given about, and the number that prompted it.
+     The rating has to travel with it: the dialog cannot recompute what was on
+     screen, because the delay and the favourite bonus both live out here. */
+  let reporting = $state<{ game: Game; shown: number } | null>(null);
+  const report = (game: Game, shown: number) => (reporting = { game, shown });
+
   // No slice here any more: folding made the list cheap, so MAX_CARDS decides how
   // many show and the expander reaches the rest. Cutting at five before the
   // expander existed meant the server sent twelve and seven were unreachable.
@@ -739,6 +746,7 @@
       </span>
     </div>
     <GameCard
+      onreport={() => report(top, scoreOf(top))}
       game={top}
       score={scoreOf(top)}
       collapsible
@@ -762,6 +770,7 @@
           collapsible
           expanded={cardOpen(game.id, false)}
           ontoggle={() => toggleCard(game.id, false)}
+          onreport={() => report(game, scoreOf(game))}
         />
       {/each}
     </div>
@@ -776,6 +785,14 @@
     <strong>Nothing is live right now.</strong>
     <p class="hint">The board fills in once games kick off. What is coming up is below.</p>
   </div>
+{/if}
+
+{#if reporting}
+  <ReportDialog
+    game={reporting.game}
+    shown={reporting.shown}
+    onclose={() => (reporting = null)}
+  />
 {/if}
 
 <div class="two-col">
@@ -811,7 +828,12 @@
                 <p class="window-head">{slot.label}</p>
                 <div class="tier">
                   {#each slot.available as game (game.id)}
-                    <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                    <UpcomingRow
+                  {game}
+                  score={anticipationOf(game)}
+                  {now}
+                  onreport={() => report(game, anticipationOf(game))}
+                />
                   {/each}
                 </div>
                 {#if slot.unavailable.length > 0}
@@ -823,7 +845,12 @@
                       </svg>
                     </p>
                     {#each slot.unavailable as game (game.id)}
-                      <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                      <UpcomingRow
+                  {game}
+                  score={anticipationOf(game)}
+                  {now}
+                  onreport={() => report(game, anticipationOf(game))}
+                />
                     {/each}
                   </div>
                 {/if}
@@ -836,7 +863,12 @@
                  header should sit in whitespace, not inside a cell. -->
             <div class="tier">
               {#each day.available as game (game.id)}
-                <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                <UpcomingRow
+                  {game}
+                  score={anticipationOf(game)}
+                  {now}
+                  onreport={() => report(game, anticipationOf(game))}
+                />
               {/each}
             </div>
             {#if day.unavailable.length > 0}
@@ -848,7 +880,12 @@
                   </svg>
                 </p>
                 {#each day.unavailable as game (game.id)}
-                  <UpcomingRow {game} score={anticipationOf(game)} {now} />
+                  <UpcomingRow
+                  {game}
+                  score={anticipationOf(game)}
+                  {now}
+                  onreport={() => report(game, anticipationOf(game))}
+                />
                 {/each}
               </div>
             {/if}
@@ -881,7 +918,12 @@
                game being in progress, so folding a final toggled the network chip
                and nothing else. The list still caps at MAX_CARDS, which is where
                the vertical space actually was. -->
-          <GameCard {game} score={scoreOf(game)} variant="final" />
+          <GameCard
+            {game}
+            score={scoreOf(game)}
+            variant="final"
+            onreport={() => report(game, scoreOf(game))}
+          />
         {/each}
       </div>
       {#if recent.length > MAX_CARDS}

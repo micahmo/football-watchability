@@ -9,6 +9,7 @@
     teamColor,
   } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
+  import { longPress } from "./longPress";
   import { isHidden, isProtected, reveal, unreveal } from "./spoilers.svelte";
   import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
@@ -22,6 +23,7 @@
     collapsible = false,
     expanded = true,
     ontoggle,
+    onreport,
   }: {
     game: Game;
     score: number;
@@ -37,6 +39,8 @@
     collapsible?: boolean;
     expanded?: boolean;
     ontoggle?: () => void;
+    /** Long press, or right click, to say what this rating should have been. */
+    onreport?: () => void;
   } = $props();
 
   /** Detail is shown when the card cannot fold, or when this one is open. */
@@ -155,6 +159,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <article
+  use:longPress={() => onreport?.()}
   class="card"
   class:unavailable
   class:collapsible
