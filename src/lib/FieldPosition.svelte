@@ -226,6 +226,11 @@
     display: block;
     width: 100%;
     height: auto;
+    /* The viewBox is 5:1, so on a wide card this grows into a 200px slab that
+       dominates the score it is meant to annotate. Phone width is the size it was
+       designed at; past that it stops growing and stays left, lined up with the
+       win probability bar above it. */
+    max-width: 540px;
     margin: 8px 0 2px;
     border-radius: 3px;
     overflow: hidden;
