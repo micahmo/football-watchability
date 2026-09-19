@@ -64,8 +64,8 @@ sorts it to the bottom and sends no notifications about it. A tap asks before it
 reloading forgets that you asked. Games that have not kicked off are untouched.
 
 **League tabs** switch between NFL and college; the NFL opens by default. **Favorite
-conferences** push the games you care about up the board, weighted higher when both teams
-qualify than one. Tab, favorites and market all persist in the browser.
+conferences** break a tie toward the games you care about, by one point for one team and two
+for both. Tab, favorites and market all persist in the browser.
 
 ## Explaining itself
 

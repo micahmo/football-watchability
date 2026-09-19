@@ -54,7 +54,8 @@
     <h3>Your settings change it</h3>
     <ul>
       <li>
-        <strong>Favorites.</strong> Games involving a conference you follow get a boost up the board.
+        <strong>Favorites.</strong> Breaks a tie toward a conference you follow. Deliberately tiny,
+        so it separates two games that were already level rather than deciding what you watch.
       </li>
       <li>
         <strong>Market.</strong> Your postal code works out which of your own channels is showing

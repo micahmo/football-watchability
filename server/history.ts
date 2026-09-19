@@ -12,6 +12,15 @@ import type { Game, Snapshot } from "../shared/types.js";
  * actually moves the score is written immediately regardless.
  */
 const HEARTBEAT_MS = 60 * 1000;
+/**
+ * Pregame games get their own, much slower beat.
+ *
+ * A Saturday has upwards of 140 upcoming games on the board at once, days out. At
+ * the live heartbeat that is about 77 MB a day of rows saying nothing changed.
+ * Hourly, plus a row whenever the anticipation actually moves, captures the line
+ * moving and the last reading before kickoff, which is the whole point.
+ */
+const PREGAME_HEARTBEAT_MS = 60 * 60 * 1000;
 /** Rows wait this long to be written, so a burst of rebuilds costs one append. */
 const FLUSH_MS = 15 * 1000;
 /** Dropped rather than grow without bound if the disk stops accepting writes. */
@@ -51,16 +60,25 @@ interface Row {
   possession: string | null;
   driveStart: number | null;
   lastPlay: string | null;
-  total: number;
-  core: number;
-  clutch: number;
-  upsetTension: number;
-  primary: number;
-  prominence: number;
-  swing: number;
-  upset: number;
-  stakes: number;
-  pace: number;
+  /**
+   * What the game was rated before it kicked off, and null once it has.
+   *
+   * Recorded because it was the one number in the model with no measurement
+   * behind it: the log kept `in` and `post` only, so every anticipation vanished
+   * at kickoff and a question about what a marquee game was rated on Friday could
+   * not be answered on Saturday.
+   */
+  anticipation: number | null;
+  total: number | null;
+  core: number | null;
+  clutch: number | null;
+  upsetTension: number | null;
+  primary: number | null;
+  prominence: number | null;
+  swing: number | null;
+  upset: number | null;
+  stakes: number | null;
+  pace: number | null;
   tags: string[];
 }
 
@@ -70,7 +88,9 @@ interface Mark {
   state: string;
   period: number;
   score: string;
-  total: number;
+  total: number | null;
+  /** Pregame only: moves when the line moves or the polls do. */
+  anticipation: number | null;
   /** Whether the field diagram had everything it needs. */
   situation: boolean;
 }
@@ -114,15 +134,19 @@ export class History {
   record(snapshot: Snapshot): void {
     if (this.dir === null) return;
     const now = Date.now();
-    for (const game of [...snapshot.live, ...snapshot.recent]) {
-      if (game.score === null || game.score === undefined) continue;
+    for (const game of [...snapshot.live, ...snapshot.recent, ...snapshot.upcoming]) {
+      // A pregame game has an anticipation and no components; a live one is the
+      // other way round. Either is worth a row, neither has both.
+      const pregame = game.score === null || game.score === undefined;
+      if (pregame && (game.anticipation === null || game.anticipation === undefined)) continue;
       const key = `${snapshot.league}:${game.id}`;
       const mark: Mark = {
         at: now,
         state: game.state,
         period: game.period,
         score: `${game.away.score}-${game.home.score}`,
-        total: game.score.total,
+        total: game.score?.total ?? null,
+        anticipation: pregame ? Math.round((game.anticipation ?? 0) * 10) / 10 : null,
         situation:
           game.down !== null && game.distance !== null && game.possessionTeamId !== null,
       };
@@ -130,13 +154,15 @@ export class History {
       // A change in anything that matters, or the heartbeat, whichever comes first.
       // `situation` is in there because whether the field diagram can be drawn is
       // itself the question a later reader is most likely to be asking.
+      const beat = pregame ? PREGAME_HEARTBEAT_MS : HEARTBEAT_MS;
       const changed =
         last === undefined ||
         last.state !== mark.state ||
         last.period !== mark.period ||
         last.score !== mark.score ||
+        last.anticipation !== mark.anticipation ||
         last.situation !== mark.situation ||
-        now - last.at >= HEARTBEAT_MS;
+        now - last.at >= beat;
       if (!changed) continue;
       this.marks.set(key, mark);
       this.push(this.rowFor(snapshot.league, game));
@@ -145,7 +171,7 @@ export class History {
   }
 
   private rowFor(league: string, game: Game): Row {
-    const s = game.score!;
+    const s = game.score ?? null;
     return {
       t: new Date().toISOString(),
       league,
@@ -164,16 +190,20 @@ export class History {
       possession: game.possessionTeamId,
       driveStart: game.driveStart,
       lastPlay: game.lastPlay,
-      total: s.total,
-      core: round(s.core),
-      clutch: round(s.clutch),
-      upsetTension: round(s.upsetTension),
-      primary: round(s.primary),
-      prominence: round(s.prominence),
-      swing: round(s.swing),
-      upset: round(s.upset),
-      stakes: round(s.stakes),
-      pace: round(s.pace),
+      anticipation:
+        s === null && game.anticipation !== null && game.anticipation !== undefined
+          ? round(game.anticipation)
+          : null,
+      total: s === null ? null : s.total,
+      core: s === null ? null : round(s.core),
+      clutch: s === null ? null : round(s.clutch),
+      upsetTension: s === null ? null : round(s.upsetTension),
+      primary: s === null ? null : round(s.primary),
+      prominence: s === null ? null : round(s.prominence),
+      swing: s === null ? null : round(s.swing),
+      upset: s === null ? null : round(s.upset),
+      stakes: s === null ? null : round(s.stakes),
+      pace: s === null ? null : round(s.pace),
       tags: game.tags ?? [],
     };
   }

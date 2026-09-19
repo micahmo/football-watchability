@@ -103,7 +103,20 @@ const BETTER_BY = 5;
 /** Even a day of escalating classics stops here. */
 const HARD_CAP = 6;
 const COOLDOWN_MS = 10 * 60 * 1000;
-const FAVORITE_BONUS = [0, 8, 13];
+/*
+ * A tiebreaker, not a thumb on the scale.
+ *
+ * This was [0, 8, 13]. Measured over every minute with more than one game live,
+ * a 13-point bonus could change which game the board put top in 71% of them,
+ * reached a median of three games down the list, and was 31% of a p90 rating. It
+ * was not breaking ties, it was deciding the answer, which is the opposite of
+ * what a board that tells you what to watch is for. It also meant two people
+ * looking at the same slate were shown different games.
+ *
+ * At [0, 1, 2] it only matters between games already within two points of each
+ * other, which on this scale is a coin flip.
+ */
+const FAVORITE_BONUS = [0, 1, 2];
 
 export interface Alert {
   category: Category;
