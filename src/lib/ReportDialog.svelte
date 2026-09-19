@@ -13,7 +13,14 @@
    * invented to satisfy a form is worse than no number.
    */
   import type { Game } from "../../shared/types";
-  import { REASONS, reportKey, sendReport, setReportKey, type Verdict } from "./reports.svelte";
+  import {
+    forgetReportKey,
+    REASONS,
+    reportKey,
+    sendReport,
+    setReportKey,
+    type Verdict,
+  } from "./reports.svelte";
 
   let {
     game,
@@ -29,6 +36,15 @@
   let done = $state(false);
 
   const needsKey = $derived(reportKey() === null);
+
+  async function saveKey(): Promise<void> {
+    busy = true;
+    error = null;
+    const result = await setReportKey(keyDraft);
+    busy = false;
+    if (result.ok) keyDraft = "";
+    else error = result.error ?? "that did not work";
+  }
   const matchup = $derived(`${game.away.name} at ${game.home.name}`);
 
   function toggle(reason: string): void {
@@ -69,11 +85,15 @@
         <input
           type="password"
           placeholder="key"
+          disabled={busy}
           bind:value={keyDraft}
-          onkeydown={(e) => e.key === "Enter" && setReportKey(keyDraft)}
+          onkeydown={(e) => e.key === "Enter" && void saveKey()}
         />
-        <button type="button" class="save" onclick={() => setReportKey(keyDraft)}>Save</button>
+        <button type="button" class="save" disabled={busy} onclick={() => void saveKey()}>
+          {busy ? "Checking" : "Save"}
+        </button>
       </div>
+      {#if error}<p class="hint err">{error}</p>{/if}
     {:else if done}
       <p class="hint ok">Recorded.</p>
     {:else}
@@ -104,6 +124,9 @@
       </div>
       <input class="note" type="text" placeholder="anything else" bind:value={note} />
       {#if error}<p class="hint err">{error}</p>{/if}
+      <!-- Always reachable. A stored key that has stopped working, or was never
+           right, otherwise leaves the sheet with no way out of itself. -->
+      <button type="button" class="forget" onclick={() => forgetReportKey()}>Use a different key</button>
     {/if}
   </div>
 </div>
@@ -117,16 +140,29 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    /* Clears the home indicator, and keeps the sheet off the display's own curved
+       corners. */
+    padding: 10px calc(10px + env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom))
+      calc(10px + env(safe-area-inset-right));
   }
-  /* A sheet from the bottom rather than a centred box: this is reached by
-     pressing a card with a thumb, and the thumb is already down there. */
+  /*
+   * Floating near the bottom rather than welded to it.
+   *
+   * Anchored flush, its square bottom corners sat inside the phone's own rounded
+   * ones, and the two radii disagreeing reads as a mistake. Rounded on all four
+   * and inset from every edge sidesteps the question: there is no shared edge for
+   * the radii to disagree about, and the home indicator gets its strip back. It
+   * still sits low, because this is reached by pressing a card with a thumb and
+   * the thumb is already down there.
+   */
   .sheet {
     width: 100%;
     max-width: 520px;
     background: var(--bg-card);
     border: 1px solid var(--border-hi);
-    border-radius: 14px 14px 0 0;
-    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
   }
   .head {
     display: flex;
@@ -209,6 +245,17 @@
     align-items: center;
   }
   .keyrow input { margin-top: 0; }
+  .forget {
+    margin-top: 12px;
+    font: inherit;
+    font-size: 11px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-faint);
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .save {
     font: inherit;
     font-size: 13px;

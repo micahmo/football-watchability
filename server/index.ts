@@ -59,6 +59,23 @@ function reportKeyOk(req: http.IncomingMessage): boolean {
   const given = req.headers["x-report-key"];
   return typeof given === "string" && given === REPORT_KEY;
 }
+
+/**
+ * Answers the request itself when the key is missing or wrong. A server with no
+ * key set is told apart from a wrong key, because otherwise someone typing a key
+ * into the board gets "not accepted" for a key that was never going to work.
+ */
+function reportGate(req: http.IncomingMessage, res: http.ServerResponse): boolean {
+  if (REPORT_KEY.length === 0) {
+    json(res, { error: "reporting is not enabled" }, 503);
+    return false;
+  }
+  if (!reportKeyOk(req)) {
+    json(res, { error: "not authorised" }, 401);
+    return false;
+  }
+  return true;
+}
 const listings = new ListingsStore();
 const places = new PlaceStore();
 /**
@@ -579,10 +596,7 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
     json(res, { error: "reports are not configured" }, 503);
     return;
   }
-  if (!reportKeyOk(req)) {
-    json(res, { error: "not authorised" }, 401);
-    return;
-  }
+  if (!reportGate(req, res)) return;
   let body: unknown;
   try {
     body = await readJson(req);
@@ -620,10 +634,7 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
 }
 
 async function handleReview(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (!reportKeyOk(req)) {
-    json(res, { error: "not authorised" }, 401);
-    return;
-  }
+  if (!reportGate(req, res)) return;
   let body: unknown;
   try {
     body = await readJson(req);
@@ -735,8 +746,12 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
   /* Read back behind the same key, so the corpus can be pulled without shelling
      into the box. */
   if (url === "/api/reports") {
-    if (!reportKeyOk(req)) {
-      json(res, { error: "not authorised" }, 401);
+    if (!reportGate(req, res)) return;
+    /* `?check=1` answers only whether the key is good, which is what the browser
+       needs when one is typed in. The full list is thousands of components wide
+       and no use for that. */
+    if (new URLSearchParams(raw.split("?")[1] ?? "").get("check") !== null) {
+      json(res, { ok: true, model: reports.model });
       return;
     }
     /* The current stamp rides along, so a reader can see at a glance which

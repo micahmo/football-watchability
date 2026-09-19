@@ -1973,3 +1973,11 @@ of those conclusions.
 
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
+
+**The key is checked before it is stored, not at submit time.** The first cut took whatever was
+typed and only found out it was wrong when a verdict was sent, which left a browser holding a key
+that could never work and no way to clear it. `GET /api/reports?check=1` exists for that one
+question, a 401 during a submit drops the stored key rather than keeping it, and the sheet always
+carries a way to enter a different one. The server also answers 503 rather than 401 when
+`REPORT_KEY` is unset, because "not accepted" is misleading for a key nothing was ever going to
+accept.

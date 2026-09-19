@@ -23,14 +23,43 @@ export function reportKey(): string | null {
   return key;
 }
 
-export function setReportKey(value: string): void {
-  key = value.trim().length > 0 ? value.trim() : null;
+function store(value: string | null): void {
+  key = value;
   try {
     if (key === null) localStorage.removeItem(KEY);
     else localStorage.setItem(KEY, key);
   } catch {
     // A private window can still report; it just has to be asked again.
   }
+}
+
+/**
+ * Takes a key only if the server accepts it. Storing first and finding out at
+ * submit time left a wrong key wedged in the browser with nothing to clear it.
+ */
+export async function setReportKey(
+  value: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const candidate = value.trim();
+  if (candidate.length === 0) return { ok: false, error: "enter a key" };
+  try {
+    const res = await fetch("/api/reports?check=1", {
+      headers: { "x-report-key": candidate },
+    });
+    if (res.status === 401) return { ok: false, error: "that key was not accepted" };
+    if (res.status === 503) {
+      return { ok: false, error: "reporting is not enabled on the server" };
+    }
+    if (!res.ok) return { ok: false, error: `could not check (${res.status})` };
+  } catch {
+    return { ok: false, error: "could not reach the server" };
+  }
+  store(candidate);
+  return { ok: true };
+}
+
+export function forgetReportKey(): void {
+  store(null);
 }
 
 export const REASONS = [
@@ -72,7 +101,12 @@ export async function sendReport(
         shown,
       }),
     });
-    if (res.status === 401) return { ok: false, error: "that key was not accepted" };
+    /* A key that has stopped working is worse than none, because the sheet would
+       go on offering buttons that cannot do anything. Drop it and ask again. */
+    if (res.status === 401) {
+      store(null);
+      return { ok: false, error: "that key was not accepted" };
+    }
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { error?: string } | null;
       return { ok: false, error: body?.error ?? `failed (${res.status})` };

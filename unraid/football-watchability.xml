@@ -71,4 +71,8 @@
   <Config Name="Notification contact" Target="NOTIFY_CONTACT" Default="" Mode=""
           Description="A mailto: address sent to push services with each delivery, so they can reach you about problems."
           Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+
+  <Config Name="Rating feedback key" Target="REPORT_KEY" Default="" Mode=""
+          Description="Enables reporting a rating as too high or too low from the board. Leave empty and the feature is off rather than open, which matters because the board is a public URL."
+          Type="Variable" Display="always" Required="false" Mask="true"></Config>
 </Container>
