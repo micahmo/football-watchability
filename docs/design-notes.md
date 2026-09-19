@@ -1804,6 +1804,19 @@ quarter goes 31.3 to 35.6. The top game in a contested minute is unchanged 93.9%
 alert volume does not move at all, because alerts fire on late peaks and those are exactly the part
 the curve preserves: the same five games cross `HERO` and the same one crosses `CLASSIC`.
 
+**Prominence then had to stop being flat**, because raising its weight is only half the fix. It
+contributed the same from 0-0 to 20-3, so it was at once too stingy to a live marquee game and too
+generous to a dead one, and moving `draw` to 0.25 made the second half worse: a 33-20 Miami at Wake
+Forest, tension 0.04, was still rated 28 on its badge alone. It is now multiplied by
+`0.3 + 0.7 * exp(-(margin / 12)²)`.
+
+That is deliberately not `tensionFromMargin`, which is what the note in the backlog proposed. Being
+time-aware, that curve collapses for a close game in its dying seconds, which is precisely when
+prominence should count for most: tried, it cost the best game on record a point and barely touched
+the blowout. Asking "is this a contest" rather than "can this still change" leaves the classic at
+90.5 against 91.5 and drops the corpse from 28.3 to 17.0, with the five games peaking above 85
+unchanged and the median tension of whatever the board puts top unmoved at 0.73.
+
 **What is still not done.** The limiter on a close mid-game is `tension`, not lateness: a tied game
 between unequal teams genuinely has a lopsided win probability, and `upsetDrama` exists to catch the
 case where that feels wrong. Making the number mean "how good is this game" rather than "how urgent

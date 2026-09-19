@@ -48,6 +48,33 @@ export function tensionFromFinalMargin(margin: number): number {
 }
 
 /**
+ * How much of a contest this still is, for scaling prominence by.
+ *
+ * Prominence says how much of the country cares about the fixture, and on its own
+ * it is flat: Ohio State at Texas contributed the same from 0-0 to 20-3, which is
+ * at once too generous to a corpse and too stingy to a live marquee game. Raising
+ * the weight alone fixes the second and worsens the first, which is exactly what
+ * happened when `draw` went to 0.25: a 33-20 Miami game with a tension of 0.04
+ * was still rated 28 on its badge alone.
+ *
+ * Deliberately time-independent, and this is the whole reason it is not
+ * `tensionFromMargin`. That curve asks "can this still change" and so collapses
+ * for a close game in its final seconds, which is the one moment prominence
+ * should be worth most: reusing it cost the best game on record a point of its
+ * rating while barely touching the blowout. This asks only "is this a contest",
+ * and a three-point game is a contest whether there is a quarter left or a snap.
+ *
+ * The floor is not zero because a blowout between two famous teams is still on in
+ * a lot of rooms. At a margin of 13 this returns 0.38, at 20 it is 0.31, and by 28
+ * it has bottomed out at the floor.
+ */
+function stillAContest(input: ScoreInputs): number {
+  if (input.isFinal === true) return 1;
+  const margin = Math.abs(input.home.score - input.away.score);
+  return CONTEST_FLOOR + (1 - CONTEST_FLOOR) * Math.exp(-Math.pow(margin / CONTEST_SCALE, 2));
+}
+
+/**
  * Being tied in the first quarter is not exciting. Being tied with two minutes
  * left is the whole point, so tension is weighted heavily toward the end.
  *
@@ -580,19 +607,20 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
     // Billing is not among them; it floors the total instead, below.
     billing,
     primary: Math.max(core, clutch, upsetTension, upsetDrama, decisiveness),
-    prominence: prominenceScore({
-      league: input.league,
-      homeConferenceId: input.home.conferenceId,
-      awayConferenceId: input.away.conferenceId,
-      homeRank: input.home.rank,
-      awayRank: input.away.rank,
-      homeWinPct: input.home.winPct,
-      awayWinPct: input.away.winPct,
-      homeSeed: input.home.playoffSeed,
-      awaySeed: input.away.playoffSeed,
-      network: input.network,
-      startDate: input.startDate,
-    }),
+    prominence:
+      prominenceScore({
+        league: input.league,
+        homeConferenceId: input.home.conferenceId,
+        awayConferenceId: input.away.conferenceId,
+        homeRank: input.home.rank,
+        awayRank: input.away.rank,
+        homeWinPct: input.home.winPct,
+        awayWinPct: input.away.winPct,
+        homeSeed: input.home.playoffSeed,
+        awaySeed: input.away.playoffSeed,
+        network: input.network,
+        startDate: input.startDate,
+      }) * stillAContest(input),
     swing: swingScore(input.swingMovement),
     upset,
     stakes: stakesScore(input.league, input.home, input.away, input.conferenceGame, input.divisionGame),
@@ -685,6 +713,10 @@ const MAX_VS_LINE = 17;
  * rather than the clock.
  */
 const LATENESS_FLOOR = 0.15;
+/** What a prominent game keeps once it has stopped being a contest. */
+const CONTEST_FLOOR = 0.3;
+/** Points of margin at which a game is half as much of a contest. */
+const CONTEST_SCALE = 12;
 /**
  * How far past the closing line an underdog has to finish for the result itself
  * to be a maximal surprise.
