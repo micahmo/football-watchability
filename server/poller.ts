@@ -148,6 +148,39 @@ function progressOf(event: any): { period: number; clock: number; points: number
 }
 
 /**
+ * Takes the market fields from `polled` and leaves everything else as `held`.
+ *
+ * The staleness test below is about progress: period, clock, score. Win
+ * probability and the betting line are not progress and must not be decided by
+ * it, but a document-level choice decided them anyway. Measured on UNC at Clemson,
+ * 2026-09-19, during a stoppage at 17-15: the board flipped between win
+ * probability 0.376 and 0.458 on alternating updates with no play in between,
+ * worth eight rating points, and lost `upset` and `swing` entirely on every frame
+ * it landed on the push, which carried no odds.
+ *
+ * So the polled document wins on these two fields whether or not it is behind. It
+ * is internally consistent, since its odds, score and win probability all describe
+ * one moment, and win probability is a slow model output that loses nothing by
+ * moving at the poll's cadence instead of the push feed's.
+ */
+function withPolledMarket(held: any, polled: any): any {
+  const heldComp = held?.competitions?.[0];
+  const polledComp = polled?.competitions?.[0];
+  if (heldComp === undefined || polledComp === undefined) return held;
+
+  const comp = { ...heldComp };
+  if (Array.isArray(polledComp.odds)) comp.odds = polledComp.odds;
+  const probability = polledComp?.situation?.lastPlay?.probability;
+  if (probability !== undefined) {
+    comp.situation = {
+      ...(comp.situation ?? {}),
+      lastPlay: { ...(comp.situation?.lastPlay ?? {}), probability },
+    };
+  }
+  return { ...held, competitions: [comp, ...held.competitions.slice(1)] };
+}
+
+/**
  * Whether `candidate` describes an earlier moment of the game than `held`.
  *
  * The two-second tolerance on the clock is for rounding between sources, not for
@@ -545,7 +578,8 @@ export class LeaguePoller {
         if (typeof event?.uid !== "string") continue;
         const held = this.rawEvents.get(event.uid);
         if (held !== undefined && isBehind(event, held)) {
-          fresh.set(event.uid, held);
+          // Held for progress, but the poll still decides the market fields.
+          fresh.set(event.uid, withPolledMarket(held, event));
           rewound += 1;
         } else {
           fresh.set(event.uid, event);
