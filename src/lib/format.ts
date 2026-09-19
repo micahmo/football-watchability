@@ -268,3 +268,26 @@ export function windowTimeLabel(startDates: string[]): string {
   const [, closeSuffix] = last.split(" ");
   return openSuffix === closeSuffix ? `${open} - ${last}` : `${first} - ${last}`;
 }
+
+/**
+ * A break where the next play starts a fresh possession, so the situation still
+ * on screen is no longer true.
+ *
+ * ESPN clears `possessionTeamId` at halftime but leaves `yardLine`, `down`,
+ * `distance` and `driveStart` frozen on the last play of the half. Houston at
+ * Texas Tech sat through the interval showing a ball on the goal line and
+ * "2nd & 10 at HOU 2", which had been true twenty minutes earlier.
+ *
+ * The end of the first and third quarters is deliberately not a break. That is a
+ * change of ends, the same drive continues, and the down and distance carry over
+ * and stay true, so blanking there would throw away something the viewer wants.
+ */
+export function betweenPossessions(game: {
+  period: number;
+  clockSeconds: number;
+  statusName: string;
+}): boolean {
+  if (game.statusName === "STATUS_HALFTIME") return true;
+  if (game.clockSeconds !== 0) return false;
+  return game.period === 2 || game.period === 4;
+}

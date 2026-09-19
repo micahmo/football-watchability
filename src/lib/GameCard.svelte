@@ -1,6 +1,13 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
-  import { clockLabel, hasRecord, kickoffWhen, scoreColor, teamColor } from "./format";
+  import {
+    betweenPossessions,
+    clockLabel,
+    hasRecord,
+    kickoffWhen,
+    scoreColor,
+    teamColor,
+  } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
   import { isHidden, isProtected, reveal, unreveal } from "./spoilers.svelte";
   import { prefs } from "./prefs.svelte";
@@ -102,6 +109,9 @@
         : "away",
   );
   const clockText = $derived(clockLabel(game));
+  /* Halftime leaves the last play of the half on screen as though it were still
+     live, so the situation goes with the markers on the field. */
+  const atRestart = $derived(betweenPossessions(game));
 
   /** Null until a postal code is set, so absence means unknown, not unavailable. */
   const outOfMarket = $derived(game.marketStations !== null && game.marketStations.length === 0);
@@ -236,7 +246,7 @@
             <div class="meta">
               <span class="live-dot"></span>
               <span class="mono clock">{clockText}</span>
-              {#if game.downDistance}
+              {#if game.downDistance && !atRestart}
                 <span class="down mono" class:redzone={game.isRedZone}>{game.downDistance}</span>
               {/if}
             </div>
@@ -263,7 +273,7 @@
       <div class="meta">
         <span class="live-dot"></span>
         <span class="mono clock">{clockText}</span>
-        {#if game.downDistance}
+        {#if game.downDistance && !atRestart}
           <span class="down mono" class:redzone={game.isRedZone}>{game.downDistance}</span>
         {/if}
       </div>

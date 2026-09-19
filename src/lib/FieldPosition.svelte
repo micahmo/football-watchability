@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Game } from "../../shared/types";
-  import { teamColor } from "./format";
+  import { betweenPossessions, teamColor } from "./format";
 
   let { game }: { game: Game } = $props();
 
@@ -31,7 +31,11 @@
    * "1st & 10 at BUF 38" above a blank space for want of a number it was not using
    * to draw either the ball or the line of scrimmage.
    */
-  const ball = $derived(game.state === "in" && game.yardLine !== null ? game.yardLine : null);
+  const ball = $derived(
+    game.state === "in" && !betweenPossessions(game) && game.yardLine !== null
+      ? game.yardLine
+      : null,
+  );
 
   /**
    * Which way this possession is going, or null when nobody is credited with it.
