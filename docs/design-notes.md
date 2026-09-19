@@ -1995,6 +1995,13 @@ fills the buttons, chips and note back in, says when it was given and at what ra
 the button Replace. Live games get none of this, and should not: each of their reports is a
 different moment, nothing is replaced, so there is nothing to show back.
 
+**Closing the sheet with something in it asks first.** The scrim is easy to hit by accident on a
+phone: tapping a chip dismisses the keyboard, the sheet changes height under the thumb, and the
+next tap lands outside it. Micah lost typed feedback to that more than once. The test for whether
+to ask is not "is anything filled in" but "does this differ from what is already stored", because a
+game already reported opens prefilled, and being challenged over a sheet you have not touched is
+the kind of nag that gets clicked through without reading.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

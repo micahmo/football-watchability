@@ -70,6 +70,37 @@
   }
   const matchup = $derived(`${game.away.name} at ${game.home.name}`);
 
+  /*
+   * Whether there is anything to lose by closing.
+   *
+   * Not simply "is anything filled in": a game already reported opens with the
+   * standing verdict in place, and being asked to confirm closing something you
+   * have not touched is noise. The test is whether the sheet now says something
+   * different from what is already stored.
+   */
+  const dirty = $derived.by(() => {
+    const typed = note.trim();
+    const was = prior;
+    if (was === null) return verdict !== null || chosen.length > 0 || typed.length > 0;
+    return (
+      verdict !== was.verdict ||
+      typed !== (was.note ?? "").trim() ||
+      chosen.length !== was.reasons.length ||
+      chosen.some((reason) => !was.reasons.includes(reason))
+    );
+  });
+  let confirming = $state(false);
+
+  /*
+   * Tapping the scrim is easy to do by accident: tapping a chip dismisses the
+   * keyboard, the sheet changes height under the thumb, and the next tap lands
+   * outside it. Losing typed feedback to that is worse than one extra tap.
+   */
+  function dismiss(): void {
+    if (dirty && !done) confirming = true;
+    else onclose?.();
+  }
+
   function toggle(reason: string): void {
     chosen = chosen.includes(reason)
       ? chosen.filter((r) => r !== reason)
@@ -95,7 +126,7 @@
 <div
   class="scrim"
   role="presentation"
-  onclick={(e) => e.target === e.currentTarget && onclose?.()}
+  onclick={(e) => e.target === e.currentTarget && dismiss()}
 >
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Report this rating">
     <p class="head">
@@ -173,14 +204,24 @@
       </div>
       <input class="note" type="text" placeholder="anything else" bind:value={note} />
 
-      <button
-        type="button"
-        class="send"
-        disabled={busy || verdict === null}
-        onclick={() => void submit()}
-      >
-        {busy ? "Sending" : prior === null ? "Send" : "Replace"}
-      </button>
+      {#if confirming}
+        <p class="hint">Close without sending? What you have entered is lost.</p>
+        <div class="confirm">
+          <button type="button" class="v keep" onclick={() => (confirming = false)}>
+            Keep editing
+          </button>
+          <button type="button" class="v discard" onclick={() => onclose?.()}>Discard</button>
+        </div>
+      {:else}
+        <button
+          type="button"
+          class="send"
+          disabled={busy || verdict === null}
+          onclick={() => void submit()}
+        >
+          {busy ? "Sending" : prior === null ? "Send" : "Replace"}
+        </button>
+      {/if}
       {#if error}<p class="hint err">{error}</p>{/if}
       <!-- Always reachable. A stored key that has stopped working, or was never
            right, otherwise leaves the sheet with no way out of itself. -->
@@ -272,6 +313,12 @@
     cursor: pointer;
   }
   .send:disabled { opacity: 0.35; cursor: default; }
+  .confirm {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .v.discard:hover { border-color: var(--hot); color: var(--hot); }
   .hint {
     margin: 14px 0 6px;
     font-size: 12px;
