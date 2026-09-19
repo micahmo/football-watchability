@@ -120,8 +120,10 @@ const COOLDOWN_MS = 10 * 60 * 1000;
  * what a board that tells you what to watch is for. It also meant two people
  * looking at the same slate were shown different games.
  *
- * At [0, 1, 2] it only matters between games already within two points of each
- * other, which on this scale is a coin flip.
+ * The intent, in his words: given three otherwise identical games, the one with a
+ * team you follow edges ahead, and the one with two edges a little further. Not
+ * that either becomes must-watch television. At [0, 1, 2] it only separates games
+ * already within two points of each other, which on this scale is a coin flip.
  */
 const FAVORITE_BONUS = [0, 1, 2];
 
