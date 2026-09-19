@@ -112,6 +112,8 @@ export function swingScore(range: number): number {
 
 /** Endgame drama lives inside the final five minutes of regulation. */
 const CLUTCH_WINDOW_SECONDS = 300;
+/** Below this, a two-score game has run out of possessions rather than clock. */
+const CLUTCH_TWO_SCORE_SECONDS = 180;
 
 export interface ClutchInputs {
   period: number;
@@ -133,7 +135,20 @@ export function clutchScore(i: ClutchInputs): number {
   const secsLeft = secondsRemaining(i.period, i.clockSeconds);
   if (!inOvertime && (i.period < 4 || secsLeft > CLUTCH_WINDOW_SECONDS)) return 0;
 
-  const marginFactor = i.margin <= 8 ? 1 : i.margin <= 16 ? 0.45 : 0;
+  /*
+   * A two-score game counts, but only while two scores are still possible.
+   *
+   * The band was flat, so a thirteen-point game scored *more* as the clock ran
+   * out, which is backwards: it is alive with eight minutes left and over with
+   * two. Miami at Wake Forest sat at 28 on a 13-point lead with 2:00 to play,
+   * above Houston at Texas Tech on eight points with 6:43 left, which was plainly
+   * the better watch.
+   *
+   * Overtime is exempt. There is no clock to run out of and every snap decides
+   * something, which is what the block below already says about urgency.
+   */
+  const twoScoresPossible = inOvertime || secsLeft >= CLUTCH_TWO_SCORE_SECONDS;
+  const marginFactor = i.margin <= 8 ? 1 : i.margin <= 16 && twoScoresPossible ? 0.45 : 0;
   if (marginFactor === 0) return 0;
 
   // Every overtime snap is decisive, so urgency is already maxed.

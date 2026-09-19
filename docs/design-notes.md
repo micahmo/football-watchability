@@ -1817,6 +1817,19 @@ the blowout. Asking "is this a contest" rather than "can this still change" leav
 90.5 against 91.5 and drops the corpse from 28.3 to 17.0, with the five games peaking above 85
 unchanged and the median tension of whatever the board puts top unmoved at 0.73.
 
+**A two-score game stopped scoring more as it died.** `clutchScore` gave a nine-to-sixteen point
+game a flat 0.45, multiplied by an urgency that only rises as the clock runs out, so a thirteen-point
+lead was worth *more* with two minutes left than with six. Miami at Wake Forest sat at 28 on a
+13-point lead with 2:00 to play, above Houston at Texas Tech on eight points with 6:43 left, which
+was obviously the better watch. The band now needs three minutes on the clock for two possessions to
+still be possible. Overtime is exempt, since there is no clock to run out of.
+
+Widening the clutch window was tried first and does not fix it. Urgency scales with how deep into
+the window the game is, so Houston at 6:43 inside an eight-minute window scores 0.128, still below
+Miami's 0.216; and both margin bands lift together, so the gap between them does not move. The gate
+fires on 1.9% of live rows, leaves the ceiling at 90.6, and leaves alert volume untouched at five
+games over `HERO` and one over `CLASSIC`.
+
 **What is still not done.** The limiter on a close mid-game is `tension`, not lateness: a tied game
 between unequal teams genuinely has a lopsided win probability, and `upsetDrama` exists to catch the
 case where that feels wrong. Making the number mean "how good is this game" rather than "how urgent
