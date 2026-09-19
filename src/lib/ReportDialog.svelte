@@ -103,7 +103,7 @@
   quietly replacing one is not the popup anyone expects. Leaving and sending are
   both explicit presses, and both are always on screen.
 -->
-<div class="scrim" role="presentation">
+<div class="scrim" class:informational={done} role="presentation">
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Report this rating">
     <p class="head">
       <span class="what">{matchup}</span>
@@ -229,6 +229,11 @@
    * still sits low, because this is reached by pressing a card with a thumb and
    * the thumb is already down there.
    */
+  /* Once sent there is nothing left to press, so the confirmation drops to the
+     bottom out of the way rather than sitting in the middle of the board. */
+  .scrim.informational {
+    align-items: flex-end;
+  }
   .sheet {
     width: 100%;
     max-width: 520px;
