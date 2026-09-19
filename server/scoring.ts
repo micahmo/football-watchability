@@ -50,9 +50,24 @@ export function tensionFromFinalMargin(margin: number): number {
 /**
  * Being tied in the first quarter is not exciting. Being tied with two minutes
  * left is the whole point, so tension is weighted heavily toward the end.
+ *
+ * The exponent was squared and is now 1.3, which lifts the middle of a game and
+ * leaves both ends where they were. Squaring multiplied the third quarter by
+ * 0.51, so a genuinely close one read about 31 out of 100 and the board called it
+ * "best of what is on". At 1.3 the same quarter is multiplied by 0.63 and the
+ * median one-score game there reads 35.6.
+ *
+ * Deliberately the exponent and not the floor. Raising the floor was tried first
+ * and inflates kickoff, which is where nothing has happened yet and the rating
+ * should be low: `tensionFromMargin` returns 1.0 at 0-0 with a full hour left, so
+ * every game would have opened nine points higher for no reason. The floor keeps
+ * kickoff at 23.9 against 23.5, and the last six minutes at 57.7 against 57.5,
+ * while the third quarter gains four points. Alert volume is untouched, since
+ * alerts fire on late peaks and those are unchanged: on the measured corpus the
+ * same five games cross `HERO` and the same one crosses `CLASSIC`.
  */
 function latenessWeight(progress: number): number {
-  return 0.2 + 0.8 * Math.pow(progress, 2);
+  return 0.2 + 0.8 * Math.pow(progress, 1.3);
 }
 
 /**

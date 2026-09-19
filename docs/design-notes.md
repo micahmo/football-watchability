@@ -7,7 +7,7 @@ because something behaved unexpectedly first, and the note is the reason not to 
 
 Each live game gets a 0-100 score. The dominant term is how close it is, scaled by how far into
 the game it is, because a tie in the first quarter is not the same event as a tie with ninety
-seconds left. Tension is multiplied by `0.2 + 0.8 * progress²`.
+seconds left. Tension is multiplied by `0.2 + 0.8 * progress^1.3`.
 
 That alone is not enough, and the reason is the 2026 Western Michigan at Michigan game. Down
 five with the ball and thirty seconds left, Michigan had a **1% win probability**. The model
@@ -1793,9 +1793,18 @@ would now be cleared by nine; 85 lets the same five through. `CLASSIC` moves 85 
 reason. `KICKOFF_MIN_SCORE` is deliberately untouched, because it is compared against anticipation,
 which has its own weighting and never passes through `combine`.
 
-**What was deliberately not done.** The lateness ramp stays. Four alternative curves were tested and
-even a fully linear one only moves the third quarter from 29.0 to 35.3, because the limiter is
-`tension` rather than lateness: a tied game between unequal teams genuinely has a lopsided win
-probability, and `upsetDrama` already exists to catch the case where that feels wrong. Making the
-number mean "how good is this game" rather than "how urgent is it right now" is a redesign of
-`coreScore`, and 58 games is too thin a corpus to attempt it on.
+**The lateness ramp then moved too**, once it was clear the complaint was specifically that a close
+third quarter reads too low. The exponent goes from 2 to 1.3.
+
+The first attempt raised the floor instead, from 0.2 to 0.35, and was wrong: that inflates kickoff,
+where nothing has happened. `tensionFromMargin` returns 1.0 at 0-0 with a full hour left, so every
+game would have opened about nine points higher for no reason at all. Softening the exponent lifts
+only the middle. Kickoff moves 23.5 to 23.9 and the last six minutes 57.5 to 57.7, while the third
+quarter goes 31.3 to 35.6. The top game in a contested minute is unchanged 93.9% of the time, and
+alert volume does not move at all, because alerts fire on late peaks and those are exactly the part
+the curve preserves: the same five games cross `HERO` and the same one crosses `CLASSIC`.
+
+**What is still not done.** The limiter on a close mid-game is `tension`, not lateness: a tied game
+between unequal teams genuinely has a lopsided win probability, and `upsetDrama` exists to catch the
+case where that feels wrong. Making the number mean "how good is this game" rather than "how urgent
+is it right now" is a redesign of `coreScore`, and 58 games is too thin a corpus to attempt it on.
