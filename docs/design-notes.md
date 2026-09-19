@@ -1897,3 +1897,38 @@ its color from the rating, and that color is now a continuum, so it shouts at 87
 31 with nothing deciding which. `THE ONLY GAME ON` and `NO SPOILERS` stay, because they are facts
 about the slate and about this viewer's settings rather than opinions about the football. Three
 thresholds are gone: 55, 35, and the `hot` class at 75 that washed the pill red.
+
+
+## Who decides whether a rating is right
+
+The board can be checked against itself: ordering stability, alert volume, whether
+the scale reaches its own top, whether a change moves the games it was meant to.
+None of that answers whether a 61 deserved to be a 61. That is a question about
+watching football, and the answer only exists in Micah's head.
+
+So the arrangement is that he supplies the judgements and everything downstream of
+them is this project's problem. A report is "that felt like an 80 and the board
+said 61", not a request for a specific change; working out whether the model is
+wrong, which term is responsible, and whether it is worth touching is the work.
+
+Those judgements go in `docs/calibration-log.md` as they arrive. The point of
+writing them down is that a proposed change can then be tested against every past
+judgement rather than against the one that prompted it, which is the difference
+between calibrating and chasing the most recent complaint.
+
+Three failure modes to design against, all of them observed here already:
+
+**Every report is n=1.** On 2026-09-18 six changes shipped in a day off a handful
+of observations, and twice an alarm was raised that turned out to be a bad metric
+rather than a real defect: judging a live rating by the game's *final* margin, and
+then judging it by margin while ignoring time remaining. Both times the board was
+right. A report is a hypothesis to check against the corpus first.
+
+**The feedback is biased upward.** He notices the game he had on. A game rated too
+high is invisible to this process, because nobody reports a dull 72 they never
+watched. Acting only on "too low" inflates the scale over a season, so a report in
+that direction should prompt a look for the inverse.
+
+**It will asymptote rather than converge.** Some error is irreducible. The model
+cannot know a quarterback limped off or that a game matters for reasons no feed
+carries. The target is "rarely wrong in a way that annoys him", not zero error.

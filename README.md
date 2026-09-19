@@ -271,6 +271,16 @@ Replaying a past slate is the easiest way to see a full board on a quiet weeknig
 ESPN_DATES=20260905 RECENT_WINDOW_HOURS=120 npm run dev:server
 ```
 
+## Tuning
+
+The scoring model is tuned against two things. `docs/design-notes.md` records why each
+term is shaped the way it is, and `docs/calibration-log.md` records where the rating
+disagreed with someone watching the game, which is the only evidence that says whether
+a number is right rather than merely consistent.
+
+The history log is the corpus both are checked against: one row per game per change,
+with every component, kept for 21 days under `HISTORY_DIR`.
+
 ## API
 
 - `GET /api/snapshot?league=nfl|cfb` - the full ranked board (`live`, `upcoming`, `recent`)
