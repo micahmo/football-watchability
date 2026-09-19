@@ -46,11 +46,9 @@ export async function setReportKey(
     const res = await fetch("/api/reports?check=1", {
       headers: { "x-report-key": candidate },
     });
-    if (res.status === 401) return { ok: false, error: "that key was not accepted" };
-    if (res.status === 503) {
-      return { ok: false, error: "reporting is not enabled on the server" };
-    }
-    if (!res.ok) return { ok: false, error: `could not check (${res.status})` };
+    // Deliberately one message for every refusal. The board is public, so it
+    // must not report back whether this server has reporting configured.
+    if (!res.ok) return { ok: false, error: "that key was not accepted" };
   } catch {
     return { ok: false, error: "could not reach the server" };
   }

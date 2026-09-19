@@ -1978,6 +1978,10 @@ there are several before deciding a pattern exists.
 typed and only found out it was wrong when a verdict was sent, which left a browser holding a key
 that could never work and no way to clear it. `GET /api/reports?check=1` exists for that one
 question, a 401 during a submit drops the stored key rather than keeping it, and the sheet always
-carries a way to enter a different one. The server also answers 503 rather than 401 when
-`REPORT_KEY` is unset, because "not accepted" is misleading for a key nothing was ever going to
-accept.
+carries a way to enter a different one.
+
+**Every refusal reads the same to the browser.** An early version answered 503 when `REPORT_KEY`
+was unset, on the grounds that "not accepted" is misleading for a key nothing could accept. That is
+true and it does not matter: the board is a public URL, and telling a stranger that reporting is
+unconfigured tells them something about the deployment they have no business knowing. The key check
+happens before the storage check for the same reason.

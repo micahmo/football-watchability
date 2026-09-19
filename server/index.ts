@@ -61,20 +61,14 @@ function reportKeyOk(req: http.IncomingMessage): boolean {
 }
 
 /**
- * Answers the request itself when the key is missing or wrong. A server with no
- * key set is told apart from a wrong key, because otherwise someone typing a key
- * into the board gets "not accepted" for a key that was never going to work.
+ * Answers the request itself when the key is missing or wrong. One answer for
+ * both: a public URL should not be able to learn whether this server has
+ * reporting configured, only that the key it presented did not work.
  */
 function reportGate(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-  if (REPORT_KEY.length === 0) {
-    json(res, { error: "reporting is not enabled" }, 503);
-    return false;
-  }
-  if (!reportKeyOk(req)) {
-    json(res, { error: "not authorised" }, 401);
-    return false;
-  }
-  return true;
+  if (reportKeyOk(req)) return true;
+  json(res, { error: "not authorised" }, 401);
+  return false;
 }
 const listings = new ListingsStore();
 const places = new PlaceStore();
@@ -592,11 +586,13 @@ const REASONS = new Set([
 ]);
 
 async function handleReport(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  // Key first. Whether the store is usable is not something an unauthorised
+  // caller gets to find out.
+  if (!reportGate(req, res)) return;
   if (!reports.available) {
     json(res, { error: "reports are not configured" }, 503);
     return;
   }
-  if (!reportGate(req, res)) return;
   let body: unknown;
   try {
     body = await readJson(req);
