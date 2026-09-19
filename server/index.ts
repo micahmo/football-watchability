@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { LeaguePoller } from "./poller.js";
 import { StandingsStore } from "./standings.js";
-import { ReportStore } from "./reports.js";
+import { ReportStore, type Report } from "./reports.js";
 import { History } from "./history.js";
 import { PlaceStore } from "./places.js";
 import { ListingsStore, isLocalStation } from "./listings.js";
@@ -613,6 +613,29 @@ const REASONS = new Set([
   "close", "exciting", "big teams", "late drama", "comeback", "blowout", "dull", "my team",
 ]);
 
+/**
+ * What the browser says it was showing when the sheet opened.
+ *
+ * Rebuilt field by field like everything else from a browser, and bounded in time:
+ * an `at` outside the last hour is not a sheet someone had open, it is a clock
+ * that is wrong or a value that was made up, and either way it would only mislead
+ * whoever reads the report back.
+ */
+function parseSaw(value: unknown): Report["saw"] {
+  if (value === null || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  const at = typeof v.at === "string" ? Date.parse(v.at) : NaN;
+  const now = Date.now();
+  if (!Number.isFinite(at) || at > now + 60_000 || now - at > 60 * 60_000) return null;
+  const period = Number(v.period);
+  return {
+    at: new Date(at).toISOString(),
+    score: typeof v.score === "string" ? v.score.slice(0, 16) : "",
+    clock: typeof v.clock === "string" ? v.clock.slice(0, 16) : "",
+    period: Number.isFinite(period) ? Math.max(0, Math.min(10, Math.trunc(period))) : 0,
+  };
+}
+
 async function handleReport(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   // Key first. Whether the store is usable is not something an unauthorised
   // caller gets to find out.
@@ -645,6 +668,7 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
   const note =
     typeof b?.note === "string" && b.note.trim().length > 0 ? b.note.trim().slice(0, 300) : null;
   const shown = Number.isFinite(Number(b?.shown)) ? Number(b?.shown) : null;
+  const saw = parseSaw(b?.saw);
 
   // The snapshot is the source of truth for everything except what was on screen.
   const stored = reports.record(
@@ -656,6 +680,7 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
       note,
       shown,
       reporter: reporter.length > 0 ? reporter : null,
+      saw,
     },
     pollers[league].snapshot,
   );

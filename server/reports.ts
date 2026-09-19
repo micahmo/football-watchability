@@ -44,6 +44,17 @@ export interface Report {
   note: string | null;
   /** The rating the browser was displaying when the verdict was given. */
   shown: number | null;
+  /**
+   * What the browser was looking at when the sheet opened. Live games only.
+   *
+   * Everything else here is read from the snapshot at the moment Send is pressed,
+   * and on a live game that is not the moment the verdict was formed: a minute
+   * spent typing is a minute of football. This is the situation the verdict was
+   * actually about. Browser-reported and never trusted for scoring, which is the
+   * whole reason it sits in its own block rather than overwriting the fields
+   * beside it.
+   */
+  saw: { at: string; score: string; clock: string; period: number } | null;
   state: string;
   period: number;
   clock: string;
@@ -138,7 +149,7 @@ export class ReportStore {
    * earlier one.
    */
   record(
-    input: { league: League; gameId: string; verdict: Report["verdict"]; reasons: string[]; note: string | null; shown: number | null; reporter: string | null },
+    input: { league: League; gameId: string; verdict: Report["verdict"]; reasons: string[]; note: string | null; shown: number | null; reporter: string | null; saw: Report["saw"] },
     snapshot: Snapshot | null,
   ): Report | null {
     if (this.dir === null) return null;
@@ -157,6 +168,8 @@ export class ReportStore {
       reasons: input.reasons,
       note: input.note,
       shown: input.shown,
+      // Only meaningful while a game is running; a fixed one cannot have moved.
+      saw: live ? input.saw : null,
       state: game.state,
       period: game.period,
       clock: game.clock,

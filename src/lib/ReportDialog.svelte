@@ -70,36 +70,10 @@
   }
   const matchup = $derived(`${game.away.name} at ${game.home.name}`);
 
-  /*
-   * Whether there is anything to lose by closing.
-   *
-   * Not simply "is anything filled in": a game already reported opens with the
-   * standing verdict in place, and being asked to confirm closing something you
-   * have not touched is noise. The test is whether the sheet now says something
-   * different from what is already stored.
-   */
-  const dirty = $derived.by(() => {
-    const typed = note.trim();
-    const was = prior;
-    if (was === null) return verdict !== null || chosen.length > 0 || typed.length > 0;
-    return (
-      verdict !== was.verdict ||
-      typed !== (was.note ?? "").trim() ||
-      chosen.length !== was.reasons.length ||
-      chosen.some((reason) => !was.reasons.includes(reason))
-    );
-  });
-  let confirming = $state(false);
-
-  /*
-   * Tapping the scrim is easy to do by accident: tapping a chip dismisses the
-   * keyboard, the sheet changes height under the thumb, and the next tap lands
-   * outside it. Losing typed feedback to that is worse than one extra tap.
-   */
-  function dismiss(): void {
-    if (dirty && !done) confirming = true;
-    else onclose?.();
-  }
+  /* The sheet is frozen at this moment: `game` and `shown` are captured when it
+     opens and the board hands out fresh objects rather than mutating these. The
+     server is not frozen, so it is told when this was. */
+  const openedAt = new Date().toISOString();
 
   function toggle(reason: string): void {
     chosen = chosen.includes(reason)
@@ -111,7 +85,7 @@
     if (verdict === null) return;
     busy = true;
     error = null;
-    const result = await sendReport(game, verdict, chosen, note, shown);
+    const result = await sendReport(game, verdict, chosen, note, shown, openedAt);
     busy = false;
     if (result.ok) {
       done = true;
@@ -122,12 +96,14 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div
-  class="scrim"
-  role="presentation"
-  onclick={(e) => e.target === e.currentTarget && dismiss()}
->
+<!--
+  Nothing here closes on a tap outside. Tapping a chip dismisses the keyboard, the
+  sheet moves under the thumb, and the next tap lands on the scrim: that was losing
+  typed feedback. A confirm was tried first and read badly, because two buttons
+  quietly replacing one is not the popup anyone expects. Leaving and sending are
+  both explicit presses, and both are always on screen.
+-->
+<div class="scrim" role="presentation">
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Report this rating">
     <p class="head">
       <span class="what">{matchup}</span>
@@ -149,6 +125,9 @@
         </button>
       </div>
       {#if error}<p class="hint err">{error}</p>{/if}
+      <div class="actions">
+        <button type="button" class="v" onclick={() => onclose?.()}>Cancel</button>
+      </div>
     {:else if done}
       <p class="hint ok">Recorded.</p>
     {:else}
@@ -204,15 +183,8 @@
       </div>
       <input class="note" type="text" placeholder="anything else" bind:value={note} />
 
-      {#if confirming}
-        <p class="hint">Close without sending? What you have entered is lost.</p>
-        <div class="confirm">
-          <button type="button" class="v keep" onclick={() => (confirming = false)}>
-            Keep editing
-          </button>
-          <button type="button" class="v discard" onclick={() => onclose?.()}>Discard</button>
-        </div>
-      {:else}
+      <div class="actions two">
+        <button type="button" class="v" disabled={busy} onclick={() => onclose?.()}>Cancel</button>
         <button
           type="button"
           class="send"
@@ -221,7 +193,7 @@
         >
           {busy ? "Sending" : prior === null ? "Send" : "Replace"}
         </button>
-      {/if}
+      </div>
       {#if error}<p class="hint err">{error}</p>{/if}
       <!-- Always reachable. A stored key that has stopped working, or was never
            right, otherwise leaves the sheet with no way out of itself. -->
@@ -237,12 +209,15 @@
     z-index: 50;
     background: rgba(5, 7, 11, 0.6);
     display: flex;
-    align-items: flex-end;
+    /* Centred rather than sat on the bottom edge. An on-screen keyboard shrinks
+       the viewport from below, so a bottom-anchored sheet is dragged up when the
+       keyboard opens and dropped again when tapping a chip dismisses it, moving
+       every control out from under the thumb mid-tap. */
+    align-items: center;
     justify-content: center;
-    /* Clears the home indicator, and keeps the sheet off the display's own curved
-       corners. */
-    padding: 10px calc(10px + env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom))
-      calc(10px + env(safe-area-inset-right));
+    /* Keeps the sheet off the display's own curved corners and out of the notch. */
+    padding: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-left))
+      calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-right));
   }
   /*
    * Floating near the bottom rather than welded to it.
@@ -262,6 +237,9 @@
     border-radius: 16px;
     padding: 16px;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+    /* With a keyboard up there may not be room for the whole sheet. */
+    max-height: 100%;
+    overflow-y: auto;
   }
   .head {
     display: flex;
@@ -299,9 +277,16 @@
   .v.ok:hover, .v.ok.on { border-color: var(--good); color: var(--good); }
   .v.down:hover, .v.down.on { border-color: var(--cool); color: var(--cool); }
   .v.on { background: var(--bg-raised); box-shadow: inset 0 0 0 1px currentColor; }
+  .actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .actions.two {
+    grid-template-columns: 1fr 1fr;
+  }
   .send {
     width: 100%;
-    margin-top: 16px;
     font: inherit;
     font-size: 14px;
     font-weight: 600;
@@ -313,12 +298,6 @@
     cursor: pointer;
   }
   .send:disabled { opacity: 0.35; cursor: default; }
-  .confirm {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .v.discard:hover { border-color: var(--hot); color: var(--hot); }
   .hint {
     margin: 14px 0 6px;
     font-size: 12px;

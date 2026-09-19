@@ -106,6 +106,12 @@ export async function standingReport(gameId: string): Promise<StandingReport | n
  * Sends a verdict. `shown` is the number that was actually on screen, which the
  * server cannot work out for itself: the board runs a broadcast delay and adds
  * the favourite bonus in the browser.
+ *
+ * `openedAt` is when the sheet opened. The server records the situation as it
+ * stands when Send is pressed, and on a live game those are not the same moment:
+ * a verdict formed while typing for a minute gets filed against a game that has
+ * moved on. So the browser also reports what it was looking at, which is what the
+ * verdict was actually about. Live games only; a fixed one cannot drift.
  */
 export async function sendReport(
   game: Game,
@@ -113,8 +119,18 @@ export async function sendReport(
   reasons: string[],
   note: string,
   shown: number,
+  openedAt: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (key === null) return { ok: false, error: "no key" };
+  const saw =
+    game.state === "in"
+      ? {
+          at: openedAt,
+          score: `${game.away.score}-${game.home.score}`,
+          clock: game.clock,
+          period: game.period,
+        }
+      : null;
   try {
     const res = await fetch("/api/reports", {
       method: "POST",
@@ -126,6 +142,7 @@ export async function sendReport(
         reasons,
         note,
         shown,
+        saw,
       }),
     });
     /* A key that has stopped working is worse than none, because the sheet would

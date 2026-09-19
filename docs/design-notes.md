@@ -1995,12 +1995,21 @@ fills the buttons, chips and note back in, says when it was given and at what ra
 the button Replace. Live games get none of this, and should not: each of their reports is a
 different moment, nothing is replaced, so there is nothing to show back.
 
-**Closing the sheet with something in it asks first.** The scrim is easy to hit by accident on a
-phone: tapping a chip dismisses the keyboard, the sheet changes height under the thumb, and the
-next tap lands outside it. Micah lost typed feedback to that more than once. The test for whether
-to ask is not "is anything filled in" but "does this differ from what is already stored", because a
-game already reported opens prefilled, and being challenged over a sheet you have not touched is
-the kind of nag that gets clicked through without reading.
+**Nothing closes the sheet except a button.** The scrim is easy to hit by accident on a phone:
+tapping a chip dismisses the keyboard, the sheet changes height under the thumb, and the next tap
+lands outside it. Micah lost typed feedback to that more than once. A confirm prompt was tried
+first and was worse: two buttons quietly replacing the send button is not the popup anyone expects,
+and a dialog on top of a dialog would have been worse still. So the scrim has no handler at all and
+both ways out are permanent fixtures, Cancel beside Send, with a Cancel on the key prompt too so
+that cannot trap anyone either. The sheet is also centred rather than sat on the bottom edge, since
+a keyboard shrinks the viewport from below and drags a bottom-anchored sheet up and down with it.
+
+**The row records what the browser was looking at, for live games.** Everything else is read from
+the snapshot when Send is pressed, and on a live game that is not when the verdict was formed: a
+minute spent typing is a minute of football, and the report gets filed against a game that has
+moved on. So the browser sends the score, clock, period and the time the sheet opened, kept in its
+own block because nothing from a browser is trusted for scoring. Fixed games do not get one, having
+nothing to drift from.
 
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
