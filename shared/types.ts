@@ -126,7 +126,7 @@ export interface Game {
   odds: string | null;
   /** Absolute point spread. Sign is meaningless here; `odds` carries the favorite. */
   spread: number | null;
-  /** Signed spread relative to the home team. Negative means home was favoured. */
+  /** Signed spread relative to the home team. Negative means home was favored. */
   homeSpread: number | null;
   overUnder: number | null;
   lastPlay: string | null;
@@ -178,7 +178,7 @@ export interface Snapshot {
    * The television market that postal code belongs to.
    *
    * A different thing from `city` and the one worth showing: somebody in
-   * Fitchburg is served by Boston, and labelling the board with their own town
+   * Fitchburg is served by Boston, and labeling the board with their own town
    * names a place whose channels they are not watching.
    */
   marketName: string | null;

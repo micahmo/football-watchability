@@ -31,7 +31,7 @@ export const WEIGHTS: Weights = {
  * Weighted sum, floored by what the game was billed as.
  *
  * The floor lives here rather than in `scoreGame` because the browser recombines
- * the components itself, so that favourites can reorder the board without a round
+ * the components itself, so that favorites can reorder the board without a round
  * trip. Applying it on the server only meant the two disagreed: the board showed
  * a 28 for a game the server had at 36, and every marquee kickoff read lower in
  * the app than in the feed it came from. Anything that shapes the number has to

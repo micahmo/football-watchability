@@ -17,7 +17,7 @@ import { prefs } from "./prefs.svelte";
  * What is withheld today, and why each one is not merely the score:
  *   - the score, and the win probability bar
  *   - the rating, which is a measure of how close the game is
- *   - the rail colour, which is that rating again
+ *   - the rail color, which is that rating again
  *   - the clock and quarter, because "4th OT" is the whole story
  *   - the drive diagram, down and distance, and possession
  *   - the last play

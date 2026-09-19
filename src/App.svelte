@@ -50,10 +50,10 @@
    * Held apart from `openCards` because the hero slot and the list below default
    * the opposite ways, open and closed, while both key off the game id. Sharing
    * one map meant folding a game down in the list and then watching it climb to
-   * the top produced a folded hero: the old explicit "closed" travelled with the
+   * the top produced a folded hero: the old explicit "closed" traveled with the
    * game into a slot whose whole point is that it starts open. Keyed by id rather
    * than a bare flag so that when a different game takes the top slot it opens,
-   * which is the useful behaviour when the board has just changed its mind about
+   * which is the useful behavior when the board has just changed its mind about
    * what you should be watching.
    */
   let heroFolded = $state<string | null>(null);
@@ -202,7 +202,7 @@
   /**
    * Takes a freshly received snapshot and decides when it is allowed on screen.
    *
-   * With no delay this is the old behaviour exactly, assignment and nothing else.
+   * With no delay this is the old behavior exactly, assignment and nothing else.
    * With one, the snapshot waits its turn in a queue and `release` promotes it.
    */
   function receive(next: Snapshot): void {
@@ -385,7 +385,7 @@
   });
 
   /**
-   * A nudge, not an override. A favoured conference should float a game up past
+   * A nudge, not an override. A favored conference should float a game up past
    * its neighbours without letting a dull one outrank a genuinely great game.
    */
   /**
@@ -970,7 +970,7 @@
   .status {
     display: flex;
     /*
-     * Baseline, not centre. These are two pieces of text at different sizes, and
+     * Baseline, not center. These are two pieces of text at different sizes, and
      * centring aligns their boxes while the eye reads their baselines, so the
      * smaller one sits high however its padding is tuned. Getting the two to line
      * up by adjusting padding worked only for one pair of font sizes and was
@@ -989,7 +989,7 @@
   .help-toggle {
     /* Sits in a row of read-only readings, so it has to say it is a control. It
        borrows the dimmer text and border of the settings buttons rather than the
-       faint grey of the status beside it, which made it read as another value. */
+       faint gray of the status beside it, which made it read as another value. */
     width: 17px;
     height: 17px;
     padding: 0;

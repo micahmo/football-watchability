@@ -54,7 +54,7 @@ for (const league of ["nfl", "cfb"]) {
       "football-watchability-prefs",
       // A deliberately generic market. The feature is worth showing, but a README
       // is a public page and the author's own postal code is not going in it.
-      JSON.stringify({ league: l, favourites: { nfl: [], cfb: [] }, zip: "10001", marketOff: false }),
+      JSON.stringify({ league: l, favorites: { nfl: [], cfb: [] }, zip: "10001", marketOff: false }),
     );
   }, league);
   await page.goto("http://localhost:8799/", { waitUntil: "networkidle" });

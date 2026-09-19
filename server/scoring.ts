@@ -414,7 +414,7 @@ function underdogWon(input: ScoreInputs): boolean {
  *
  * Measured as the underdog's final margin on top of the spread, so it keeps
  * separating after the point where `upset` has saturated, and floored at a real
- * underdog so that a field-goal favourite winning is not a story. Unlike the
+ * underdog so that a field-goal favorite winning is not a story. Unlike the
  * closeness term this has no ceiling below 1: a recap is asking what mattered,
  * and the biggest result of the day should be able to say so.
  */
@@ -443,7 +443,7 @@ function billingCarry(input: ScoreInputs, progress: number): number {
    * to 0.22, and 21-0 to 0.06, which is gone.
    *
    * Margin rather than win probability, deliberately. Win probability carries the
-   * pregame prior, so at 0-0 it already reads 0.40 for an 80% favourite and would
+   * pregame prior, so at 0-0 it already reads 0.40 for an 80% favorite and would
    * gut a marquee game's billing before a snap had been played. The scoreboard is
    * the only evidence here that is actually about this game.
    */
@@ -615,7 +615,7 @@ const ONE_SCORE = 8;
  * points ahead of expectation, while a twenty-point underdog *tied* is only eight,
  * so the coin flip reads as the bigger surprise. It is not one. A 6.5-point dog
  * leading happens every week, and you can only upset somebody who was actually
- * favoured.
+ * favored.
  *
  * So the label needs a real underdog, whatever the score is doing. The
  * notification path has always had this floor, at six, in `upsetTensionScore`; the
@@ -624,7 +624,7 @@ const ONE_SCORE = 8;
  *
  * Measured, on a summary fetch per game: 315 finished college games, 68 of which
  * carry a closing line at all. Without a floor the tag fires on five of them and
- * two are 1.5-point lines, one of them a 1.5-point favourite losing 49-14, which
+ * two are 1.5-point lines, one of them a 1.5-point favorite losing 49-14, which
  * the old scoring rated a *maximal* upset because the margin was large. A toss-up
  * ending in a blowout is a blowout. The floor sits on a plateau rather than a
  * cliff: no game that fires the tag has a line between 1.5 and 13.5, so anything

@@ -10,7 +10,7 @@ import type { RawGame } from "./espn.js";
  * needs. It never changes once a game starts, so one fetch per game is enough.
  */
 export interface PregameLine {
-  /** Spread relative to the home team. Negative means the home team was favoured. */
+  /** Spread relative to the home team. Negative means the home team was favored. */
   homeSpread: number;
   overUnder: number | null;
   details: string | null;

@@ -74,7 +74,7 @@ function recordFor(league, team) {
  * Each situation carries real field coordinates, not only the text.
  *
  * The diagram needs `yardLine`, `distance` and possession to draw anything beyond
- * the empty pitch, and without them the screenshots showed a blank field while
+ * the empty field, and without them the screenshots showed a blank field while
  * the card above it read "3rd & 4". Possession alternates by index, home first,
  * so the yard lines below are chosen to put the ball somewhere sensible for the
  * side that has it: home attacks 100 and away attacks zero.
@@ -169,7 +169,7 @@ async function liveSlate(league) {
    * as a one-score fourth quarter, and sizing the line by rank collapses in college,
    * where almost everybody is unranked and every game came out a pick 'em.
    *
-   * Keyed `AWAY@HOME`, and negative means the home side is favoured. Being a table
+   * Keyed `AWAY@HOME`, and negative means the home side is favored. Being a table
    * is the point: only these matchups are eligible on a day with no odds, so the
    * slate is the one already known to make a good picture.
    */
@@ -243,9 +243,9 @@ async function liveSlate(league) {
       homeSpread: game.homeSpread,
       overUnder: game.overUnder,
     });
-    const favouredAbbrev = game.homeSpread <= 0 ? game.home.abbrev : game.away.abbrev;
+    const favoredAbbrev = game.homeSpread <= 0 ? game.home.abbrev : game.away.abbrev;
     const odds =
-      game.odds ?? `${favouredAbbrev} ${(-Math.abs(game.homeSpread)).toFixed(1)}`;
+      game.odds ?? `${favoredAbbrev} ${(-Math.abs(game.homeSpread)).toFixed(1)}`;
     const full = { ...game, score, anticipation: null, pregameSpread: game.homeSpread, pregameOdds: odds, tags: [] };
     full.tags = buildTags(full, score);
     return { full, season, week };

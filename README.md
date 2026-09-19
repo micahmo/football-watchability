@@ -42,7 +42,7 @@ Each row shows kickoff time, the line, the over/under and the network.
 kickoff.
 
 An open live card draws the field: where the ball is, the line of scrimmage, the line to gain, how
-far the drive has come and which way the offence is going. The pitch is always drawn. Each marker
+far the drive has come and which way the offense is going. The field is always drawn. Each marker
 appears only while the data behind it is current, so between drives and on kickoffs the field is
 there and empty.
 
@@ -300,7 +300,7 @@ unraid/     container template
 
 ## Known limitations
 
-- **Rivalry and playoff-elimination stakes are not modelled.** Those are the two things the
+- **Rivalry and playoff-elimination stakes are not modeled.** Those are the two things the
   numbers genuinely cannot see, and both would need a hand-maintained list.
 - Conference tiers are a static table in `server/prominence.ts` and need editing when
   realignment moves teams around.

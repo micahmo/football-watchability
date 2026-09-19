@@ -5,7 +5,7 @@
   let { game }: { game: Game } = $props();
 
   /*
-   * The pitch is always drawn. Each marker asks only for what it actually needs.
+   * The field is always drawn. Each marker asks only for what it actually needs.
    *
    * Gating them together was the original mistake twice over. It made the card
    * jump, because the field is tall and the gaps are frequent, so everything below
@@ -168,7 +168,7 @@
     <rect x={EZ} y="0" width="100" height={H} fill="var(--field)" />
 
     {#if towardHundred !== null && game.isRedZone}
-      <!-- The twenty the offence is attacking, not both. -->
+      <!-- The twenty the offense is attacking, not both. -->
       <rect
         x={towardHundred ? x(80) : x(0)}
         y="0"
@@ -229,7 +229,7 @@
     margin: 8px 0 2px;
     border-radius: 3px;
     overflow: hidden;
-    /* Not a literal grass green. The card is dark and a saturated pitch would
+    /* Not a literal grass green. The card is dark and a saturated field would
        shout louder than the score it sits under. */
     --field: color-mix(in srgb, var(--bg-card-hi) 82%, #2f6f4a 18%);
   }
@@ -256,7 +256,7 @@
     stroke: rgba(0, 0, 0, 0.55);
     stroke-width: 0.5;
   }
-  /* One opacity for both halves. Two made the caret read as a lighter colour than
+  /* One opacity for both halves. Two made the caret read as a lighter color than
      the line it belongs to, as though it were a separate mark. */
   .arrow {
     fill: none;

@@ -353,7 +353,7 @@ export function normalizeEvents(events: any[], league: League): RawGame[] {
  *
  * The scoreboard drops `odds` the moment a game kicks off, but `pickcenter` on the
  * summary keeps the closing line through the game and after it is final. Verified
- * against 12 games: the spread is home-relative, negative meaning home favoured.
+ * against 12 games: the spread is home-relative, negative meaning home favored.
  */
 export async function fetchPregameLine(
   league: League,

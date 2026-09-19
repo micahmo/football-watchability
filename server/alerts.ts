@@ -139,7 +139,7 @@ function favoriteBoost(game: Game, favorites: string[]): number {
  * ranking and wrong for these alerts, every one of which claims something about
  * how the game is *going*: Denver at Kansas City crossed the classic threshold at
  * 0-0 with fifteen minutes on the clock, purely on an anticipation of 74 and
- * thirteen for two favoured conferences, and went out as "is getting good"
+ * thirteen for two favored conferences, and went out as "is getting good"
  * before a snap.
  *
  * Kickoff and primetime are unaffected and still rank on anticipation, because
@@ -336,8 +336,8 @@ export class AlertEngine {
        *
        * Anticipation only exists while a game is upcoming, so a window that was
        * already under way at startup has none, and the rating collapses to whatever
-       * the favourite bonus adds. That is how a marquee game went out as "rated 13,
-       * not expected to be much": zero anticipation plus thirteen for two favoured
+       * the favorite bonus adds. That is how a marquee game went out as "rated 13,
+       * not expected to be much": zero anticipation plus thirteen for two favored
        * conferences. Seeding above should mean this never comes up; it stays as the
        * guarantee that a number nobody can vouch for is never sent.
        */

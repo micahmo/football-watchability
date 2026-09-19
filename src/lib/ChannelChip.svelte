@@ -46,7 +46,7 @@
     stroke-width: 1.3;
     stroke-linecap: round;
   }
-  /* Two strokes: a thick one in the card colour that cuts a gap through the pin,
+  /* Two strokes: a thick one in the card color that cuts a gap through the pin,
      then the slash itself inside that gap. One line alone merges into the pin
      outline wherever the two cross and stops reading as a strike. */
   .gap {

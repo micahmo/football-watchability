@@ -89,7 +89,7 @@ backwards for a label meaning "something unlikely is happening".
 
 So the tag needs a real underdog, at ten points or more, whatever the score is doing. A 6.5-point
 dog leading is not unlikely, it happens every week, and you can only upset somebody who was actually
-favoured. The notification path has always had this floor, at six, in `upsetTensionScore`; the tag
+favored. The notification path has always had this floor, at six, in `upsetTensionScore`; the tag
 had none, which is why the board and the alerts disagreed about what counted.
 
 **Measured, after first claiming it could not be.** Closing lines do vanish from the scoreboard at
@@ -99,7 +99,7 @@ above already says. Asserting otherwise, in a paragraph that described the worka
 forgetting the project's own notes.
 
 So: 315 finished college games, 68 carrying a closing line. Without a floor the tag fires on five,
-and two of those are **1.5-point lines**, including a 1.5-point favourite losing 49-14 that the
+and two of those are **1.5-point lines**, including a 1.5-point favorite losing 49-14 that the
 scoring rated a maximal upset because the margin was large. A toss-up ending in a blowout is a
 blowout, not a surprise. The floor sits on a plateau and not a cliff: no game that fires the tag has
 a line between 1.5 and 13.5, so any floor from 3 to 12 is the same answer. What survives is a
@@ -147,7 +147,7 @@ hanging around.
 | FSU tied with SMU | SMU -3 | 0.38 |
 | #20 tied with #22 | -2 | 0.09 |
 
-**The spread is home-relative**: negative means the home team was favoured. Verified against
+**The spread is home-relative**: negative means the home team was favored. Verified against
 twelve games before relying on it, because getting the sign backwards silently inverts which
 team is the underdog.
 
@@ -271,7 +271,7 @@ clutch term all say one score is a touchdown and two. Ten admits a two-score gam
 recorded reason for the difference; it now shares the `ONE_SCORE` constant with the rest.
 
 **Not high-scoring enough.** The gate was `totalPoints >= 52` in college, against a median expected
-total of 54.5 on a live board and a modelled typical of 55. The bar sat *below* average, so an
+total of 54.5 on a live board and a modeled typical of 55. The bar sat *below* average, so an
 ordinary game earned the tag by finishing. Across 315 finished college games it fired on 14.3%,
 one game in seven, on results like 31-21, 30-24 and 24-31.
 
@@ -534,8 +534,8 @@ day does not announce itself when it eventually starts.
 A restart mid-afternoon then announced a window whose games had kicked off before the process
 started. Seen live: a kickoff alert nine minutes into the first quarter, reading "rated 13, not
 expected to be much" about a marquee game. Two symptoms, one cause. The process had never seen those
-games pregame, so the anticipation memo was empty and the rating collapsed to the favourite bonus
-alone, which is 13 for two favoured conferences; and kickoff windows were never seeded, so the
+games pregame, so the anticipation memo was empty and the rating collapsed to the favorite bonus
+alone, which is 13 for two favored conferences; and kickoff windows were never seeded, so the
 window looked unannounced.
 
 The seeding block already existed and its own comment said a Force Update mid-Saturday must not
@@ -665,7 +665,7 @@ divisions, playoff seeds and standings win percentage until the next poll repair
 
 The rating cannot say what is happening. Fourth and one at the goal line and second and ten at
 midfield can score identically, so an expanded card draws the field: ball, line of scrimmage, line
-to gain, the drive so far, and which way the offence is going.
+to gain, the drive so far, and which way the offense is going.
 
 **`situation.yardLine` is yards from the *home* team's goal line, nought to a hundred**, whoever has
 the ball. That is not self-evident and it was verified against nine live games rather than assumed,
@@ -738,7 +738,7 @@ Checked by sweeping every combination of ball position, direction, distance to g
 lines.
 
 The last fault was cosmetic and had two causes: the caret carried a different opacity from its own
-line, so it read as a lighter colour and a separate mark, and the line ran underneath it, so it
+line, so it read as a lighter color and a separate mark, and the line ran underneath it, so it
 showed through. One opacity now, and the line stops where the caret begins.
 
 Yard numbers sit every ten, as a real field is painted, minus whichever ones the two lines are
@@ -808,8 +808,8 @@ as the live board. It is advice about what to put on, and nothing is on: the lab
 game was listed low, and worse, it fed the board's watchable-first sort, so the recap was ordered by
 television carriage. The recap is no longer annotated at all.
 
-**The market was labelled with the viewer's town.** It came from the network's geolocation, so
-somebody in Fitchburg saw "Fitchburg" when their market is Boston, and a name you do not recognise
+**The market was labeled with the viewer's town.** It came from the network's geolocation, so
+somebody in Fitchburg saw "Fitchburg" when their market is Boston, and a name you do not recognize
 invites you into a setting you never needed to open. The answer was already in hand: `pickLineup`
 prefers satellite lineups precisely because they are named after the market rather than the
 headend, so the chosen provider's `location` is the market. It is used when present, with the
@@ -824,7 +824,7 @@ each time. And markers were hidden whose data was sitting right there: on the fi
 ESPN publishes a yard line and a "1st & 10 at BUF 38" while `down` is still -1 and possession is
 empty, so the card showed the text above a blank space.
 
-The pitch is now always painted, and each marker asks only for what it uses. The ball and the line of
+The field is now always painted, and each marker asks only for what it uses. The ball and the line of
 scrimmage need a yard line and nothing else. The line to gain and the drive arrow need a direction,
 so they wait for real possession.
 
@@ -1192,7 +1192,7 @@ halftime        billing 0.00   TOTAL 46.2     judged on its own evidence
 ```
 
 Margin rather than win probability, deliberately. Win probability carries the pregame prior, so at
-0-0 it already reads 0.40 for an 80% favourite and would gut a marquee game's billing before a snap
+0-0 it already reads 0.40 for an 80% favorite and would gut a marquee game's billing before a snap
 had been played. The scoreboard is the only evidence here that is actually about this game.
 
 The share is capped below one so a game still has to earn the top of the board: the best possible
@@ -1224,7 +1224,7 @@ while the term carrying 0.58 was looking at a number the prior had flattened.
 So the scoreboard-space measure becomes a dominant term too, at 0.75, **gated on the underdog being
 within one score**. The gate is the whole thing. Without it this is a regression, not a fix: `upset`
 saturates seventeen points past the line, which a 45.5-point underdog reaches by *losing by 28*, and
-dropping the win-probability term in favour of the scoreboard one promoted exactly those games, one
+dropping the win-probability term in favor of the scoreboard one promoted exactly those games, one
 of them from 9.7 to 44.7. `doubt` had been suppressing them all along. Being level, ahead, or one
 score away is what separates an upset from a cover.
 
@@ -1248,7 +1248,7 @@ Beating a top-ten team on the road and losing by two are the same number. A term
 rank results cannot rank anything when every real one is already at the ceiling, so the 0.75 share
 was carrying the entire distinction, and it could not: a close final scores up to 0.952 on `core`,
 so the ceiling for "this mattered" sat below the ceiling for "this was close". Oklahoma State
-beating Oregon ranked fifth in its own recap, below a 14-16 game the favourite won.
+beating Oregon ranked fifth in its own recap, below a 14-16 game the favorite won.
 
 Raising `MAX_VS_LINE` was the wrong fix. It is tuned for a game in progress and is what the upset
 tag and the upset alert are calibrated against, so moving it moves both. A finished game is a
@@ -1375,7 +1375,7 @@ top where the planning list had it an hour earlier.
 
 ### Anything that shapes the rating has to live in `combine`
 
-The browser recombines the score components itself, so that picking a favourite conference reorders
+The browser recombines the score components itself, so that picking a favorite conference reorders
 the board without a round trip. That makes `combine` the real definition of the rating, and anything
 applied outside it exists on one side only.
 
@@ -1415,11 +1415,11 @@ One primetime notification got three things wrong at once and two of them were t
 `combine` floors a rating at what the game was billed as, so the board does not under-rate a marquee
 kickoff while nothing has happened. The live alert path read that same number, so Denver at Kansas
 City cleared the classic threshold at **0-0 with fifteen minutes on the clock**, on an anticipation
-of 74 and thirteen for two favoured conferences, and went out titled "is turning into something".
+of 74 and thirteen for two favored conferences, and went out titled "is turning into something".
 
 Live alerts now judge what a game has earned, with `billing` taken back out. Every one of them claims
 something about how the game is going, and the floor is explicitly not evidence of that. At kickoff
-the same game scores 37.8 rather than 87, below both thresholds, and the favourite bonus is still in
+the same game scores 37.8 rather than 87, below both thresholds, and the favorite bonus is still in
 that number: it is the billing that is removed, not the preference. Kickoff and primetime are
 untouched and still rank on anticipation, because announcing that a good game is starting is what
 they are for.
@@ -1513,7 +1513,7 @@ header went from 121px to 79px with the row closed.
 A "something is non-default" dot was the first idea and is useless in practice, because on a board
 somebody actually uses everything is non-default. Saying *what* is set costs barely more room.
 
-Three details worth keeping. The favourites are listed up to three and counted after, since naming
+Three details worth keeping. The favorites are listed up to three and counted after, since naming
 six conferences pushes the market and the alert count off the end and lets the least important
 setting crowd out the rest. The delay is deliberately absent from the summary, because the status
 indicator already reads "35s behind" a few pixels away. And the row is hidden rather than removed

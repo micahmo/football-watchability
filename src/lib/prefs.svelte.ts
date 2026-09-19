@@ -5,7 +5,7 @@ const KEY = "football-watchability-prefs";
 
 export interface Prefs {
   league: League;
-  /** Conferences to favour, per league. Empty means no preference. */
+  /** Conferences to favor, per league. Empty means no preference. */
   favorites: Record<League, string[]>;
   /**
    * Postal code, used to work out which regional NFL game this viewer's own
@@ -29,7 +29,7 @@ export interface Prefs {
    * affiliates carry. The board still says which games are out of market, in the
    * channel chip, so the information survives without the judgement attached.
    *
-   * Labelled "My channels first" rather than anything about hiding, because the
+   * Labeled "My channels first" rather than anything about hiding, because the
    * games are demoted rather than removed.
    */
   inMarketFirst: boolean;
@@ -39,8 +39,8 @@ export interface Prefs {
    * For somebody who watches their own team's games in full, recorded, hours
    * after they finish. A board that exists to say which game is worth watching
    * is exactly the thing that ruins one, and it gives the result away in more
-   * ways than the score: the rating, the position in the list, the colour of the
-   * card and which of the two names is greyed out all say who is winning.
+   * ways than the score: the rating, the position in the list, the color of the
+   * card and which of the two names is grayed out all say who is winning.
    *
    * NFL only. The use case is a team somebody follows every week, and a college
    * team plays too few games for the same relationship.

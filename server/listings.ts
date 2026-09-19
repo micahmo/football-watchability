@@ -161,7 +161,7 @@ export class ListingsStore {
    * the whole reason `pickLineup` prefers them, so the answer is already in hand.
    * Worth surfacing: the board used to label the market with the viewer's own city
    * from the network's geolocation, which for somebody in Fitchburg read
-   * "Fitchburg" when the market is Boston, and a name you do not recognise invites
+   * "Fitchburg" when the market is Boston, and a name you do not recognize invites
    * you into a setting you did not need to touch.
    */
   private marketName = new Map<string, string>();

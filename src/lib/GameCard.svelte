@@ -74,7 +74,7 @@
    * `spoilers.svelte.ts` first and gate it here if it could give a game away.
    *
    * Not only the score. The rating is a measure of how close it is, the rail is
-   * that rating in colour, the clock says whether it went to overtime, and the
+   * that rating in color, the clock says whether it went to overtime, and the
    * dimmed side names the loser outright. Any one of them alone gives the game
    * away, so the card keeps the matchup and nothing else.
    */
@@ -122,7 +122,7 @@
     !hidden && variant === "live" && game.possessionTeamId !== null,
   );
 
-  /** Home-relative spread: negative means the home team was favoured. */
+  /** Home-relative spread: negative means the home team was favored. */
   const favoriteSide = $derived(
     game.pregameSpread === null || game.pregameSpread === 0
       ? null
@@ -151,7 +151,7 @@
      it holds headings, logos and a list of labels, which is article content, and a
      <button> wrapping all of that is announced as one long unreadable label. Both
      rules are suppressed deliberately; role, tabindex, aria-expanded and the
-     Enter/Space handler together give the same behaviour a button would. -->
+     Enter/Space handler together give the same behavior a button would. -->
 <!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <article
@@ -251,7 +251,7 @@
               {/if}
             </div>
             <!-- Always drawn, so the card keeps its height. The markers inside it
-                 come and go with the situation; the pitch does not. -->
+                 come and go with the situation; the field does not. -->
             <FieldPosition {game} />
           {/if}
           <!-- Above the tags rather than below them: it belongs with the clock and
@@ -360,7 +360,7 @@
 
 <style>
   /* The eye in the score column, and the slash across it, drawn the same way as
-     the channel chip's pin: a thick cut in the card colour so the line still
+     the channel chip's pin: a thick cut in the card color so the line still
      reads where it crosses the shape. */
   .masked {
     width: 18px;

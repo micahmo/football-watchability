@@ -45,7 +45,7 @@ export class SwingStore {
   }
 
   /**
-   * How far win probability has travelled, end to end, inside the window.
+   * How far win probability has traveled, end to end, inside the window.
    *
    * The window is applied here and not only in `record`, because `record` stops
    * being called the moment a game ends. Trimming on write alone meant the samples
