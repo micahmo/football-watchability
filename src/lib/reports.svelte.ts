@@ -73,6 +73,35 @@ export const REASONS = [
 
 export type Verdict = "higher" | "lower" | "right";
 
+/** A verdict already on file for a game, as the sheet re-presents it. */
+export interface StandingReport {
+  at: string;
+  verdict: Verdict;
+  reasons: string[];
+  note: string | null;
+  shown: number | null;
+}
+
+/**
+ * This viewer's standing verdict on a game, or null if they have not given one.
+ *
+ * Only asked for games that are not live. A live game collects a report every
+ * time one is given, so there is nothing to replace and nothing to show back.
+ */
+export async function standingReport(gameId: string): Promise<StandingReport | null> {
+  if (key === null) return null;
+  try {
+    const res = await fetch(`/api/reports?mine=${encodeURIComponent(gameId)}`, {
+      headers: { "x-report-key": key },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { report: StandingReport | null };
+    return body.report ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Sends a verdict. `shown` is the number that was actually on screen, which the
  * server cannot work out for itself: the board runs a broadcast delay and adds

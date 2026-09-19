@@ -52,23 +52,51 @@ const standings = new StandingsStore();
  * feature is simply off rather than open.
  */
 const reports = new ReportStore(notifyDir());
-const REPORT_KEY = process.env.REPORT_KEY ?? "";
+/**
+ * Keys by key, giving the name that key reports under.
+ *
+ * `REPORT_KEY=micah:abc123,dad:def456` hands a key to each person. A bare
+ * `REPORT_KEY=abc123` is one unnamed key, which is what a single-viewer install
+ * has and what every install had before names existed.
+ *
+ * Names matter because a verdict is a statement of taste. One person's corpus can
+ * be read as "the model was wrong here"; two people's cannot, unless it is known
+ * which rows came from whom.
+ */
+const REPORT_KEYS = parseReportKeys(process.env.REPORT_KEY ?? "");
 
-function reportKeyOk(req: http.IncomingMessage): boolean {
-  if (REPORT_KEY.length === 0) return false;
+function parseReportKeys(raw: string): Map<string, string> {
+  const keys = new Map<string, string>();
+  for (const part of raw.split(",")) {
+    const entry = part.trim();
+    if (entry.length === 0) continue;
+    const colon = entry.indexOf(":");
+    if (colon === -1) keys.set(entry, "");
+    else keys.set(entry.slice(colon + 1).trim(), entry.slice(0, colon).trim());
+  }
+  return keys;
+}
+
+/** The name behind the presented key, "" when unnamed, null when there is none. */
+function reporterFor(req: http.IncomingMessage): string | null {
   const given = req.headers["x-report-key"];
-  return typeof given === "string" && given === REPORT_KEY;
+  if (typeof given !== "string") return null;
+  return REPORT_KEYS.get(given) ?? null;
 }
 
 /**
- * Answers the request itself when the key is missing or wrong. One answer for
- * both: a public URL should not be able to learn whether this server has
- * reporting configured, only that the key it presented did not work.
+ * Answers the request itself when the key is missing or wrong, and otherwise
+ * hands back who is reporting. One answer for both refusals: a public URL should
+ * not be able to learn whether this server has reporting configured, only that
+ * the key it presented did not work.
+ *
+ * Returns "" for an unnamed key, so callers test against null rather than truth.
  */
-function reportGate(req: http.IncomingMessage, res: http.ServerResponse): boolean {
-  if (reportKeyOk(req)) return true;
+function reportGate(req: http.IncomingMessage, res: http.ServerResponse): string | null {
+  const reporter = reporterFor(req);
+  if (reporter !== null) return reporter;
   json(res, { error: "not authorised" }, 401);
-  return false;
+  return null;
 }
 const listings = new ListingsStore();
 const places = new PlaceStore();
@@ -588,7 +616,8 @@ const REASONS = new Set([
 async function handleReport(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   // Key first. Whether the store is usable is not something an unauthorised
   // caller gets to find out.
-  if (!reportGate(req, res)) return;
+  const reporter = reportGate(req, res);
+  if (reporter === null) return;
   if (!reports.available) {
     json(res, { error: "reports are not configured" }, 503);
     return;
@@ -619,7 +648,15 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
 
   // The snapshot is the source of truth for everything except what was on screen.
   const stored = reports.record(
-    { league, gameId, verdict: verdict as "higher" | "lower" | "right", reasons, note, shown },
+    {
+      league,
+      gameId,
+      verdict: verdict as "higher" | "lower" | "right",
+      reasons,
+      note,
+      shown,
+      reporter: reporter.length > 0 ? reporter : null,
+    },
     pollers[league].snapshot,
   );
   if (stored === null) {
@@ -630,7 +667,7 @@ async function handleReport(req: http.IncomingMessage, res: http.ServerResponse)
 }
 
 async function handleReview(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (!reportGate(req, res)) return;
+  if (reportGate(req, res) === null) return;
   let body: unknown;
   try {
     body = await readJson(req);
@@ -742,12 +779,22 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
   /* Read back behind the same key, so the corpus can be pulled without shelling
      into the box. */
   if (url === "/api/reports") {
-    if (!reportGate(req, res)) return;
+    const reporter = reportGate(req, res);
+    if (reporter === null) return;
+    const query = new URLSearchParams(raw.split("?")[1] ?? "");
     /* `?check=1` answers only whether the key is good, which is what the browser
        needs when one is typed in. The full list is thousands of components wide
        and no use for that. */
-    if (new URLSearchParams(raw.split("?")[1] ?? "").get("check") !== null) {
+    if (query.get("check") !== null) {
       json(res, { ok: true, model: reports.model });
+      return;
+    }
+    /* `?mine=<gameId>` hands back this reporter's own standing verdict on a game,
+       so the sheet can show what they said last time rather than presenting a
+       blank form over the top of a report they have forgotten writing. */
+    const mine = query.get("mine");
+    if (mine !== null) {
+      json(res, { report: reports.mine(mine, reporter.length > 0 ? reporter : null) });
       return;
     }
     /* The current stamp rides along, so a reader can see at a glance which

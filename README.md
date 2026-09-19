@@ -263,7 +263,7 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
 | `NOTIFY_DIR` | `/config` in a container | Where push keys, subscriptions and the history log live. Must be a mounted volume; the server checks |
-| `REPORT_KEY` | - | Enables rating feedback. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
+| `REPORT_KEY` | - | Enables rating feedback. One key, or several named ones as `micah:abc123,dad:def456`. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
 | `NOTIFY_CONTACT` | `mailto:nobody@example.com` | Who runs this server, as `mailto:` or `https:`. Web Push signs it into every request so a push service can contact you about a misbehaving server. A private board never needs it |
 
 Replaying a past slate is the easiest way to see a full board on a quiet weeknight:
@@ -279,7 +279,12 @@ that it is right. Optional one-tap reasons, an optional note, nothing else: ther
 field for what the number should have been, because a viewer can tell you a direction
 and not a value. Feedback needs `REPORT_KEY`, asked for once and then remembered in that
 browser. A live game collects a verdict every time one is given, since the conditions
-change; a fixed one keeps only the latest.
+change; a fixed one keeps only the latest per person, and opening its card again shows
+what you said last time so you can change it or leave it.
+
+`REPORT_KEY` can carry a key per person as `micah:abc123,dad:def456`. Each report is
+then stored under that name, and one person replacing their own verdict never touches
+anyone else's.
 
 Each report stores the whole situation, not the verdict alone: every component, the
 score and clock, what the browser was showing against what the server had, what else was

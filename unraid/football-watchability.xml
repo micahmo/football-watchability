@@ -73,6 +73,6 @@
           Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
 
   <Config Name="Rating feedback key" Target="REPORT_KEY" Default="" Mode=""
-          Description="Enables reporting a rating as too high or too low from the board. Leave empty and the feature is off rather than open, which matters because the board is a public URL."
+          Description="Enables reporting a rating as too high or too low from the board. One key, or one per person as micah:abc123,dad:def456, which keeps each person's verdicts their own. Leave empty and the feature is off rather than open, which matters because the board is a public URL."
           Type="Variable" Display="always" Required="false" Mask="true"></Config>
 </Container>

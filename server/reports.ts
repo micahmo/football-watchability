@@ -30,6 +30,15 @@ export interface Report {
   gameId: string;
   matchup: string;
   verdict: "higher" | "lower" | "right";
+  /**
+   * Who gave the verdict, or null when the key it came in under has no name.
+   *
+   * Without this, a second person's verdict on a game that has not kicked off
+   * silently overwrites the first person's, since a fixed game keeps one report.
+   * It is also what keeps the corpus readable: a disagreement between two people
+   * is not the same fact as one person changing their mind.
+   */
+  reporter: string | null;
   /** Optional, and often empty: not every reaction has a reason attached. */
   reasons: string[];
   note: string | null;
@@ -129,7 +138,7 @@ export class ReportStore {
    * earlier one.
    */
   record(
-    input: { league: League; gameId: string; verdict: Report["verdict"]; reasons: string[]; note: string | null; shown: number | null },
+    input: { league: League; gameId: string; verdict: Report["verdict"]; reasons: string[]; note: string | null; shown: number | null; reporter: string | null },
     snapshot: Snapshot | null,
   ): Report | null {
     if (this.dir === null) return null;
@@ -143,6 +152,7 @@ export class ReportStore {
       league: input.league,
       gameId: input.gameId,
       matchup: `${game.away.abbrev}@${game.home.abbrev}`,
+      reporter: input.reporter,
       verdict: input.verdict,
       reasons: input.reasons,
       note: input.note,
@@ -165,19 +175,40 @@ export class ReportStore {
       outcome: null,
     };
 
+    // Scoped to the reporter as well as the game: replacing is a person
+    // correcting themselves, never one person overwriting another.
     this.reports = live
       ? [...this.reports, report]
-      : [...this.reports.filter((r) => r.gameId !== report.gameId), report];
+      : [
+          ...this.reports.filter(
+            (r) => r.gameId !== report.gameId || (r.reporter ?? null) !== report.reporter,
+          ),
+          report,
+        ];
     if (this.reports.length > MAX_REPORTS) {
       this.reports = this.reports.slice(this.reports.length - MAX_REPORTS);
     }
     this.persist();
     console.log(
-      `[reports] ${report.matchup} ${report.verdict}` +
+      `[reports] ${report.reporter ?? "someone"}: ${report.matchup} ${report.verdict}` +
         `${report.reasons.length ? " (" + report.reasons.join(", ") + ")" : ""}` +
         ` at ${report.shown ?? "?"}, server had ${report.total ?? report.anticipation ?? "?"}`,
     );
     return report;
+  }
+
+  /**
+   * This reporter's standing verdict on a game, if they have given one.
+   *
+   * Only meaningful for a game that is not live: a live game collects a report
+   * every time one is given, because each is a different moment and none of them
+   * replaces another, so there is no single thing to hand back.
+   */
+  mine(gameId: string, reporter: string | null): Report | null {
+    const mine = this.reports.filter(
+      (r) => r.gameId === gameId && (r.reporter ?? null) === reporter,
+    );
+    return mine.length === 0 ? null : mine[mine.length - 1];
   }
 
   /**

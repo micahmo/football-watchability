@@ -1978,6 +1978,23 @@ there. The first real report came in bare for exactly that reason. Reordering so
 fields came first was the wrong fix: the point is not what order things are read in, it is that a
 verdict is a draft until it is sent, and the whole thing should be reviewable before it goes.
 
+**Reports are attributed, and a replacement is scoped to the person.** A game that has not
+kicked off, or has finished, keeps one verdict rather than a stream, because it is a fixed thing
+and a later verdict is a correction. With a single anonymous key that rule had a hole: a second
+person reporting on the same game would silently overwrite the first, taking their reasons, note
+and timestamp with it. So `REPORT_KEY` accepts `name:key` pairs, every report stores the name, and
+the replace matches on game *and* reporter. The storage fix is the smaller half. The real reason is
+that a verdict is a statement of taste: one person's rows read as "the model was wrong here", while
+two people's read that way only if it is known which are whose, since a disagreement between
+viewers is a different fact from one viewer changing their mind.
+
+**A fixed game re-opens showing what was already said.** Not a courtesy: a blank form over a
+report you have forgotten writing invites you to overwrite considered feedback with a snap
+judgement, and the old row leaves no trace when it goes. So the sheet fetches the standing verdict,
+fills the buttons, chips and note back in, says when it was given and at what rating, and labels
+the button Replace. Live games get none of this, and should not: each of their reports is a
+different moment, nothing is replaced, so there is nothing to show back.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

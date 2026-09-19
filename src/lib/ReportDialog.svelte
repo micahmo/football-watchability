@@ -13,12 +13,15 @@
    * invented to satisfy a form is worse than no number.
    */
   import type { Game } from "../../shared/types";
+  import { relativeTime } from "./format";
   import {
     forgetReportKey,
     REASONS,
     reportKey,
     sendReport,
     setReportKey,
+    standingReport,
+    type StandingReport,
     type Verdict,
   } from "./reports.svelte";
 
@@ -37,6 +40,25 @@
   let done = $state(false);
 
   const needsKey = $derived(reportKey() === null);
+  /* A game that is not live holds one verdict per person, so opening the sheet on
+     one already reported should show what was said, not a blank form that will
+     quietly overwrite it. A live game accumulates instead: every report is a
+     different moment, nothing is replaced, so there is nothing to fetch. */
+  const fixed = $derived(game.state !== "in");
+  let prior = $state<StandingReport | null>(null);
+  let priorLoaded = $state(false);
+
+  $effect(() => {
+    if (needsKey || !fixed || priorLoaded) return;
+    priorLoaded = true;
+    void standingReport(game.id).then((found) => {
+      if (found === null) return;
+      prior = found;
+      verdict = found.verdict;
+      chosen = [...found.reasons];
+      note = found.note ?? "";
+    });
+  });
 
   async function saveKey(): Promise<void> {
     busy = true;
@@ -99,6 +121,14 @@
     {:else if done}
       <p class="hint ok">Recorded.</p>
     {:else}
+      {#if prior !== null}
+        <p class="hint prior">
+          You said {prior.verdict === "right" ? "just right" : `should be ${prior.verdict}`}
+          {relativeTime(prior.at)}{prior.shown === null ? "" : `, at ${Math.round(prior.shown)}`}.
+          Sending replaces it.
+        </p>
+      {/if}
+
       <!-- The verdict is picked, not sent. Tapping one used to submit and close,
            which meant the optional fields below it were never reached. -->
       <div class="verdicts">
@@ -149,7 +179,7 @@
         disabled={busy || verdict === null}
         onclick={() => void submit()}
       >
-        {busy ? "Sending" : "Send"}
+        {busy ? "Sending" : prior === null ? "Send" : "Replace"}
       </button>
       {#if error}<p class="hint err">{error}</p>{/if}
       <!-- Always reachable. A stored key that has stopped working, or was never
@@ -248,6 +278,7 @@
     color: var(--text-faint);
   }
   .hint.ok { color: var(--good); }
+  .hint.prior { margin-top: 0; color: var(--text-dim); }
   .hint.err { color: var(--hot); }
   .reasons {
     display: flex;
