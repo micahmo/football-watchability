@@ -1971,6 +1971,13 @@ the board was right, or that it was real but too rare to chase. On 2026-09-18 tw
 to be bad metrics rather than defects, and a store that only recorded changes would have lost both
 of those conclusions.
 
+**The verdict is picked, and a separate button sends.** The first version made the three verdict
+buttons the submit, so the first control a thumb reached recorded the report and closed the sheet,
+and the optional reason chips and note below were unreachable unless you already knew they were
+there. The first real report came in bare for exactly that reason. Reordering so the optional
+fields came first was the wrong fix: the point is not what order things are read in, it is that a
+verdict is a draft until it is sent, and the whole thing should be reviewable before it goes.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

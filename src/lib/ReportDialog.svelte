@@ -28,6 +28,7 @@
     onclose,
   }: { game: Game; shown: number; onclose?: () => void } = $props();
 
+  let verdict = $state<Verdict | null>(null);
   let chosen = $state<string[]>([]);
   let note = $state("");
   let keyDraft = $state("");
@@ -53,7 +54,8 @@
       : [...chosen, reason];
   }
 
-  async function submit(verdict: Verdict): Promise<void> {
+  async function submit(): Promise<void> {
+    if (verdict === null) return;
     busy = true;
     error = null;
     const result = await sendReport(game, verdict, chosen, note, shown);
@@ -97,14 +99,31 @@
     {:else if done}
       <p class="hint ok">Recorded.</p>
     {:else}
+      <!-- The verdict is picked, not sent. Tapping one used to submit and close,
+           which meant the optional fields below it were never reached. -->
       <div class="verdicts">
-        <button type="button" class="v up" disabled={busy} onclick={() => submit("higher")}>
+        <button
+          type="button"
+          class="v up"
+          class:on={verdict === "higher"}
+          onclick={() => (verdict = "higher")}
+        >
           Should be higher
         </button>
-        <button type="button" class="v ok" disabled={busy} onclick={() => submit("right")}>
+        <button
+          type="button"
+          class="v ok"
+          class:on={verdict === "right"}
+          onclick={() => (verdict = "right")}
+        >
           Just right
         </button>
-        <button type="button" class="v down" disabled={busy} onclick={() => submit("lower")}>
+        <button
+          type="button"
+          class="v down"
+          class:on={verdict === "lower"}
+          onclick={() => (verdict = "lower")}
+        >
           Should be lower
         </button>
       </div>
@@ -123,6 +142,15 @@
         {/each}
       </div>
       <input class="note" type="text" placeholder="anything else" bind:value={note} />
+
+      <button
+        type="button"
+        class="send"
+        disabled={busy || verdict === null}
+        onclick={() => void submit()}
+      >
+        {busy ? "Sending" : "Send"}
+      </button>
       {#if error}<p class="hint err">{error}</p>{/if}
       <!-- Always reachable. A stored key that has stopped working, or was never
            right, otherwise leaves the sheet with no way out of itself. -->
@@ -196,10 +224,24 @@
     color: var(--text);
     cursor: pointer;
   }
-  .v.up:hover { border-color: var(--hot); color: var(--hot); }
-  .v.ok:hover { border-color: var(--good); color: var(--good); }
-  .v.down:hover { border-color: var(--cool); color: var(--cool); }
-  .v:disabled { opacity: 0.5; cursor: default; }
+  .v.up:hover, .v.up.on { border-color: var(--hot); color: var(--hot); }
+  .v.ok:hover, .v.ok.on { border-color: var(--good); color: var(--good); }
+  .v.down:hover, .v.down.on { border-color: var(--cool); color: var(--cool); }
+  .v.on { background: var(--bg-raised); box-shadow: inset 0 0 0 1px currentColor; }
+  .send {
+    width: 100%;
+    margin-top: 16px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px;
+    border-radius: 9px;
+    border: none;
+    background: var(--text);
+    color: var(--bg);
+    cursor: pointer;
+  }
+  .send:disabled { opacity: 0.35; cursor: default; }
   .hint {
     margin: 14px 0 6px;
     font-size: 12px;
