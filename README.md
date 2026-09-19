@@ -90,12 +90,14 @@ Five smaller components adjust it, with fixed weights:
 
 | Component | What it measures | Weight |
 | --- | --- | --- |
-| `primary` | Closeness weighted by how late, or whichever of the three escape hatches beats it | 0.58 |
-| `prominence` | How much of the country cares | 0.18 |
+| `primary` | Closeness weighted by how late, or whichever of the three escape hatches beats it | 0.63 |
+| `draw` | The higher of `prominence` (how much of the country cares) and `upset` (how far the underdog is running ahead of the closing line) | 0.25 |
 | `swing` | Win-probability movement over the last fifteen minutes | 0.08 |
-| `upset` | How far the underdog is running ahead of the closing line | 0.07 |
-| `stakes` | What the game decides | 0.05 |
 | `pace` | Projected total points, so a 45-38 beats a 10-7 | 0.04 |
+
+`prominence` and `upset` share one weight rather than holding two, since a marquee
+game is not an upset and an upset is rarely a marquee game. `stakes` is still
+computed and reported but no longer weighted.
 
 The components are the same for both leagues; what feeds them is not.
 

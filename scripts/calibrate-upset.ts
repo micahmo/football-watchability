@@ -121,8 +121,8 @@ function totalFor(g: GameRun, f: Frame, p: Params): number {
     : p.mode === "drama" ? Math.max(f.core, f.clutch, drama)
     : Math.max(f.core, f.clutch, f.upsetTension, drama);
   const w = WEIGHTS;
-  const raw = 100 * (w.primary * primary + w.prominence * f.prominence + w.swing * f.swing
-    + w.upset * f.upset + w.stakes * f.stakes + w.pace * f.pace);
+  const raw = 100 * (w.primary * primary + w.draw * Math.max(f.prominence, f.upset)
+    + w.swing * f.swing + w.pace * f.pace);
   const capped = f.maxTotal === null ? raw : Math.min(raw, f.maxTotal);
   return Math.round(Math.max(0, Math.min(100, capped)) * 10) / 10;
 }
@@ -171,8 +171,8 @@ function whistleGap(g: GameRun, p: Params): number | null {
   const asFinal = (() => {
     const w = WEIGHTS;
     const primary = last.upset * 0.75;
-    return 100 * (w.primary * primary + w.prominence * last.prominence + w.swing * last.swing
-      + w.upset * last.upset + w.stakes * last.stakes + w.pace * last.pace);
+    return 100 * (w.primary * primary + w.draw * Math.max(last.prominence, last.upset)
+      + w.swing * last.swing + w.pace * last.pace);
   })();
   return asFinal - totalFor(g, last, p);
 }

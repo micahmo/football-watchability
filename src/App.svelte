@@ -499,16 +499,22 @@
      one game, and "best of what is on" ranks it against nothing: it reads as a
      sentence assembled without looking at the board it describes. "Turn this on"
      survives because it is an instruction rather than a comparison. */
+  /* The bars come from what the board actually shows. Measured over every minute
+     of live football on record, the old 75 and 55 left the apologetic label up
+     81% of the time in college and 84% in the NFL, because a one-score game only
+     medians 40 in the fourth quarter and 64 inside the last two minutes. At 55
+     and 35 the three labels split roughly evenly, which is what a board that
+     recommends things should sound like. */
   const heroLabel = $derived(
     top !== null && isHidden(top)
       ? // Every live game is one being kept quiet, so the hero slot is holding a
         // card with nothing on it. Any of the labels below would describe it.
         "NO SPOILERS"
-      : topScore >= 75
+      : topScore >= 55
         ? "TURN THIS ON"
         : live.length === 1
         ? "THE ONLY GAME ON"
-        : topScore >= 55
+        : topScore >= 35
           ? "BEST GAME ON"
           : "BEST OF WHAT IS ON",
   );

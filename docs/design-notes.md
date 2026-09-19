@@ -1750,3 +1750,52 @@ time to clean up kills content processes belonging to their real session.
 **Regenerate whenever the board's layout or chrome changes**: the header and controls, the card
 or row structure, the tag set, or anything that changes what a glance at the board looks like. A
 scoring tweak that only moves numbers does not need new pictures.
+
+## The scale could not reach its own top, and the labels were calibrated to a range it never hit
+
+Measured across 58 live games and 10,529 live snapshots from the history log. The complaint that
+started it was that live ratings felt low, in both leagues.
+
+The ranking was not the problem. Every one of the twelve highest-rated moments on record was a
+one-score game inside the last six minutes, and a suspicion that big underdogs were being rewarded
+for merely covering turned out to be an artifact of measuring by final margin instead of the margin
+at the moment being rated. Cal Poly at San Jose State peaked while **tied in the fourth with 5:15
+left** as a 21.5-point underdog, and lost by ten afterwards. Rating that moment highly is correct.
+
+Three things compressed the numbers.
+
+**The ceiling was unreachable.** The weights summed to one, so a hundred required every component
+maxed at the same instant, and two of them are close to mutually exclusive: a marquee game is not an
+upset, so `upset` and its seven points were forfeit for exactly the games that should score highest.
+`stakes` averaged 0.13 at the moment games peaked, for five more points that were never collected.
+The best thing ever recorded earned **86.1**.
+
+**The lateness ramp is steep**, by design. For one-score games only, the median rating is 27.8 in
+the first half, 29.0 in the third quarter, 40.4 in the early fourth and 63.6 inside the final two
+minutes.
+
+**So the labels described almost nothing.** `BEST GAME ON` needed 55 and `TURN THIS ON` needed 75.
+Across every minute of live football on record the board said `BEST OF WHAT IS ON` for **81% of
+college minutes and 84% of NFL minutes**. Four times in five it apologised for what was on.
+
+Two of the three are fixed here. `stakes` loses its weight to `primary`, and `prominence` and
+`upset` share one budget of 0.25 through `max`, so a game earns it for being big *or* for going
+wrong and is not docked for failing to be both. The ceiling moves to 91.5 and the number of games
+peaking above 85 goes from one to four. This is a rescale and not a reranking: across every minute
+with more than one live game, the top game is unchanged **92.4%** of the time.
+
+The labels move to 55 and 35, which splits the three roughly evenly rather than leaving the
+apologetic one up four minutes in five.
+
+The alert bars had to move with the scale rather than stay put, or the reweighting would have
+silently doubled the notifications. The old `HERO` bar of 75 was cleared by five of the 58 games and
+would now be cleared by nine; 85 lets the same five through. `CLASSIC` moves 85 to 90 for the same
+reason. `KICKOFF_MIN_SCORE` is deliberately untouched, because it is compared against anticipation,
+which has its own weighting and never passes through `combine`.
+
+**What was deliberately not done.** The lateness ramp stays. Four alternative curves were tested and
+even a fully linear one only moves the third quarter from 29.0 to 35.3, because the limiter is
+`tension` rather than lateness: a tied game between unequal teams genuinely has a lopsided win
+probability, and `upsetDrama` already exists to catch the case where that feels wrong. Making the
+number mean "how good is this game" rather than "how urgent is it right now" is a redesign of
+`coreScore`, and 58 games is too thin a corpus to attempt it on.

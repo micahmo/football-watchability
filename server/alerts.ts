@@ -3,10 +3,23 @@ import { WEIGHTS, combine } from "../shared/weights.js";
 import { channelLabel } from "../shared/channel.js";
 import type { Category, Subscription, SubscriptionStore } from "./subscriptions.js";
 
-/** Live score a game must reach to be worth interrupting somebody for. */
-const HERO = 75;
-/** The point at which it stops being a good game and becomes a memorable one. */
-const CLASSIC = 85;
+/**
+ * Live score a game must reach to be worth interrupting somebody for.
+ *
+ * Moved with the scale, not raised in spirit. Reweighting `combine` lifted every
+ * rating, and leaving these where they were would have doubled the alerts without
+ * anyone asking for more: across 58 measured games, the old bar of 75 was cleared
+ * by five of them and would now be cleared by nine. Eighty-five is the value that
+ * lets the same five through.
+ */
+const HERO = 85;
+/**
+ * The point at which it stops being a good game and becomes a memorable one.
+ *
+ * Likewise: the old 85 was reached by exactly one game in the sample and would now
+ * be reached by five.
+ */
+const CLASSIC = 90;
 /**
  * Game clock that must remain for a `hero` alert.
  *

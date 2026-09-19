@@ -2,10 +2,15 @@ import type { ScoreComponents } from "./types.js";
 
 export interface Weights {
   primary: number;
-  prominence: number;
+  /**
+   * What makes a game worth anyone's attention: how big it is, or how wrong it is
+   * going. Prominence and upset share one budget rather than holding separate
+   * ones, because they are close to mutually exclusive. A marquee game is not an
+   * upset by definition, so under separate weights it forfeited the upset share
+   * outright and could never approach the top of the scale.
+   */
+  draw: number;
   swing: number;
-  upset: number;
-  stakes: number;
   pace: number;
 }
 
@@ -17,13 +22,18 @@ export interface Weights {
  * Saturday of finished games the top-ranked game was identical under all three,
  * nothing moved more than two positions, and a control that cannot change the
  * answer is not a control.
+ *
+ * Reweighted after measuring 58 live games. The old split could not reach the top
+ * of its own scale: the best thing ever recorded earned 86.1, because seven points
+ * sat in an `upset` term a marquee game cannot earn and five more sat in `stakes`,
+ * which averaged 0.13 at the moment games peaked. `stakes` is gone and its weight
+ * is on `primary`. The ordering barely moved: across every minute with more than
+ * one live game, the top game is the same one 92.4% of the time.
  */
 export const WEIGHTS: Weights = {
-  primary: 0.58,
-  prominence: 0.18,
+  primary: 0.63,
+  draw: 0.25,
   swing: 0.08,
-  upset: 0.07,
-  stakes: 0.05,
   pace: 0.04,
 };
 
@@ -38,14 +48,10 @@ export const WEIGHTS: Weights = {
  * be in the function both sides call.
  */
 export function combine(c: ScoreComponents, w: Weights, maxTotal: number | null = null): number {
-  const raw =
-    100 *
-    (w.primary * c.primary +
-      w.prominence * c.prominence +
-      w.swing * c.swing +
-      w.upset * c.upset +
-      w.stakes * c.stakes +
-      w.pace * c.pace);
+  // Whichever of the two the game has a claim to, not the sum: a game is not
+  // asked to be both a marquee fixture and an upset of one.
+  const draw = Math.max(c.prominence, c.upset);
+  const raw = 100 * (w.primary * c.primary + w.draw * draw + w.swing * c.swing + w.pace * c.pace);
   // Before a game has said anything, its rating is what it was expected to be.
   // `billing` already carries the clock and the scoreboard, and is zero by halftime.
   const floored = Math.max(raw, c.billing * 100);
