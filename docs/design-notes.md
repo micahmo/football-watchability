@@ -1830,6 +1830,30 @@ Miami's 0.216; and both margin bands lift together, so the gap between them does
 fires on 1.9% of live rows, leaves the ceiling at 90.6, and leaves alert volume untouched at five
 games over `HERO` and one over `CLASSIC`.
 
+## A win probability is invalidated by the scoreboard, not by the clock
+
+The rating jumped when ESPN stopped sending `homeWinPercentage` and jumped back when it resumed,
+with nothing about the game having changed. Houston at Texas Tech went from 71.0 to 78.6 at an
+identical 26-28 with 0:49 left, purely because the field went missing: `tension` falls back to a
+margin curve that reads 0.79 where the probability curve read 0.53.
+
+There was already a carry for this, of ninety seconds. It was not doing much. Measured over 233
+gaps, the **median gap is 121 seconds**, so the window was missing more gaps than it caught, and 245
+transitions still moved the rating, by a median of 2.1 points and as much as 20.8.
+
+The reason the timeout was the wrong shape: **the score changed during 8 of those 233 gaps.** The
+other 225 were the feed going quiet with nothing happening, where a carried value stayed perfectly
+good however long it lasted. A timeout is a proxy for staleness, and a poor one; a win probability
+goes stale because events happen, not because seconds pass.
+
+So the value is now held until the score changes, with ten minutes as a backstop for the one case
+the score cannot see, a long quiet stretch in which the clock alone has moved the real number. The
+implausibility guard is unchanged and independent, for ESPN publishing a bad frame rather than none.
+
+Falling back to the margin curve goes from 141 occasions to 23. A plain 300-second timeout scores 19,
+which looks better and is worse: it carries a stale value through the eight gaps where the score
+moved, rather than dropping it. Fewer fallbacks is not the goal.
+
 **What is still not done.** The limiter on a close mid-game is `tension`, not lateness: a tied game
 between unequal teams genuinely has a lopsided win probability, and `upsetDrama` exists to catch the
 case where that feels wrong. Making the number mean "how good is this game" rather than "how urgent

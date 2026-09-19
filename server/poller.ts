@@ -90,8 +90,15 @@ const SITUATION_CARRY_MS = 45 * 1000;
  * violently: 0-0 in a mismatch reads as perfectly close on margin and 0.99 on
  * probability, so a game sat at 19.6, dropped to 7.6 and came back with nothing
  * about it having changed but whether ESPN was sending the field.
+ *
+ * This is only a backstop now. The score changing is what actually invalidates a
+ * win probability, and that is checked separately, so this bounds the one case
+ * that check cannot see: a long quiet stretch in which the clock alone has moved
+ * the real number away from the held one. Ten minutes rather than ninety seconds
+ * because the median gap is 121 seconds, so the old window missed more gaps than
+ * it caught.
  */
-const WIN_PROB_CARRY_MS = 90 * 1000;
+const WIN_PROB_CARRY_MS = 10 * 60 * 1000;
 /**
  * How far behind a side has to be before its win probability stops being credible.
  *
@@ -214,7 +221,7 @@ export class LeaguePoller {
    * happens and the card visibly flickers.
    */
   /** The last win probability seen per game, carried on its own terms. */
-  private lastWinProb = new Map<string, { at: number; value: number }>();
+  private lastWinProb = new Map<string, { at: number; value: number; score: string }>();
   private lastSituation = new Map<
     string,
     {
@@ -658,11 +665,29 @@ export class LeaguePoller {
 
       /* Win probability first and separately: ESPN drops it on its own, with the
          rest of the situation still present, in about one live sample in eleven. */
+      const atScore = `${game.away.score}-${game.home.score}`;
       if (game.homeWinProb !== null) {
-        this.lastWinProb.set(game.id, { at: now, value: game.homeWinProb });
+        this.lastWinProb.set(game.id, { at: now, value: game.homeWinProb, score: atScore });
       } else {
         const held = this.lastWinProb.get(game.id);
-        if (held && now - held.at <= WIN_PROB_CARRY_MS) game.homeWinProb = held.value;
+        /*
+         * Held until something makes it wrong, and what makes it wrong is the
+         * scoreboard rather than the clock.
+         *
+         * Measured over 233 gaps: the score changed during 8 of them. The other
+         * 225 were the feed going quiet with nothing happening, and a carried
+         * value stayed perfectly good throughout. A ninety-second timeout was
+         * therefore firing on most gaps, whose median length is 121 seconds, to
+         * guard against a risk present in 3% of them, and every time it fired the
+         * rating jumped: `tension` falls back to a margin curve that disagrees
+         * with the probability one violently, by a median of 2.1 points and as
+         * much as 20.8.
+         */
+        if (held && held.score !== atScore) {
+          this.lastWinProb.delete(game.id);
+        } else if (held && now - held.at <= WIN_PROB_CARRY_MS) {
+          game.homeWinProb = held.value;
+        }
       }
 
       const score = `${game.away.score}-${game.home.score}`;
