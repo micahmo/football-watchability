@@ -146,7 +146,8 @@ changes on screen at the same moment you see it change. Presets are rough starti
 near fifteen seconds and a streaming app near thirty-five.
 
 The setting is per browser, so two people watching different feeds each get their own. Notifications
-are held by the same amount.
+are held by the same amount. Opening the app goes straight to live: the delay applies to a board you
+are already watching, not to the moment you pick your phone up.
 
 ## Can I actually watch it
 

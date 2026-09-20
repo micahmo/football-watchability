@@ -2011,6 +2011,19 @@ moved on. So the browser sends the score, clock, period and the time the sheet o
 own block because nothing from a browser is trusted for scoring. Fixed games do not get one, having
 nothing to drift from.
 
+**The delay does not apply to opening the app.** It was applying, and the result was unusable: a
+backgrounded tab keeps the last board it showed, and every snapshot arriving after resume is stamped
+with its arrival time, so it has to serve the full delay before it is eligible. You opened the app to
+football from whenever you last looked at it, then waited out your own delay setting staring at it.
+Micah, having lived with it for an evening: "i keep opening it and seeing stale data, and then i just
+sit there like a dumbass for my configured delay time until it updates." The rule that resolves it is
+his: the delay is for when you are watching the board against a broadcast. Opening the app carries
+the assumption that you will see the latest data. So resume drops the queue, puts the newest snapshot
+straight on screen, and lets the first one after reconnecting through undelayed as well, since the
+one in memory may have gone stale while the stream slept. This does mean an open can show you
+something the broadcast has not reached yet, which was the objection when the same fix was reverted
+earlier; it is accepted deliberately, because the alternative is what he described.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

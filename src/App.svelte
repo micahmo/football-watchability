@@ -358,6 +358,44 @@
     return () => clearInterval(tick);
   });
 
+  /*
+   * Opening the app lands on live, not on where you left it.
+   *
+   * The delay is for watching: it keeps the board from running ahead of the
+   * broadcast while your eyes are on both. It has no business applying to the act
+   * of opening the app, and it did. A backgrounded tab leaves the last shown
+   * snapshot on screen, and everything arriving after resume enters the queue
+   * stamped with the time it arrived, so it must serve the full delay before it is
+   * eligible. You come back to football from when you left and then wait out your
+   * own delay setting staring at it.
+   *
+   * So resume drops the queue, puts whatever is newest straight on screen, and
+   * marks the first snapshot after reconnecting to go straight up too, since the
+   * one held in memory may itself have gone stale while the stream was asleep.
+   * Micah, deciding it: "if you're opening the app the assumption is that you will
+   * see the latest data, i think that's totally fair."
+   */
+  $effect(() => {
+    const resume = (): void => {
+      if (document.visibilityState !== "visible") return;
+      held = { nfl: [], cfb: [] };
+      showNext = { nfl: true, cfb: true };
+      for (const league of LEAGUES) {
+        const newest = latest[league];
+        if (newest !== null) boards[league] = newest;
+        void refresh(league);
+      }
+      now = Date.now();
+    };
+    document.addEventListener("visibilitychange", resume);
+    // iOS restores a backgrounded tab from cache without firing visibilitychange.
+    window.addEventListener("pageshow", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume);
+    };
+  });
+
   /* Lowering the delay has to take effect at once rather than at the next tick,
      since the whole control is built to be nudged while watching. */
   $effect(() => {
