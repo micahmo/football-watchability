@@ -60,6 +60,10 @@ const MAX_UPCOMING_DAYS = 4;
 const MAX_RECENT = 12;
 /** Cap the one-off line lookups per poll so a full Saturday cannot burst. */
 const MAX_LINE_LOOKUPS_PER_POLL = 4;
+/* Longer than any halftime, which is 20 minutes in college and 13 in the NFL, so
+   the ordinary stoppages stay out of the log and a weather delay or a genuinely
+   stuck game does not. Only ever logged, never acted on. */
+const STALLED_AFTER_MS = 30 * 60 * 1000;
 /**
  * How long to gather pushes before rebuilding the board.
  *
@@ -311,6 +315,23 @@ export class LeaguePoller {
    * since the scoreboard it fetches will call those games finished anyway.
    */
   private readonly finished = new Set<string>();
+
+  /**
+   * When each live game last looked different, for reporting games that stop.
+   *
+   * On 2026-09-20 a finished college game sat in the live list for eleven hours,
+   * frozen at 7:51 of the fourth, and the board followed it: the league tabs
+   * switch to whichever side has football on, so Sunday morning opened on
+   * college. ESPN had it final the whole time and the poll should have healed it,
+   * so what went wrong is upstream of the latch above and was never established,
+   * because the container logs died with the Force Update that cleared it.
+   *
+   * Deliberately reports and does nothing else. A halftime, a weather delay or a
+   * long injury stoppage all look identical to this from the outside, and none of
+   * them should take a game off the board. Whether those trip it, and how often,
+   * is the thing to learn before anything is allowed to act on it.
+   */
+  private readonly lastMoved = new Map<string, { at: number; signature: string; warnedAt: number }>();
 
   constructor(
     league: League,
@@ -772,12 +793,52 @@ export class LeaguePoller {
     }
   }
 
+  /**
+   * Says so when a live game stops changing, and says so again when it restarts.
+   *
+   * The pair matters more than the warning: a game that resumes was a stoppage and
+   * this is a false positive, while one that never resumes is the fault worth
+   * chasing. Without both halves the log cannot tell them apart.
+   */
+  private reportStalledGames(games: RawGame[], now: number): void {
+    const live = new Set<string>();
+    for (const raw of games) {
+      if (raw.state !== "in") continue;
+      live.add(raw.id);
+      const signature = `${raw.period}|${raw.clockSeconds}|${raw.away.score}-${raw.home.score}`;
+      const held = this.lastMoved.get(raw.id);
+      if (held === undefined || held.signature !== signature) {
+        if (held !== undefined && held.warnedAt > 0) {
+          const stalled = Math.round((now - held.at) / 60000);
+          console.log(`[${this.tag()}] ${raw.shortName} moved again after ${stalled}m stopped`);
+        }
+        this.lastMoved.set(raw.id, { at: now, signature, warnedAt: 0 });
+        continue;
+      }
+      const stopped = now - held.at;
+      if (stopped < STALLED_AFTER_MS) continue;
+      // Repeated on an interval rather than once, so the log says how long it went
+      // on even if the run that started it has scrolled away.
+      if (held.warnedAt > 0 && now - held.warnedAt < STALLED_AFTER_MS) continue;
+      held.warnedAt = now;
+      console.log(
+        `[${this.tag()}] ${raw.shortName} has not moved for ${Math.round(stopped / 60000)}m: ` +
+          `${raw.away.score}-${raw.home.score} Q${raw.period} ${raw.clock}, state ${raw.state}`,
+      );
+    }
+    for (const id of [...this.lastMoved.keys()]) {
+      if (!live.has(id)) this.lastMoved.delete(id);
+    }
+  }
+
   private compose(games: RawGame[], now: number, note = ""): void {
     this.carrySituation(games, now);
     for (const raw of games) {
       if (raw.state === "in") this.swings.record(raw.id, raw.homeWinProb, now);
     }
     this.swings.prune(now);
+
+    this.reportStalledGames(games, now);
 
     /* Once final, final. See `finished`: the push feed keeps a finished game alive
        for a poll interval at a time, and the board flaps it between the hero slot

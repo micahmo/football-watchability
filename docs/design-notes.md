@@ -2024,6 +2024,18 @@ one in memory may have gone stale while the stream slept. This does mean an open
 something the broadcast has not reached yet, which was the objection when the same fix was reverted
 earlier; it is accepted deliberately, because the alternative is what he described.
 
+**A stopped game is reported, not removed.** On 2026-09-20 a finished college game sat in the live
+list for eleven hours, frozen at 7:51 of the fourth, and took the league tabs with it: the board
+follows whichever side has football on, so Sunday morning opened on college. ESPN had it final
+throughout and the poll should have healed it, so the fault is upstream of the final latch and was
+never established, because the container logs died with the Force Update that cleared it. The guard
+that suggests itself, dropping a game whose clock has not moved, is the wrong first step: a
+halftime, a weather delay and a long injury stoppage are indistinguishable from the outside, and
+none of them should take a game off the board. So it only logs, and it logs both halves, the stall
+and the recovery, since a game that resumes was a stoppage and one that never resumes is the defect.
+Thirty minutes clears every halftime, college being twenty and the NFL thirteen. What trips it in
+practice is the thing to learn before anything acts on it.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 
