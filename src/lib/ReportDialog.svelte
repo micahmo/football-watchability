@@ -51,7 +51,7 @@
   $effect(() => {
     if (needsKey || !fixed || priorLoaded) return;
     priorLoaded = true;
-    void standingReport(game.id).then((found) => {
+    void standingReport(game.id, game.state).then((found) => {
       if (found === null) return;
       prior = found;
       verdict = found.verdict;

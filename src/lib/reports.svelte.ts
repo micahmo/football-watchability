@@ -85,13 +85,18 @@ export interface StandingReport {
 /**
  * This viewer's standing verdict on a game, or null if they have not given one.
  *
- * Only asked for games that are not live. A live game collects a report every
- * time one is given, so there is nothing to replace and nothing to show back.
+ * Only asked for games that are not live, and answered per state: a verdict given
+ * while a game was running is an observation of that moment, not a standing
+ * verdict on the finished game, so it must not be offered back for replacement.
  */
-export async function standingReport(gameId: string): Promise<StandingReport | null> {
+export async function standingReport(
+  gameId: string,
+  state: string,
+): Promise<StandingReport | null> {
   if (key === null) return null;
   try {
-    const res = await fetch(`/api/reports?mine=${encodeURIComponent(gameId)}`, {
+    const url = `/api/reports?mine=${encodeURIComponent(gameId)}&state=${encodeURIComponent(state)}`;
+    const res = await fetch(url, {
       headers: { "x-report-key": key },
     });
     if (!res.ok) return null;

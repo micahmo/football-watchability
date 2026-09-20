@@ -814,12 +814,15 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
       json(res, { ok: true, model: reports.model });
       return;
     }
-    /* `?mine=<gameId>` hands back this reporter's own standing verdict on a game,
-       so the sheet can show what they said last time rather than presenting a
-       blank form over the top of a report they have forgotten writing. */
+    /* `?mine=<gameId>&state=<pre|post>` hands back this reporter's own standing
+       verdict on a game in that state, so the sheet can show what they said last
+       time rather than presenting a blank form over the top of a report they have
+       forgotten writing. The state is part of the question: a verdict given while
+       a game was live is not a standing verdict on the finished game. */
     const mine = query.get("mine");
     if (mine !== null) {
-      json(res, { report: reports.mine(mine, reporter.length > 0 ? reporter : null) });
+      const state = query.get("state") === "post" ? "post" : "pre";
+      json(res, { report: reports.mine(mine, reporter.length > 0 ? reporter : null, state) });
       return;
     }
     /* The current stamp rides along, so a reader can see at a glance which

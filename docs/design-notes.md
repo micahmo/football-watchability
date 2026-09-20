@@ -2036,6 +2036,17 @@ and the recovery, since a game that resumes was a stoppage and one that never re
 Thirty minutes clears every halftime, college being twenty and the NFL thirteen. What trips it in
 practice is the thing to learn before anything acts on it.
 
+**A standing verdict belongs to one state of the game, not to the game.** A game passes through
+three, and what you expected beforehand, what you thought while it ran and what you made of it
+afterwards are three different judgements about three different things. The first cut keyed the
+standing verdict on the game alone, which had two consequences: long-pressing a finished game
+offered back the verdict given while it was still playing, and accepting that replacement deleted
+every observation made during the game, which are precisely the rows the live-appends rule exists to
+keep. Now the replace matches game, reporter and state together. Micah put the principle better than
+the code comment does: replacing is fine "because nothing about the game has changed, only my
+opinion". A live game changes under you, so those are observations; a fixed one does not, so there
+is one verdict per state.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

@@ -188,13 +188,25 @@ export class ReportStore {
       outcome: null,
     };
 
-    // Scoped to the reporter as well as the game: replacing is a person
-    // correcting themselves, never one person overwriting another.
+    /*
+     * Scoped to the reporter and to the state, as well as the game.
+     *
+     * The reporter so that replacing is a person correcting themselves and never
+     * one person overwriting another. The state because a game passes through
+     * three of them and a verdict on one says nothing about the others: what you
+     * expected beforehand, what you thought while it ran, and what you made of it
+     * afterwards are three different judgements. Matching on the game alone meant
+     * a verdict on a finished game deleted every observation made while it was
+     * live, which are the rows the whole live-appends rule exists to keep.
+     */
     this.reports = live
       ? [...this.reports, report]
       : [
           ...this.reports.filter(
-            (r) => r.gameId !== report.gameId || (r.reporter ?? null) !== report.reporter,
+            (r) =>
+              r.gameId !== report.gameId ||
+              (r.reporter ?? null) !== report.reporter ||
+              r.state !== report.state,
           ),
           report,
         ];
@@ -217,9 +229,9 @@ export class ReportStore {
    * every time one is given, because each is a different moment and none of them
    * replaces another, so there is no single thing to hand back.
    */
-  mine(gameId: string, reporter: string | null): Report | null {
+  mine(gameId: string, reporter: string | null, state: string): Report | null {
     const mine = this.reports.filter(
-      (r) => r.gameId === gameId && (r.reporter ?? null) === reporter,
+      (r) => r.gameId === gameId && (r.reporter ?? null) === reporter && r.state === state,
     );
     return mine.length === 0 ? null : mine[mine.length - 1];
   }
