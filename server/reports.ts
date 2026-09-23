@@ -83,6 +83,17 @@ export interface Report {
    */
   model: string;
   /**
+   * The commit the server was built from, or null outside a built image.
+   *
+   * `model` fingerprints the tuning constants and nothing else, so a change to
+   * which data reaches the scorer leaves it identical. On 2026-09-19 a report of
+   * 60.9 as "just right" was formed against a number a FastCast bug had inflated
+   * by about seven, and its stamp matched reports made after the fix. The commit
+   * makes any code change as visible as a constant change: compare it against the
+   * deploy history, not just against `model`.
+   */
+  commit: string | null;
+  /**
    * When this was looked at, and what came of it. Null until then.
    *
    * Reviewing is not the same as acting. Most reports should end up reviewed with
@@ -92,6 +103,9 @@ export interface Report {
   reviewedAt: string | null;
   outcome: string | null;
 }
+
+/** Baked into the image by CI; absent in development. Short, as git prints it. */
+const COMMIT = process.env.REVISION ? process.env.REVISION.slice(0, 7) : null;
 
 /** Bounded so a stuck client cannot fill the disk. Oldest go first. */
 const MAX_REPORTS = 2000;
@@ -184,6 +198,7 @@ export class ReportStore {
         .map((g) => ({ matchup: `${g.away.abbrev}@${g.home.abbrev}`, total: g.score!.total }))
         .sort((a, b) => b.total - a.total),
       model: tuningStamp(),
+      commit: COMMIT,
       reviewedAt: null,
       outcome: null,
     };

@@ -37,6 +37,12 @@ ENV NODE_ENV=production \
 
 EXPOSE 8787
 
+# The commit this image was built from, stamped on every rating report. The image
+# label carries it too, but a running process cannot read its own image's labels.
+# Declared last so a new commit invalidates nothing above it.
+ARG REVISION=""
+ENV REVISION=$REVISION
+
 # Never root. The uid only has to match whoever owns the notification volume, and
 # that is the operator's call at run time: `--user 99:100` on Unraid, where
 # appdata is already owned that way. Switching uid *inside* the container would
