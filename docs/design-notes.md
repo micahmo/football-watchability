@@ -2093,6 +2093,33 @@ Micah gave: the dimming already says the number is stale, and a bar that disappe
 problem being fixed. "remember we said the bar should stay." The only time there is no bar is when
 there was never a number to hold.
 
+**The scoreboard sets a floor under win probability, from the third quarter.** The long-standing
+complaint that close games read low turned out to be one specific failure: ESPN's win probability
+going lopsided on a one-score game. North Carolina down one to Clemson with 1:54 left, Clemson with
+the ball, 92%: rated 45. Houston at Texas Tech down one with 8:47 left, 89%: rated 38. A tie in the
+fourth rated 20 because the line had made one side a heavy favourite. Measured over 26,787 live rows:
+
+- A *blend* of win-probability tension and margin tension lifted games that were already right.
+  Indianapolis tied with Kansas City at 5:37 was called right at 76; halfway to the margin put it at
+  82, three quarters at 85. It also moved almost half the corpus by more than two points.
+- A *floor*, tension at least 0.8 of what the margin alone says, only acts where ESPN is far below
+  the scoreboard. North Carolina goes 45 to 68 (the verdict was about 73), the tied Indianapolis
+  game stays at 77, Houston at Texas Tech goes 38 to 69.
+- From kickoff the floor is wrong: the margin cannot tell a mismatch from a close game, so a
+  34.5-point favourite up 10-7 in the second went 19 to 43, and 44% of first-half rows moved more
+  than five. From the second half it is clean: first half untouched, the same eight games cross the
+  hero bar and the same seven the classic bar, and the headline changes hands 76 times in 4,370
+  board-minutes against 77.
+
+It fades in over the first five minutes of the third quarter, because switched on at halftime a
+close game could jump twenty points with nobody on the field, which is the complaint about ratings
+moving during an ad break in another form.
+
+Not fixed by this, and deliberately left for more reports: Indianapolis down seven at 6:23 while
+driving read 56 and was called too low. There the margin curve says *less* than ESPN, because a
+seven-point game with six minutes left scores 0.25 on it, and the clutch term only starts at five
+minutes. One report; the mechanism is known if more arrive.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

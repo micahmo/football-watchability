@@ -79,7 +79,9 @@ does.
 Every live game gets a 0-100 score and the board sorts on it.
 
 **The main term is how close the game is, weighted by how late it is.** Closeness comes from
-ESPN's live win probability, falling back to a margin curve when ESPN stops publishing one.
+ESPN's live win probability, falling back to a margin curve when ESPN stops publishing one. From
+the third quarter the margin also sets a floor, so a one-score game is not written off because
+ESPN makes one side a heavy favourite.
 
 **Four other terms can take over when closeness misses the point.** A one-score game inside the final
 five minutes, with the trailing team holding the ball, gets a `clutch` score. An underdog running

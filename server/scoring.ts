@@ -38,6 +38,36 @@ export function tensionFromMargin(margin: number, secsLeft: number): number {
 }
 
 /**
+ * How far the scoreboard is allowed to overrule ESPN's win probability.
+ *
+ * Win probability answers "who will win", and when it is lopsided it writes off a
+ * game a viewer would not: North Carolina trailed Clemson by one with 1:54 left,
+ * Clemson had the ball, ESPN said 92%, and the board rated it 45. Texas Tech
+ * trailed Houston by one with 8:47 left at 89% and rated 38. A tie in the fourth
+ * rated 20 because the line had made one side a heavy favourite. So the margin
+ * sets a floor under tension, at this share of what the margin alone would say.
+ *
+ * A floor rather than a blend, and less than the full margin reading. A blend
+ * lifted games that were already right: Indianapolis tied with Kansas City at
+ * 5:37 was called right at 76 and a blend put it at 82 to 85. A floor only acts
+ * where ESPN is far below the scoreboard, and 0.8 of the margin lands close to
+ * every verdict on record, including that one.
+ *
+ * Second half only. Early on the margin cannot tell a mismatch from a close game,
+ * which is exactly what ESPN's number knows: from kickoff, a 34.5-point favourite
+ * leading 10-7 in the second quarter went from 19 to 43. It fades in over the
+ * first five minutes of the third quarter rather than switching on at halftime,
+ * so a close game does not jump twenty points with nobody on the field.
+ */
+const MARGIN_FLOOR = 0.8;
+const MARGIN_FLOOR_RAMP_SECONDS = 300;
+
+function marginFloorShare(progress: number): number {
+  const half = REGULATION_SECONDS / 2;
+  return MARGIN_FLOOR * clamp(((progress * REGULATION_SECONDS) - half) / MARGIN_FLOOR_RAMP_SECONDS);
+}
+
+/**
  * Closeness of a finished game. This asks "was that a good one" rather than
  * "can it still change", so it is far more forgiving than the live curve: at
  * 0:00 the live curve writes off any two-score game, but a seven-point final
@@ -565,7 +595,10 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
   if (input.isFinal) {
     tension = tensionFromFinalMargin(margin);
   } else if (hasWinProb) {
-    tension = tensionFromWinProb(input.homeWinProb as number);
+    tension = Math.max(
+      tensionFromWinProb(input.homeWinProb as number),
+      marginFloorShare(progress) * tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds)),
+    );
   } else {
     tension = tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds));
   }
@@ -831,6 +864,8 @@ export const TUNING: Record<string, number> = {
   contestScale: CONTEST_SCALE,
   billingCarry: BILLING_CARRY,
   billingUntil: BILLING_UNTIL,
+  marginFloor: MARGIN_FLOOR,
+  marginFloorRampSeconds: MARGIN_FLOOR_RAMP_SECONDS,
 };
 
 /** A short, stable stamp for `TUNING`, so two reports can be compared. */
