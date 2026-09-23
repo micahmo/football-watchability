@@ -1,4 +1,5 @@
 import type { Game, League, Snapshot } from "../shared/types.js";
+import { isPaused } from "../shared/status.js";
 import { WEIGHTS, combine } from "../shared/weights.js";
 import { channelLabel } from "../shared/channel.js";
 import type { Category, Subscription, SubscriptionStore } from "./subscriptions.js";
@@ -284,15 +285,25 @@ export class AlertEngine {
     const out: Alert[] = [];
 
     for (const game of live) {
+      // Every one of these says "switch to this", and a game at halftime or in a
+      // delay is the one thing that cannot be switched to.
+      if (isPaused(game)) continue;
       const score = earned(game, favorites);
       const alternatives = live.length - 1;
       const already = (c: Category) => this.sent.has(`${sub.id}:${game.id}:${c}`);
 
       // Checked first, so a game that vaults straight past both thresholds
       // announces the bigger thing rather than the smaller one.
-      if (wants.includes("classic") && score >= CLASSIC && !already("classic")) {
-        // No time gate. This is not asking anyone to switch; it tells somebody
-        // already watching that they picked the right game.
+      if (
+        wants.includes("classic") &&
+        game.period >= 3 &&
+        score >= CLASSIC &&
+        !already("classic")
+      ) {
+        // Not asking anyone to switch; it tells somebody already watching that they
+        // picked the right game. But only once something has happened: a kickoff
+        // rating carries the pregame billing, which fades by halftime, and LSU at
+        // Ole Miss cleared this bar at 0-0 on prominence and hype alone.
         out.push({ category: "classic", game, score, alternatives });
         continue;
       }

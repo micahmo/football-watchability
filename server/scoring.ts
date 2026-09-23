@@ -911,7 +911,11 @@ export function buildTags(game: Game, breakdown: ScoreBreakdown): string[] {
    */
   const dramatic =
     game.period > 4 ||
-    breakdown.pace >= 0.5 ||
+    // `pace` is a projection, and before much football it is mostly the betting
+    // total: LSU at Ole Miss read 0.67 at 0-0 in the first quarter, on a 58.5
+    // over/under, and took INSTANT CLASSIC before either side had scored. From the
+    // second half the projection is carried by points actually scored.
+    (progress >= 0.5 && breakdown.pace >= 0.5) ||
     onTheLine ||
     (isFinal && underdog !== null && realUnderdog && underdog.levelOrAhead && breakdown.upset >= 0.35);
 
@@ -937,7 +941,15 @@ export function buildTags(game: Game, breakdown: ScoreBreakdown): string[] {
       // something that is already over. Sized so a glance at the recap separates
       // a mild surprise from the one people will still be talking about.
       tags.push(breakdown.upset >= 0.7 ? "BIG UPSET" : "UPSET");
-    } else if (breakdown.upset >= 0.35 && underdog.levelOrAhead) {
+    } else if (
+      breakdown.upset >= 0.35 &&
+      // Level is not enough in the first half. 0-0 and 7-7 are ordinary scores
+      // early in any game, however big the line, and too little football to say
+      // an upset is on: Kentucky took the tag at 0-0 at Texas A&M on a one-frame
+      // win-probability blip, Duquesne at 7-7 in the second. Leading is evidence,
+      // as Florida State up 21-6 at Alabama was. From halftime, level counts.
+      (progress >= 0.5 ? underdog.levelOrAhead : underdog.deficit < 0)
+    ) {
       tags.push("UPSET ALERT");
     } else if (
       // Behind but one score away with the clock running out. The upset has not

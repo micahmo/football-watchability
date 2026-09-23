@@ -2,8 +2,12 @@
   import type { TeamSide } from "../../shared/types";
   import { colorsTooSimilar, teamColor } from "./format";
 
-  let { home, away, homeWinProb }: { home: TeamSide; away: TeamSide; homeWinProb: number } =
-    $props();
+  let {
+    home,
+    away,
+    homeWinProb,
+    stale = false,
+  }: { home: TeamSide; away: TeamSide; homeWinProb: number; stale?: boolean } = $props();
 
   const awayColor = $derived(teamColor(away));
   const homeColor = $derived(teamColor(home));
@@ -13,7 +17,9 @@
   const needsPattern = $derived(colorsTooSimilar(awayColor, homeColor));
 </script>
 
-<div class="track">
+<!-- Dimmed rather than removed while a fresh number is on its way: see
+     `winProbMemory`. -->
+<div class="track" class:stale>
   <div class="bar">
     <div
       class="seg"
@@ -25,7 +31,7 @@
   <div class="handle" style="left: {awayPct}%"></div>
 </div>
 
-<div class="labels mono">
+<div class="labels mono" class:stale>
   <span class="side">
     <span class="swatch" class:hatched={needsPattern} style="background: {awayColor}"></span>
     {away.abbrev}
@@ -99,5 +105,9 @@
       rgba(255, 255, 255, 0.42) 0 3px,
       rgba(0, 0, 0, 0) 3px 6px
     );
+  }
+  .stale {
+    opacity: 0.45;
+    transition: opacity 0.3s;
   }
 </style>

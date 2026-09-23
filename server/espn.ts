@@ -90,6 +90,35 @@ function fieldNumber(raw: unknown, min: number, max: number): number | null {
   return typeof raw === "number" && Number.isFinite(raw) && raw >= min && raw <= max ? raw : null;
 }
 
+/**
+ * Whether ESPN's latest entry marks a moment in the game rather than a play.
+ *
+ * These entries carry a win probability like any other, and it is not a real
+ * one. Cincinnati led Houston 20-6 with two minutes left, every play either side
+ * of the warning had Houston near 0.001, and the two-minute warning itself said
+ * 0.4775: the board read a decided game as a coin flip and rated it 92 for three
+ * minutes. Tampa's warning said 0.5001 and then sat there through a two-hour
+ * lightning delay. The end of regulation in Indianapolis at Kansas City flipped
+ * between 0.5 and 0.9024 on the same entry. ESPN's own play-by-play series shows
+ * the same values, so this is the source model, not the push feed.
+ *
+ * Nothing about anyone's chances changes at a two-minute warning or the end of a
+ * quarter, so the probability is treated as absent. The poller already carries
+ * the last real value until the score changes, and the score never changes on
+ * one of these, so the right number simply stays put.
+ *
+ * Keyed on ESPN's play type, with the text as a fallback because the push feed's
+ * copy of the play is not guaranteed to carry the type.
+ */
+const MARKER_PLAY_TYPES = new Set(["75", "2", "65"]); // two-minute warning, end period, end of half
+const MARKER_PLAY_TEXT = /^\s*(two-minute warning|end (of )?(quarter|half|period|regulation)\b)/i;
+
+function markerPlay(play: any): boolean {
+  const type = play?.type?.id;
+  if (type !== undefined && type !== null && MARKER_PLAY_TYPES.has(String(type))) return true;
+  return typeof play?.text === "string" && MARKER_PLAY_TEXT.test(play.text);
+}
+
 function normalize(event: any, league: League): RawGame | null {
   const comp = event?.competitions?.[0];
   if (!comp) return null;
@@ -106,7 +135,8 @@ function normalize(event: any, league: League): RawGame | null {
   const rawState = status?.type?.state;
   const state: GameState = rawState === "in" ? "in" : rawState === "post" ? "post" : "pre";
 
-  const probability = comp?.situation?.lastPlay?.probability;
+  const lastPlay = comp?.situation?.lastPlay;
+  const probability = markerPlay(lastPlay) ? undefined : lastPlay?.probability;
   const homeWinProbRaw = probability?.homeWinPercentage;
   const homeWinProb =
     typeof homeWinProbRaw === "number" && Number.isFinite(homeWinProbRaw)

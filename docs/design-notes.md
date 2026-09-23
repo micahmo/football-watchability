@@ -1035,11 +1035,19 @@ you missed, and that everything fires on a **transition** rather than a state: a
 
 | | Fires | Gate |
 | --- | --- | --- |
-| Turn this on | Boosted live score crosses 75 | At least 60s of game clock left |
-| Instant classic | The same game later crosses 85 | None |
-| Upset alert | Underdog level or ahead within one score, spread 7+ | Fourth quarter only |
+| Turn this on | Boosted live score crosses 85 | At least 60s of game clock left |
+| Instant classic | The same game later crosses 87 | Second half onwards |
+| Upset alert | The underdog's live win probability has come far enough from its pregame chance, and is still in doubt, to reach 0.55. Spread 6+ | None, any quarter |
 | Kickoff | Best game in a window of four or more games | At kickoff |
 | Primetime | The only game in its window, NFL only | At kickoff |
+
+The first three never fire for a game at halftime or in a delay: each one means "switch to this", and a
+paused game is the one thing that cannot be switched to.
+
+This table had drifted three rows out of date by 2026-09-23: it still said 75 and 85 after both
+thresholds had moved to 85 and 87, and "fourth quarter only" for an upset alert that has had no
+quarter gate since it moved into win-probability space. It surfaced when an upset alert arrived in
+the second quarter. Every threshold change should come here in the same commit.
 
 **Primetime is the exact inverse of kickoff**, so the two can never both fire. Kickoff says "this
 is the pick of a crowded slate"; primetime says "there is nothing to choose between, but football
@@ -2046,6 +2054,40 @@ keep. Now the replace matches game, reporter and state together. Micah put the p
 the code comment does: replacing is fine "because nothing about the game has changed, only my
 opinion". A live game changes under you, so those are observations; a fixed one does not, so there
 is one verdict per state.
+
+**Five fixes from the first weekly review (2026-09-23).** All five came out of reading 32 reports
+against the history log, and none is a tuning change.
+
+*Marker entries carry fake win probabilities.* ESPN's two-minute warning and end-of-period entries
+arrive with a win probability like a real play, and it is not one: Cincinnati up 20-6 on Houston
+with two minutes left read 0.001 on every play either side of the warning and 0.4775 on the
+warning itself, which rated a decided game 92. ESPN's own play-by-play series has the same values,
+so it is the source model. Those entries are now treated as having no probability, and the
+existing carry holds the last real one, which is right because no one's chances change at a
+two-minute warning.
+
+*A game you cannot watch does not lead.* Tampa Bay sat first for two hours in a lightning delay
+with its card saying "Delayed", and games at halftime kept taking the top slot. A game at halftime
+or with ESPN's delayed status keeps its rating but sorts below every game in play, and triggers no
+live alert. Breaks between quarters are excluded as two minutes of advertising, and the market
+grouping comes first so a delayed game on your own channels never lands under "not on your
+channels".
+
+*INSTANT CLASSIC needed something to have happened.* `pace` is a projection that is mostly the
+betting total early on, so LSU at Ole Miss read 0.67 at 0-0 and took the tag before a point. Pace
+now only counts from the second half, and the classic alert waits for the second half too, when
+the pregame billing has left the rating.
+
+*UPSET ALERT needed evidence.* In the first half the underdog now has to lead, not merely be level:
+0-0 and 7-7 are ordinary early scores whatever the line. Micah: "not a good enough sample size to
+see if they're really gonna be doing an upset." From halftime, level counts again.
+
+*The win probability bar stopped vanishing after scores.* Scoring still refuses to carry a number
+across a score, but the display holds the last one, dimmed, until a fresh one lands, with no limit.
+A five-minute cap came first and then a one-score cap, and both were wrong for the same reason
+Micah gave: the dimming already says the number is stale, and a bar that disappears is exactly the
+problem being fixed. "remember we said the bar should stay." The only time there is no bar is when
+there was never a number to hold.
 
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.

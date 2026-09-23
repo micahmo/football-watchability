@@ -26,7 +26,9 @@ No API key, no account, no database.
 
 **Live games**, best first. Each card carries the score, live win probability, the clock and
 situation, who has the ball, the network, the pregame line, and any tags that apply:
-`GAME ON THE LINE`, `UPSET ALERT`, `RECENT SWINGS`, `INSTANT CLASSIC`, `OVERTIME`.
+`GAME ON THE LINE`, `UPSET ALERT`, `RECENT SWINGS`, `INSTANT CLASSIC`, `OVERTIME`. A game at halftime
+or in a delay keeps its rating but waits below the games being played, and sends no live alerts,
+until play resumes.
 
 **Worth planning around**, the next few days grouped by day, days in order, so an earlier day's
 games are never buried under a better game later in the week. Every game on a day is listed. Within a day, **Best** ranks by rating and **Time**

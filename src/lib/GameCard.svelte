@@ -15,6 +15,7 @@
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
   import WinProbBar from "./WinProbBar.svelte";
+  import { heldWinProb, rememberWinProb } from "./winProbMemory";
 
   let {
     game,
@@ -100,9 +101,17 @@
   const revealedByHand = $derived(!hidden && game.state !== "pre" && isProtected(game));
 
   const accent = $derived(hidden ? "var(--calm)" : scoreColor(score));
-  const showWp = $derived(
-    !hidden && open && variant === "live" && game.score?.hasWinProb === true,
+  /* The bar keeps its last real value across a gap rather than vanishing: see
+     `winProbMemory`. The current value always wins when there is one. */
+  const freshWp = $derived(
+    game.score?.hasWinProb === true && game.homeWinProb !== null ? game.homeWinProb : null,
   );
+  $effect(() => {
+    if (freshWp !== null) rememberWinProb(game.id, freshWp);
+  });
+  const barWp = $derived(freshWp ?? (variant === "live" ? heldWinProb(game.id) : null));
+  const wpStale = $derived(freshWp === null && barWp !== null);
+  const showWp = $derived(!hidden && open && variant === "live" && barWp !== null);
   // Dimming the team that is behind reads as "this one lost", which is only true
   // once the game is over. Mid-game both teams stay at full weight.
   const leader = $derived(
@@ -244,8 +253,8 @@
     {#if collapsible}
       {#if open && !hidden}
         <div class="detail" transition:slide={{ duration: ms() }}>
-          {#if variant === "live" && game.score?.hasWinProb === true}
-            <WinProbBar home={game.home} away={game.away} homeWinProb={game.homeWinProb ?? 0.5} />
+          {#if variant === "live" && barWp !== null}
+            <WinProbBar home={game.home} away={game.away} homeWinProb={barWp} stale={wpStale} />
           {/if}
           {#if variant === "live"}
             <div class="meta">
@@ -268,8 +277,8 @@
           {/if}
         </div>
       {/if}
-    {:else if showWp}
-      <WinProbBar home={game.home} away={game.away} homeWinProb={game.homeWinProb ?? 0.5} />
+    {:else if showWp && barWp !== null}
+      <WinProbBar home={game.home} away={game.away} homeWinProb={barWp} stale={wpStale} />
     {/if}
 
     <!-- Where the game is right now: clock and situation together. A finished game

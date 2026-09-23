@@ -18,6 +18,7 @@
 
   import GameCard from "./lib/GameCard.svelte";
   import { isHidden } from "./lib/spoilers.svelte";
+  import { isPaused } from "../shared/status";
   import { windowLabels, windowTimeLabel, windowsOf } from "./lib/format";
   import UpcomingRow from "./lib/UpcomingRow.svelte";
 
@@ -534,11 +535,16 @@
   const spoilerLast = (rank: (game: Game) => number) => (a: Game, b: Game) =>
     Number(isHidden(a)) - Number(isHidden(b)) || rank(b) - rank(a);
 
+  /* Paused games sink below everything in play, but inside their market group,
+     so a delayed game on your own channels never lands under "not on your
+     channels". The server orders the same way; this re-sort exists because the
+     favourite bonus and the market preference only exist out here. */
   const live = $derived.by(() =>
     [...(snapshot?.live ?? [])].sort(
       (a, b) =>
         Number(isHidden(a)) - Number(isHidden(b)) ||
         Number(watchable(b)) - Number(watchable(a)) ||
+        Number(isPaused(a)) - Number(isPaused(b)) ||
         scoreOf(b) - scoreOf(a),
     ),
   );

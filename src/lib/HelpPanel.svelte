@@ -50,6 +50,10 @@
       <li>What the game decides, like a conference or division fixture.</li>
       <li>How far the odds have swung in the last fifteen minutes.</li>
     </ul>
+    <p>
+      A game at halftime or in a weather delay keeps its rating but waits below the games being
+      played, and climbs back when play resumes.
+    </p>
 
     <h3>Your settings change it</h3>
     <ul>
@@ -79,6 +83,7 @@
         <strong>Delay.</strong> Television runs behind live, so the board can spoil the game it is
         meant to help you watch. Hold it back by however many seconds your feed is behind. Nudge it
         until the score changes on screen at the same moment you see it. Notifications wait too.
+        Opening the app always shows the latest: the hold is for while you are watching.
       </li>
     </ul>
 
@@ -89,7 +94,8 @@
       something it should not be. Or something is about to start: the best game of a busy kickoff
       window, or the only game in its slot. Each one names the channel, and says when a game is out
       of market. Turn on My channels first and those stop arriving altogether, and a team on your no
-      spoilers list is never the subject of one.
+      spoilers list is never the subject of one. Nor is a game at halftime or in a delay, since you
+      could not switch to it.
     </p>
 
     <h3>The other two lists</h3>
