@@ -135,6 +135,14 @@ export interface Alert {
   /** Other games live right now, which decides the wording but never the sending. */
   alternatives: number;
   /**
+   * For an upset alert, the best game this viewer could put on instead, when that
+   * is a different game. An upset alert is about the underdog, not about the
+   * board, so it can fire for a game well down the list; Florida State at Alabama
+   * did, sixth of twenty, and read as though it were the pick. Naming the better
+   * game says what the alert is and answers the question it raised.
+   */
+  bestElsewhere?: Game | null;
+  /**
    * The kickoff window this came from, marked as announced only once it is sent.
    *
    * Carried rather than marked while deciding, because the cap is now judged on
@@ -283,6 +291,14 @@ export class AlertEngine {
       (g) => !avoided(g, sub) && !(sub.inMarketFirst && unavailable(g)),
     );
     const out: Alert[] = [];
+    // Chosen exactly as this viewer's headline is: playing rather than paused, no
+    // spoiler teams and nothing off their channels (both already filtered out of
+    // `live`), ranked with their favourites bonus.
+    const playing = live.filter((g) => !isPaused(g));
+    const best =
+      playing.length === 0
+        ? null
+        : playing.reduce((a, b) => (earned(b, favorites) > earned(a, favorites) ? b : a));
 
     for (const game of live) {
       // Every one of these says "switch to this", and a game at halftime or in a
@@ -321,7 +337,13 @@ export class AlertEngine {
         !already("upset") &&
         (game.score?.upsetTension ?? 0) >= UPSET_TENSION
       ) {
-        out.push({ category: "upset", game, score, alternatives });
+        out.push({
+          category: "upset",
+          game,
+          score,
+          alternatives,
+          bestElsewhere: best !== null && best.id !== game.id ? best : null,
+        });
       }
     }
     return out;
@@ -516,6 +538,7 @@ export class AlertEngine {
        * moment this viewer's screen will be showing when it lands.
        */
       const payload = buildPayload(unique);
+      console.log(explain(sub.id, unique, view, payload, sub.delaySeconds ?? 0));
       this.record(sub, snapshot.league, now, unique, unique[0].score);
       sent += 1;
       const hold = Math.max(0, sub.delaySeconds ?? 0) * 1000;
@@ -609,6 +632,48 @@ function detail(alert: Alert): string {
   return `${scoreline}${game.clock} ${quarter(game.period)}${network}`;
 }
 
+/**
+ * One line per notification saying why it went out, for triage after the fact.
+ *
+ * Until this existed the log said only "sent 1 notification", and the one alert
+ * anyone asked about could not be explained: Florida State at Alabama sent an
+ * upset alert although every recorded value of its trigger was below the bar,
+ * because the history log samples once a minute and the value that crossed never
+ * reached it. So the line carries the numbers that tripped it, where the game sat
+ * on that viewer's board and what led it, and the exact text that was sent.
+ */
+function explain(
+  subId: string,
+  alerts: Alert[],
+  view: Snapshot,
+  payload: any,
+  delaySeconds: number,
+): string {
+  const lead = alerts[0];
+  const game = lead.game;
+  const rank = view.live.findIndex((g) => g.id === game.id);
+  const top = view.live[0];
+  const trigger =
+    lead.category === "upset"
+      ? `upsetTension ${(game.score?.upsetTension ?? 0).toFixed(3)} >= ${UPSET_TENSION}, wp ${game.homeWinProb ?? "none"}, line ${game.pregameSpread ?? "none"}`
+      : lead.category === "hero"
+        ? `rating ${lead.score.toFixed(1)} >= ${HERO}, ${Math.round(secondsLeft(game))}s left`
+        : lead.category === "classic"
+          ? `rating ${lead.score.toFixed(1)} >= ${CLASSIC}, period ${game.period}`
+          : `expected ${lead.score.toFixed(1)}, ${lead.alternatives + 1} game(s) in the window`;
+  const board =
+    rank >= 0
+      ? `board #${rank + 1} of ${view.live.length}${rank > 0 && top ? `, led by ${top.shortName} ${top.score?.total ?? "?"}` : ""}`
+      : "not live";
+  const state = `${game.away.abbrev} ${game.away.score}-${game.home.score} ${game.home.abbrev} ${game.clock} Q${game.period}`;
+  const also = alerts.length > 1 ? ` | also ${alerts.slice(1).map((a) => `${a.category}:${a.game.shortName}`).join(", ")}` : "";
+  const held = delaySeconds > 0 ? ` | held ${delaySeconds}s` : "";
+  return (
+    `[notify] ${subId.slice(0, 6)} ${lead.category} ${game.shortName} (${state}) | ${trigger} | ${board}` +
+    `${also}${held} | "${payload?.title ?? ""}" / "${String(payload?.body ?? "").replace(/\n/g, " / ")}"`
+  );
+}
+
 export function buildPayload(alerts: Alert[]): unknown {
   const lead = alerts[0];
   const game = lead.game;
@@ -645,9 +710,17 @@ export function buildPayload(alerts: Alert[]): unknown {
     .map((a) => `${a.game.away.abbrev} at ${a.game.home.abbrev}`)
     .join(", ");
 
+  const lines = [detail(lead)];
+  // Only when the better game is not already named further down the same buzz.
+  const elsewhere = lead.category === "upset" ? (lead.bestElsewhere ?? null) : null;
+  if (elsewhere !== null && !alerts.slice(1).some((a) => a.game.id === elsewhere.id)) {
+    lines.push(`Worth keeping an eye on. Best game on now: ${matchupWithRanks(elsewhere)}`);
+  }
+  if (also) lines.push(`Also worth a look: ${also}`);
+
   return {
     title,
-    body: also ? `${detail(lead)}\nAlso worth a look: ${also}` : detail(lead),
+    body: lines.join("\n"),
     league: game.league,
     gameId: game.id,
     category: lead.category,

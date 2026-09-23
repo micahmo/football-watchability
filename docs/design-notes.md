@@ -2120,6 +2120,18 @@ driving read 56 and was called too low. There the margin curve says *less* than 
 seven-point game with six minutes left scores 0.25 on it, and the clutch term only starts at five
 minutes. One report; the mechanism is known if more arrive.
 
+**An upset alert names the better game, and every alert logs why it fired.** Florida State up
+21-6 at Alabama sent an upset alert while it sat sixth of twenty on the board, and it read as
+though it were the pick. The category is right, an underdog doing that is worth knowing about, but
+the text should say what it is. So when a different game is the best one on, the body adds "Worth
+keeping an eye on. Best game on now:" and names it, chosen exactly as that viewer's headline is:
+being played, no spoiler teams, within their channels if they asked, ranked with their favourites
+bonus. When the upset game is itself the best one, or nothing else is being played, the line is
+left out rather than saying something false. The same alert could not be explained afterwards
+either: every recorded value of its trigger was below the bar, because the history log samples
+once a minute. Each send now logs one line with the trigger value against its threshold, the
+game's place on that viewer's board and what led it, any delay hold, and the exact title and body.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 
