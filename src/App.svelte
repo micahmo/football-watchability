@@ -535,18 +535,44 @@
   const spoilerLast = (rank: (game: Game) => number) => (a: Game, b: Game) =>
     Number(isHidden(a)) - Number(isHidden(b)) || rank(b) - rank(a);
 
-  /* Paused games sink below everything in play, but inside their market group,
-     so a delayed game on your own channels never lands under "not on your
-     channels". The server orders the same way; this re-sort exists because the
-     favourite bonus and the market preference only exist out here. */
-  const live = $derived.by(() =>
+  /* Re-sorted here because the favourite bonus and the market preference only
+     exist out here. */
+  const ordered = $derived.by(() =>
     [...(snapshot?.live ?? [])].sort(
       (a, b) =>
         Number(isHidden(a)) - Number(isHidden(b)) ||
         Number(watchable(b)) - Number(watchable(a)) ||
-        Number(isPaused(a)) - Number(isPaused(b)) ||
         scoreOf(b) - scoreOf(a),
     ),
+  );
+
+  /*
+   * The headline goes to the best game actually being played.
+   *
+   * A game at halftime or in a delay cannot be put on right now, and it kept
+   * taking the top slot: Tampa Bay led for two hours in a lightning delay. But it
+   * keeps its place in the list by rating, so a headliner that pauses drops just
+   * one slot, to sit under whatever took over, and comes back when play resumes.
+   * Sinking paused games to the bottom was tried first and was wrong: on a busy
+   * Saturday that folds a game you were following behind "Show all" for twenty
+   * minutes, where it reads as over.
+   *
+   * Only searched within the leading market group, so "My channels first" never
+   * hands the headline to a game your channels are not carrying. And if nothing in
+   * that group is being played, the best paused game keeps it, since there is
+   * nothing better to put on.
+   */
+  const heroIndex = $derived.by(() => {
+    const first = ordered[0];
+    if (first === undefined) return -1;
+    const group = watchable(first);
+    const playing = ordered.findIndex((g) => watchable(g) === group && !isPaused(g));
+    return playing === -1 ? 0 : playing;
+  });
+  const live = $derived(
+    heroIndex <= 0
+      ? ordered
+      : [ordered[heroIndex], ...ordered.slice(0, heroIndex), ...ordered.slice(heroIndex + 1)],
   );
 
   const top = $derived(live[0] ?? null);

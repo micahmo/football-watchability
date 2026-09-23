@@ -2067,11 +2067,15 @@ existing carry holds the last real one, which is right because no one's chances 
 two-minute warning.
 
 *A game you cannot watch does not lead.* Tampa Bay sat first for two hours in a lightning delay
-with its card saying "Delayed", and games at halftime kept taking the top slot. A game at halftime
-or with ESPN's delayed status keeps its rating but sorts below every game in play, and triggers no
-live alert. Breaks between quarters are excluded as two minutes of advertising, and the market
-grouping comes first so a delayed game on your own channels never lands under "not on your
-channels".
+with its card saying "Delayed", and games at halftime kept taking the top slot. The headline now
+goes to the best game actually being played; a game at halftime or with ESPN's delayed status keeps
+its place in the list by rating, so a headliner that pauses drops one slot and returns when play
+resumes, and it triggers no live alert. Sinking paused games to the bottom shipped first and was
+wrong: on a busy Saturday it folds a game you were following behind "Show all" for twenty minutes,
+where it reads as over, and the Tampa game was two minutes from the end. The headline search stays
+inside the leading market group, so "My channels first" never hands it to a game your channels are
+not carrying, and if nothing there is being played the best paused game keeps it. Breaks between
+quarters are excluded as two minutes of advertising.
 
 *INSTANT CLASSIC needed something to have happened.* `pace` is a projection that is mostly the
 betting total early on, so LSU at Ole Miss read 0.67 at 0-0 and took the tag before a point. Pace

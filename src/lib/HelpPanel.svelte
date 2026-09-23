@@ -51,8 +51,8 @@
       <li>How far the odds have swung in the last fifteen minutes.</li>
     </ul>
     <p>
-      A game at halftime or in a weather delay keeps its rating but waits below the games being
-      played, and climbs back when play resumes.
+      A game at halftime or in a weather delay keeps its place in the list, but the top slot goes to
+      a game you can actually put on until play resumes.
     </p>
 
     <h3>Your settings change it</h3>

@@ -6,7 +6,6 @@ import {
   type RawGame,
 } from "./espn.js";
 import { FastcastClient, TOPICS, applyPatch, splitPath, type Patch } from "./fastcast.js";
-import { isPaused } from "../shared/status.js";
 import { LineStore } from "./lines.js";
 import { anticipationScore, buildTags, scoreGame } from "./scoring.js";
 import { SwingStore } from "./store.js";
@@ -868,12 +867,7 @@ export class LeaguePoller {
     const live = games
       .filter(started)
       .map((g) => this.withScore(g, this.swings.movement(g.id, now)))
-      // A game that has stopped keeps its rating but not its place: see `isPaused`.
-      .sort(
-        (a, b) =>
-          Number(isPaused(a)) - Number(isPaused(b)) ||
-          (b.score?.total ?? 0) - (a.score?.total ?? 0),
-      );
+      .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0));
 
     // Prefer the forward-looking fetch, falling back to whatever the current
     // week's board happens to carry. Games that have left `pre` without starting

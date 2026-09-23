@@ -5,8 +5,9 @@
  * in a weather delay cannot be put on right now. Tampa Bay led the board for two
  * hours on 2026-09-20 during a lightning delay, with its card saying "Delayed"
  * the whole time, and games at halftime kept taking the top slot while something
- * else was being played. A paused game keeps its rating and its card, but sorts
- * below every game actually in play and does not send a "switch to this" alert.
+ * else was being played. A paused game keeps its rating and its place in the
+ * list, but cannot take the headline slot and does not send a "switch to this"
+ * alert.
  *
  * Breaks between quarters are deliberately not included. They are two minutes of
  * advertising, and demoting for them would reshuffle the board four times a game.
