@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { LeaguePoller } from "./poller.js";
 import { StandingsStore } from "./standings.js";
+import { StrengthStore } from "./strength.js";
 import { ReportStore, type Report } from "./reports.js";
 import { History } from "./history.js";
 import { PlaceStore } from "./places.js";
@@ -44,6 +45,7 @@ function currentBuild(): string | null {
 const BUILD = currentBuild();
 
 const standings = new StandingsStore();
+const strength = new StrengthStore();
 /*
  * Ratings feedback, behind a key.
  *
@@ -272,7 +274,14 @@ const pollers: Record<League, LeaguePoller> = {
   cfb: new LeaguePoller("cfb", null, onSnapshot),
   // Divisions and playoff seeds are not on the scoreboard, so NFL games get
   // decorated from the standings feed before scoring.
-  nfl: new LeaguePoller("nfl", (games) => standings.enrich(games), onSnapshot),
+  nfl: new LeaguePoller(
+    "nfl",
+    async (games) => {
+      await standings.enrich(games);
+      await strength.enrich(games);
+    },
+    onSnapshot,
+  ),
 };
 
 const DEFAULT_LEAGUE: League = "nfl";

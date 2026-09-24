@@ -866,6 +866,9 @@ export const TUNING: Record<string, number> = {
   billingUntil: BILLING_UNTIL,
   marginFloor: MARGIN_FLOOR,
   marginFloorRampSeconds: MARGIN_FLOOR_RAMP_SECONDS,
+  // Not a tunable: marks that NFL planning quality comes from nfelo, so reports
+  // made before and after that change carry different stamps.
+  nflPlanningStrength: 1,
 };
 
 /** A short, stable stamp for `TUNING`, so two reports can be compared. */
@@ -1020,6 +1023,11 @@ function recordQuality(winPct: number | null): number {
   return clamp(0.15 + 0.85 * winPct);
 }
 
+/** Same range as `recordQuality`, so swapping the source does not rescale the term. */
+function strengthQuality(percentile: number): number {
+  return clamp(0.15 + 0.85 * percentile);
+}
+
 /** Rank prominence reused for pregame quality, where both teams must be good. */
 function rankQuality(rank: number | null): number {
   if (rank === null) return 0.12;
@@ -1060,9 +1068,18 @@ export interface AnticipationInputs {
 export function anticipationScore(i: AnticipationInputs): number {
   const closeness = spreadCloseness(i.spread);
   // The worse of the two teams, so a mismatch is never worth planning around.
+  // For the NFL, nfelo's rating where both teams have one: see `StrengthStore`.
+  // Records are the fallback, and early in a season they barely distinguish
+  // anyone. Deliberately the same weight as before, so how close the line is
+  // still leads: two evenly matched middling teams can be the pick of a week.
+  const nflStrength =
+    i.home.strength != null && i.away.strength != null
+      ? Math.min(strengthQuality(i.home.strength), strengthQuality(i.away.strength))
+      : null;
   const quality =
     i.league === "nfl"
-      ? Math.min(recordQuality(i.home.winPct), recordQuality(i.away.winPct))
+      ? (nflStrength ??
+        Math.min(recordQuality(i.home.winPct), recordQuality(i.away.winPct)))
       : Math.min(rankQuality(i.home.rank), rankQuality(i.away.rank));
   const prominence = prominenceScore({
     league: i.league,

@@ -22,6 +22,11 @@ export interface TeamSide {
   /** NFL only, from the standings feed. */
   divisionId: string | null;
   playoffSeed: number | null;
+  /**
+   * NFL only: nfelo power rating as a league percentile, 1 the strongest team.
+   * Null when unavailable, and then the record stands in.
+   */
+  strength?: number | null;
 }
 
 /** Every component is 0..1. These are combined into a 0..100 total by `shared/weights`. */

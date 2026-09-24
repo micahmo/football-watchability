@@ -2132,6 +2132,34 @@ either: every recorded value of its trigger was below the bar, because the histo
 once a minute. Each send now logs one line with the trigger value against its threshold, the
 game's place on that viewer's board and what led it, any delay hold, and the exact title and body.
 
+**NFL planning quality comes from nfelo, not records.** The planning score's `quality` term was
+the weaker team's record, and two games into a season a record has three possible values. Every
+1-1 against 1-1 game scored identically, so the top of the week-3 list was eight games within seven
+points, ordered by the television slot and the over/under. The closing line cannot separate them:
+it measures how far apart two teams are, not whether both are good or both are bad. That needs a
+level, which is what a power rating is.
+
+Micah's read of that slate was the test: Bengals-Steelers and Raiders-Saints too high; Ravens-Cowboys,
+Rams-Broncos and Patriots-Jaguars better; Texans-Colts and Bills-Chargers interesting despite 0-2
+records; Titans-Giants, Seahawks-Commanders and Chiefs-Dolphins rightly low. nfelo's `pts_vs_avg`,
+as a league percentile in place of the record, moved every one of those ten his way. A market
+rating fitted by least squares from our own 47 closing lines agreed with nfelo at 0.90 and moved
+eight of the ten, so it is the fallback design if nfelo ever stops publishing.
+
+What could not be shown: that the list predicts which games turn out well. On the fifteen week-2
+games with a pregame rating and a finish in the history log, rank agreement between the planning
+score and the game's second-half peak, second-half average or recap rating sat between -0.12 and
++0.11 with or without nfelo, and the ten best-played games held identical positions under both.
+Fifteen games of football excitement is mostly luck. So the case rests on what the list is for,
+rating the matchup, and on the evidence that it does no harm.
+
+Kept deliberately narrow. The weight stays at 0.22 against 0.36 for how close the line is, because
+Micah's other point was that two evenly matched middling teams can be the pick of a week; strength
+refines the level and must not overrule the matchup. Live scoring and prominence are untouched, and
+records still stand in when nfelo is unreachable or a season behind. `pts_vs_avg` includes nfelo's
+quarterback adjustment. nfelo is used with its maintainer's permission
+(https://github.com/greerreNFL/nfelo/issues/9); if they ever ask us to stop, we stop.
+
 **One report is not a reason to change anything.** His instruction, and the right one: wait until
 there are several before deciding a pattern exists.
 

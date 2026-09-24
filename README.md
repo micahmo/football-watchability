@@ -114,7 +114,10 @@ The components are the same for both leagues; what feeds them is not.
 | `stakes` | Both ranked, both top-10, conference game | Division game, both contenders, both winning |
 | `pace` | Scaled around a 55-point total | Scaled around a 45-point total |
 
-Upcoming games get a separate `anticipation` rating, driven mostly by the spread.
+Upcoming games get a separate `anticipation` rating, driven mostly by the spread. How good the
+two teams are comes from the AP rank for college and, for the NFL, from
+[nfelo](https://github.com/greerreNFL/nfelo)'s weekly power ratings, with records standing in
+whenever those are unavailable.
 
 Why each term is shaped the way it is, and the games that forced those decisions, are in
 [docs/design-notes.md](docs/design-notes.md).
@@ -338,6 +341,12 @@ unraid/     container template
 ```
 
 `npm run check` typechecks all three projects (Svelte app, Vite config, server).
+
+## Credits
+
+NFL team strength comes from [nfelo](https://github.com/greerreNFL/nfelo), used with the
+maintainer's permission for this personal, non-commercial project. Everything else is ESPN's public
+scoreboard and the Gracenote listings grid.
 
 ## Known limitations
 
