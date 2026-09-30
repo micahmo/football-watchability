@@ -41,7 +41,8 @@ kickoff hours and has none.
 Each row shows kickoff time, the line, the over/under and the network.
 
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
-kickoff.
+kickoff. A finished game's rating does not change: it is scored on the closing line, the teams'
+ranks, records and seeds as they stood at kickoff, and its swing at the final whistle.
 
 An open live card draws the field: where the ball is, the line of scrimmage, the line to gain, how
 far the drive has come and which way the offense is going. The field is always drawn. Each marker
@@ -209,10 +210,12 @@ docker run -d --name football-watchability \
   ghcr.io/micahmo/football-watchability:latest
 ```
 
-The board needs no database. All of it is in memory and rebuilds from ESPN within a poll or two, so
-the container can be replaced. A restart is not free during a slate, though:
+The board needs no database. Almost all of it is in memory and rebuilds from ESPN within a poll or
+two, so the container can be replaced. A restart is not free during a slate, though:
 
-- Closing lines are refetched one game at a time, so upset ratings read low until they are back.
+- Without a volume at `/config`, closing lines are refetched one game at a time, so upset ratings
+  read low until they are back. With one, each game's closing line and the teams as they stood at
+  kickoff are kept there.
 - The TV listings cache empties, so the market reads as unset for a few seconds until it refetches.
 - Win-probability swing history resets, which suppresses `RECENT SWINGS` for about fifteen minutes.
 - Games already in progress are treated as old news, so their kickoff notification never arrives.
@@ -288,17 +291,16 @@ Long press any card, or right click it, to say the rating should be higher, lowe
 that it is right. Optional one-tap reasons, an optional note, nothing else: there is no
 field for what the number should have been, because a viewer can tell you a direction
 and not a value. Feedback needs `REPORT_KEY`, asked for once and then remembered in that
-browser. A live game collects a verdict every time one is given, since the conditions
-change; a fixed one keeps only the latest per person, and opening its card again shows
-what you said last time so you can change it or leave it.
+browser. Every verdict is kept. Opening the card of an upcoming or finished game you
+have already reported shows what you said last time, filled in, to send again as it is
+or changed.
 
 `REPORT_KEY` can carry a key per person as `micah:abc123,dad:def456`. Each report is
-then stored under that name, and one person replacing their own verdict never touches
-anyone else's.
+then stored under that name.
 
 Each report stores the whole situation, not the verdict alone: every component, the
-score and clock, what the browser was showing against what the server had, what else was
-live and how it was rated, and a stamp of the tuning constants in force. That stamp is
+score and clock, what the browser was showing against what the server had, the rest of the
+list the game was in and how each was rated, and a stamp of the tuning constants in force. That stamp is
 what says whether a report is still about the model that is running.
 
 The scoring model is tuned against two things. `docs/design-notes.md` records why each
@@ -332,7 +334,7 @@ field is validated. Every other method and path returns 405.
 
 ```
 server/     per-league pollers, ESPN client, scoring model, prominence table,
-            NFL standings, market listings, line and swing caches
+            NFL standings, market listings, game ledger, swing cache
 shared/     types and scoring weights used by both halves
 scripts/    replay tool for checking the model against finished games
 src/        Svelte 5 dashboard

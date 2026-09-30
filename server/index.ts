@@ -271,7 +271,7 @@ function onSnapshot(snapshot: Snapshot): void {
 }
 
 const pollers: Record<League, LeaguePoller> = {
-  cfb: new LeaguePoller("cfb", null, onSnapshot),
+  cfb: new LeaguePoller("cfb", null, onSnapshot, notifyDir()),
   // Divisions and playoff seeds are not on the scoreboard, so NFL games get
   // decorated from the standings feed before scoring.
   nfl: new LeaguePoller(
@@ -281,6 +281,7 @@ const pollers: Record<League, LeaguePoller> = {
       await strength.enrich(games);
     },
     onSnapshot,
+    notifyDir(),
   ),
 };
 

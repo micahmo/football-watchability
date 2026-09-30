@@ -40,10 +40,12 @@
   let done = $state(false);
 
   const needsKey = $derived(reportKey() === null);
-  /* A game that is not live holds one verdict per person, so opening the sheet on
-     one already reported should show what was said, not a blank form that will
-     quietly overwrite it. A live game accumulates instead: every report is a
-     different moment, nothing is replaced, so there is nothing to fetch. */
+  /* Opening the sheet on a game not live that you have already reported shows
+     what you said last time, filled in, to send again as it is or changed. It is
+     kept either way: an upcoming game's rating moves with the line and the power
+     ratings, and a finished game's place in the recap moves as the rest of the
+     slate finishes, so a second verdict is a second observation. A live game is
+     not prefilled, since the game it was about has moved on. */
   const fixed = $derived(game.state !== "in");
   let prior = $state<StandingReport | null>(null);
   let priorLoaded = $state(false);
@@ -135,7 +137,7 @@
         <p class="hint prior">
           You said {prior.verdict === "right" ? "just right" : `should be ${prior.verdict}`}
           {relativeTime(prior.at)}{prior.shown === null ? "" : `, at ${Math.round(prior.shown)}`}.
-          Sending replaces it.
+          Sending adds to it.
         </p>
       {/if}
 
@@ -191,7 +193,7 @@
           disabled={busy || verdict === null}
           onclick={() => void submit()}
         >
-          {busy ? "Sending" : prior === null ? "Send" : "Replace"}
+          {busy ? "Sending" : "Send"}
         </button>
       </div>
       {#if error}<p class="hint err">{error}</p>{/if}

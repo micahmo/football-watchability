@@ -33,10 +33,8 @@ export interface Report {
   /**
    * Who gave the verdict, or null when the key it came in under has no name.
    *
-   * Without this, a second person's verdict on a game that has not kicked off
-   * silently overwrites the first person's, since a fixed game keeps one report.
-   * It is also what keeps the corpus readable: a disagreement between two people
-   * is not the same fact as one person changing their mind.
+   * What keeps the corpus readable: a disagreement between two people is not the
+   * same fact as one person changing their mind.
    */
   reporter: string | null;
   /** Optional, and often empty: not every reaction has a reason attached. */
@@ -66,11 +64,14 @@ export interface Report {
   anticipation: number | null;
   components: ScoreBreakdownLike | null;
   /**
-   * What else was on at the time, rated.
+   * The rest of the list this game was in, rated: the live board for a live
+   * game, the planning list (by anticipation) for an upcoming one, the recap for
+   * a finished one.
    *
    * Most of these verdicts are really orderings: "this should be above that".
-   * Without the rest of the board that judgement cannot be recovered, and it is
-   * the more useful half of the report.
+   * Without the rest of the list that judgement cannot be recovered, and it is
+   * the more useful half of the report. Before 2026-09-30 this was always the
+   * live board, which is the wrong list for anything not live.
    */
   alongside: { matchup: string; total: number }[];
   /**
@@ -156,11 +157,13 @@ export class ReportStore {
    * Records a verdict, taking the context from the snapshot rather than from the
    * browser, which is only trusted for what it was showing.
    *
-   * A game that has kicked off collects a report every time one is given: the
-   * conditions it is being judged against change every minute, so two verdicts
-   * an hour apart are two observations and not a correction. A game that has not
-   * started, or has finished, is a fixed thing, so a later verdict replaces the
-   * earlier one.
+   * Every report is kept. A live game is judged against conditions that change
+   * every minute, and the others move too: an upcoming game's rating follows the
+   * line and the power ratings, and a finished game's place in the recap shifts
+   * as the rest of the slate finishes. So two verdicts on the same game are two
+   * observations, not a correction, and a review that wants one per game takes
+   * the latest. Until 2026-09-30 a verdict on a game not live replaced the same
+   * person's earlier one, on the belief that such a game was fixed.
    */
   record(
     input: { league: League; gameId: string; verdict: Report["verdict"]; reasons: string[]; note: string | null; shown: number | null; reporter: string | null; saw: Report["saw"] },
@@ -193,38 +196,14 @@ export class ReportStore {
       total: game.score?.total ?? null,
       anticipation: game.anticipation ?? null,
       components: game.score === null || game.score === undefined ? null : { ...game.score },
-      alongside: (snapshot?.live ?? [])
-        .filter((g) => g.id !== game.id && g.score)
-        .map((g) => ({ matchup: `${g.away.abbrev}@${g.home.abbrev}`, total: g.score!.total }))
-        .sort((a, b) => b.total - a.total),
+      alongside: this.neighbours(game, snapshot),
       model: tuningStamp(),
       commit: COMMIT,
       reviewedAt: null,
       outcome: null,
     };
 
-    /*
-     * Scoped to the reporter and to the state, as well as the game.
-     *
-     * The reporter so that replacing is a person correcting themselves and never
-     * one person overwriting another. The state because a game passes through
-     * three of them and a verdict on one says nothing about the others: what you
-     * expected beforehand, what you thought while it ran, and what you made of it
-     * afterwards are three different judgements. Matching on the game alone meant
-     * a verdict on a finished game deleted every observation made while it was
-     * live, which are the rows the whole live-appends rule exists to keep.
-     */
-    this.reports = live
-      ? [...this.reports, report]
-      : [
-          ...this.reports.filter(
-            (r) =>
-              r.gameId !== report.gameId ||
-              (r.reporter ?? null) !== report.reporter ||
-              r.state !== report.state,
-          ),
-          report,
-        ];
+    this.reports = [...this.reports, report];
     if (this.reports.length > MAX_REPORTS) {
       this.reports = this.reports.slice(this.reports.length - MAX_REPORTS);
     }
@@ -237,12 +216,29 @@ export class ReportStore {
     return report;
   }
 
+  /** The other games in the list `game` came from, best first. */
+  private neighbours(game: Game, snapshot: Snapshot | null): Report["alongside"] {
+    if (snapshot === null) return [];
+    // By the list it is in rather than its state: a delayed game is `in` while
+    // still sitting in the planning list.
+    const within = (pool: Game[]) => pool.some((g) => g.id === game.id);
+    const [pool, rating] = within(snapshot.upcoming)
+      ? [snapshot.upcoming, (g: Game) => g.anticipation ?? null]
+      : within(snapshot.recent)
+        ? [snapshot.recent, (g: Game) => g.score?.total ?? null]
+        : [snapshot.live, (g: Game) => g.score?.total ?? null];
+    return pool
+      .filter((g) => g.id !== game.id)
+      .flatMap((g) => {
+        const total = rating(g);
+        return total === null ? [] : [{ matchup: `${g.away.abbrev}@${g.home.abbrev}`, total }];
+      })
+      .sort((a, b) => b.total - a.total);
+  }
+
   /**
-   * This reporter's standing verdict on a game, if they have given one.
-   *
-   * Only meaningful for a game that is not live: a live game collects a report
-   * every time one is given, because each is a different moment and none of them
-   * replaces another, so there is no single thing to hand back.
+   * This reporter's latest verdict on a game in this state, if they have given one,
+   * for the sheet to show when it is opened again.
    */
   mine(gameId: string, reporter: string | null, state: string): Report | null {
     const mine = this.reports.filter(

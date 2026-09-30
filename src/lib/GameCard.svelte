@@ -543,9 +543,12 @@
       padding 0.22s ease;
   }
   /* Gated on a real pointer. On touch, tapping latches :hover until you tap
-     elsewhere, so the card would just look stuck in a highlighted state. */
+     elsewhere, so the card would just look stuck in a highlighted state.
+     Only the cards a click does something on: live cards fold, hidden ones
+     reveal. */
   @media (hover: hover) {
-    .card:hover {
+    .card.collapsible:hover,
+    .card.hidden:hover {
       background: var(--bg-card-hi);
       border-color: var(--border-hi);
     }

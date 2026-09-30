@@ -2174,3 +2174,54 @@ was unset, on the grounds that "not accepted" is misleading for a key nothing co
 true and it does not matter: the board is a public URL, and telling a stranger that reporting is
 unconfigured tells them something about the deployment they have no business knowing. The key check
 happens before the storage check for the same reason.
+
+## A finished game's rating is a fact
+
+It was not. Micah noticed finished games changing rating on the recap, and the history log for
+2026-09-25 to 2026-09-29 bore him out: 36 of 72 finished games changed rating after their final
+whistle, with nothing about the game changing. There were four separate causes, and the fix for all
+of them is `GameLedger`, a small per-game record kept in `/config`.
+
+**Swing drained after the final.** `swing` is win-probability range over a rolling fifteen minutes
+of wall-clock time, so once a game ended the window emptied and took the term with it. Wake Forest
+at Louisville fell from 88.3 to 83.2 in twelve minutes; GWEB at Marshall from 99.2 to 91.2. A
+finished game now keeps the value it had at the final whistle. Zero was the other candidate, since it
+is what every finished game used to settle at, but it would take credit away from exactly the finishes
+that earned it. `RECENT SWINGS` is kept off finished games, since a held value never fades.
+
+**The line was the first one seen, not the closing one.** The cache kept whatever line it met first,
+which after a restart early in the week was days old. Wake Forest closed at -11.5 and was scored all
+game at -13.5; all five games checked were off by a point or two, and this was the line the *live*
+rating used too, not just the recap. Now every pregame sighting overwrites it and kickoff freezes it.
+
+**A restart blanked the line and then fetched a different one.** After the 04:39 restart on
+2026-09-27, finished games had no spread for two to five minutes, which zeroed the upset term (GWEB
+at Marshall read 73.4 for that stretch), and the backfill then returned the true closing line, which
+was not the one the game had been scored on. The ledger survives restarts, so the backfill is only
+for games first seen after kickoff.
+
+**NFL standings include the game itself.** Atlanta at Green Bay lost a tenth of its prominence 25
+minutes after its own final, when the standings caught up with the result, and seeds move again as
+the rest of the slate finishes. College ranks move with Sunday's poll. Rank, win percentage and
+seed are frozen at kickoff and used for scoring and for the rank shown on the card; the record
+string on the card is left as ESPN has it.
+
+This also freezes those inputs for live games, which is right for the same reason: a live NFL game's
+prominence used to shift when an earlier game in the window finished and moved the seeds.
+
+## Every report is kept
+
+The earlier rule, that a game not live keeps one verdict per person and a later one replaces it,
+rested on such a game being fixed. Half of that was wrong. An upcoming game's rating moves with the
+line and with nfelo's weekly update, and a finished game's *place* in the recap moves as the rest of
+the slate finishes, even now that its number does not. So a second verdict is usually a second
+observation, and replacing it threw one away. Micah's suggestion: "maybe we should allow multiple
+feedback/reports rather than replace? same for upcoming".
+
+The sheet still fills in your last verdict when you reopen a game you have reported, since seeing
+what you said is the useful half of that feature, but Send always adds a row. A review that wants
+one verdict per game takes the latest.
+
+`alongside` changed with it. It recorded the live board whatever the game was, which for a verdict
+on an upcoming or finished game is the wrong list to compare against. It now records the list the
+game was in: the planning list by anticipation, or the recap.

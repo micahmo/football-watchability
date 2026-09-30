@@ -6,7 +6,7 @@ import {
   type RawGame,
 } from "./espn.js";
 import { FastcastClient, TOPICS, applyPatch, splitPath, type Patch } from "./fastcast.js";
-import { LineStore } from "./lines.js";
+import { GameLedger } from "./ledger.js";
 import { anticipationScore, buildTags, scoreGame } from "./scoring.js";
 import { SwingStore } from "./store.js";
 import type { Game, League, Snapshot } from "../shared/types.js";
@@ -237,7 +237,7 @@ export class LeaguePoller {
   readonly league: League;
   private readonly enrich: Enricher | null;
   private readonly swings = new SwingStore();
-  private readonly lines = new LineStore();
+  private readonly ledger: GameLedger;
   private scheduled: RawGame[] = [];
   /**
    * ESPN's own event documents, keyed by uid, which is what the push feed patches.
@@ -337,8 +337,10 @@ export class LeaguePoller {
     league: League,
     enrich: Enricher | null = null,
     onSnapshot: ((snapshot: Snapshot) => void) | null = null,
+    dataDir?: string,
   ) {
     this.league = league;
+    this.ledger = new GameLedger(dataDir, league);
     this.enrich = enrich;
     this.onSnapshot = onSnapshot;
     this.snapshot = {
@@ -426,7 +428,6 @@ export class LeaguePoller {
        * The lookup is cached behind a TTL, so awaiting it is nearly always free.
        */
       await this.enrich?.(games);
-      for (const raw of games) this.lines.recordFromScoreboard(raw);
       this.compose(games, Date.now(), ` push(${count})`);
     } catch (err) {
       // The next poll rebuilds from scratch regardless, so a bad burst costs one
@@ -485,19 +486,19 @@ export class LeaguePoller {
     // Games that kicked off before this process started have no cached line, since
     // the scoreboard drops odds at kickoff. One summary call each, then never again.
     const missing = live
-      .filter((g) => !this.lines.isResolved(g.id))
+      .filter((g) => !this.ledger.isResolved(g.id))
       .slice(0, MAX_LINE_LOOKUPS_PER_POLL);
     for (const game of missing) {
       try {
         const line = await fetchPregameLine(this.league, game.id);
         if (line === null) {
-          this.lines.markUnavailable(game.id);
+          this.ledger.markUnavailable(game.id);
           continue;
         }
-        this.lines.record(game.id, line);
+        this.ledger.recordLine(game.id, line);
         console.log(`[${this.tag()}] line ${game.shortName}: ${line.details ?? line.homeSpread}`);
       } catch (err) {
-        this.lines.markUnavailable(game.id);
+        this.ledger.markUnavailable(game.id);
         console.error(
           `[${this.tag()}] line ${game.shortName} failed: ${err instanceof Error ? err.message : err}`,
         );
@@ -505,13 +506,15 @@ export class LeaguePoller {
     }
   }
 
-  private withScore(raw: RawGame, swingMovement: number): Game {
+  private withScore(polled: RawGame, swingMovement: number): Game {
+    // Scored, and shown, with the teams as they came into the game. See `GameLedger`.
+    const raw = this.ledger.asAtKickoff(polled);
     // Finished games are scored as if the clock hit zero, which gives a fair
     // retrospective "how good was that one" number for the recap list.
     const period = raw.state === "post" ? Math.max(raw.period, 4) : raw.period;
     const clockSeconds = raw.state === "post" ? 0 : raw.clockSeconds;
 
-    const line = this.lines.get(raw.id);
+    const line = this.ledger.line(raw.id);
     const breakdown = scoreGame({
       league: this.league,
       homeSpread: line?.homeSpread ?? raw.homeSpread,
@@ -626,10 +629,11 @@ export class LeaguePoller {
       const games = normalizeEvents([...this.rawEvents.values()], this.league);
       await this.enrich?.(games);
 
-      // Capture every line we see while a game is still pregame; the scoreboard
-      // stops carrying odds the moment it kicks off.
-      for (const raw of games) this.lines.recordFromScoreboard(raw);
-      for (const raw of this.scheduled) this.lines.recordFromScoreboard(raw);
+      // Every line seen while a game is still pregame, the last one winning; the
+      // scoreboard stops carrying odds the moment it kicks off. The schedule goes
+      // first because its fetch is the older of the two.
+      for (const raw of this.scheduled) this.ledger.observe(raw);
+      for (const raw of games) this.ledger.observe(raw);
       // Finished games need the line too, so the recap can answer "did that go as
       // expected". A game that started and ended between two polls was never seen
       // live, so it would otherwise have no line at all.
@@ -832,6 +836,7 @@ export class LeaguePoller {
   }
 
   private compose(games: RawGame[], now: number, note = ""): void {
+    for (const raw of games) this.ledger.observe(raw);
     this.carrySituation(games, now);
     for (const raw of games) {
       if (raw.state === "in") this.swings.record(raw.id, raw.homeWinProb, now);
@@ -888,7 +893,9 @@ export class LeaguePoller {
 
     const recent = games
       .filter((g) => g.state === "post" && now - Date.parse(g.startDate) < RECENT_WINDOW_MS)
-      .map((g) => this.withScore(g, this.swings.movement(g.id, now)))
+      // Swing as it stood at the final whistle. Read live, the window drains over
+      // the next fifteen minutes and the recap rating falls with it.
+      .map((g) => this.withScore(g, this.ledger.finalSwing(g.id, this.swings.movement(g.id, now))))
       .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0))
       .slice(0, MAX_RECENT);
 

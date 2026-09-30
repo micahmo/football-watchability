@@ -83,11 +83,11 @@ export interface StandingReport {
 }
 
 /**
- * This viewer's standing verdict on a game, or null if they have not given one.
+ * This viewer's latest verdict on a game, or null if they have not given one.
  *
  * Only asked for games that are not live, and answered per state: a verdict given
- * while a game was running is an observation of that moment, not a standing
- * verdict on the finished game, so it must not be offered back for replacement.
+ * while a game was running is about that moment, not about the finished game, so
+ * it is not the one to show back.
  */
 export async function standingReport(
   gameId: string,

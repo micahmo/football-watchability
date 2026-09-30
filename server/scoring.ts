@@ -1003,8 +1003,9 @@ export function buildTags(game: Game, breakdown: ScoreBreakdown): string[] {
   }
   // Named "recent" on purpose: `swing` is a rolling 15-minute window, so this tag
   // is expected to appear and fade as a game settles. A permanent "wild game"
-  // badge would point you at games that have since stopped being close.
-  if (breakdown.swing >= 0.6) tags.push("RECENT SWINGS");
+  // badge would point you at games that have since stopped being close. Never on
+  // a finished game, whose swing is held at the final whistle and so never fades.
+  if (!isFinal && breakdown.swing >= 0.6) tags.push("RECENT SWINGS");
   // Closeness held to the same bar as every other tag. Ten admitted two-score
   // games that this same function would refuse to call a one-score finish.
   const projected = projectedTotal(game.league, game.totalPoints, progress, game.overUnder);
