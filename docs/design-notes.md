@@ -1704,60 +1704,55 @@ Saturday comes along.
 
 ## Regenerating the screenshots
 
-The README shows four panels: live and upcoming, for each league. Only the upcoming pair can be
-photographed from the real board, because a live board only exists while games are being played,
-and waiting for a Sunday to document a UI change is not a workflow. The alternative, shipping
-stale images, is what actually happened: the original pair went three features out of date before
-anyone noticed, still showing a college-only app with no league tabs, favorites or market
-control.
-
-So the live pair is fabricated, carefully. Teams, records, lines, networks and listings come from
-the real ESPN slate. Only the scores, clocks and situations are invented, and the ratings on the
-cards are produced by importing the real scoring model rather than being typed in, so a
-screenshot can never show a number the board would not itself produce.
-
-Two details were learned the hard way and are worth keeping:
-
-- **The fabricated game has to fit its real line.** The first attempt took the first six games on
-  the slate, which in week one are FCS visitors at 45-point underdogs. A 24-23 fourth quarter
-  there is nonsense, the model correctly screams `UPSET ALERT` at every card, and the picture
-  stops describing a normal Saturday. The pool is now filtered to games inside ten points, ranked
-  teams first.
-- **Records have to be invented too, and plausibly.** In week one every team is 0-0, and a board
-  full of `0-0` photographs as broken. But handing them out by position in the list produced a
-  4-1 Titans and pushed Bills at Texans down the board. A reader does not know the records are
-  props: they see the app rating a bad matchup over a good one and conclude it cannot judge
-  football. NFL records now scale a published set of full-season predictions down to five games;
-  college derives them from the AP rank already on the card, so a number one seed never appears
-  at 3-2.
-- **The drama has to land on a game that deserves it.** Situations are assigned in order and the
-  first is a one-score game inside two minutes, which tops the board whatever it is attached to.
-  Attached to the tightest line on the slate it gave a hero card of 1-4 Jets at 2-3 Titans:
-  correct by the model, and a poor advertisement for it. The pool is ordered by matchup quality
-  first, so the hero is a game a reader would agree earned it.
-
-The postal code in the shots is `10001`, deliberately generic. The feature is worth showing but a
-README is a public page.
-
 ```bash
-npm run build
-PORT=8790 DIST_DIR=dist node dist-server/server/index.js &   # upcoming shots read the real board
-
-node scripts/mock-board.mjs --mode live &
-node scripts/capture-screens.mjs live
-
-node scripts/mock-board.mjs --mode upcoming &
-node scripts/capture-screens.mjs upcoming
+npm run screenshots
 ```
+
+That builds, starts a mock board, photographs both leagues live and upcoming, and stops it. Nothing
+else needs to be running and nothing is fetched.
+
+The README shows four panels: live and upcoming, for each league. A live board only exists while
+games are being played, and waiting for a Sunday to document a UI change is not a workflow; the
+alternative, shipping stale images, is what actually happened, twice. So the pictures come from a
+recorded slate, `scripts/screenshot-slate.json`: the week of 2026-09-17, as it stood the afternoon
+before, which is the week the pictures have shown since they were first taken and the one Micah
+wanted kept. It holds teams, pregame records, ranks, closing lines, networks, nfelo strength, the
+listings for the postal code, and which six games go on each live board in what order. The mock
+reads only that file, and the page's clock is pinned to the recorded afternoon so rows show
+kickoff times and day headings rather than "Now".
+
+It was recorded rather than fetched each time because every capture used to rediscover the same
+things: which week to borrow, lines that ESPN drops from a played game's scoreboard, records that
+already include the game's result. Micah: "there should be practically nothing to re-build/
+re-discover when we do these screenshots. it should just be as simple as: run the app and take
+them". `node scripts/mock-board.mjs --record` rebuilds the file, and is only for changing which
+games the pictures show; the choices it makes are in `RECORD` at the top of that step.
+
+What is fabricated, and the details learned the hard way about doing it well:
+
+- **Only the live scores, clocks and situations are invented**, fixed in `SITUATIONS`. Every
+  rating is produced by importing the real scoring model, so the pictures follow tuning and can
+  never show a number the board would not produce. A scoring change moves the numbers and needs
+  no new pictures unless the look changes.
+- **The fabricated game has to fit its real line.** A 24-23 fourth quarter for a 45-point FCS
+  underdog makes the model correctly scream `UPSET ALERT` at every card. The live pool is limited
+  to lines inside 25 points, best matchups first.
+- **Live records are invented, plausibly.** Five games in, NFL records scale a published set of
+  full-season predictions and college derives them from the AP rank, because a reader does not
+  know the records are props and a 4-1 Titans makes the app look like it cannot judge football.
+- **The drama lands on a game that deserves it.** Situations are dealt in order and the first is
+  a one-score game inside two minutes, so the live list is ordered by matchup quality.
+- **Listings cannot be asked of a past week**, so the recording states them: New York affiliates
+  for the broadcast networks, and the two games the first pictures showed as out of market. The
+  postal code is `10001`, deliberately generic, since a README is a public page.
 
 Headless Chromium comes from Playwright, a dev dependency, rather than a browser already on the
 machine. Edge here writes no file at all and reports no error, headless or not. Firefox does work
 but shares process space with whatever the user has open, and filtering its processes by start
 time to clean up kills content processes belonging to their real session.
 
-**Regenerate whenever the board's layout or chrome changes**: the header and controls, the card
-or row structure, the tag set, or anything that changes what a glance at the board looks like. A
-scoring tweak that only moves numbers does not need new pictures.
+**Retake whenever the board's layout or chrome changes**: the header and controls, the card or row
+structure, the tag set, colours, or anything that changes what a glance at the board looks like.
 
 ## The scale could not reach its own top, and the labels were calibrated to a range it never hit
 

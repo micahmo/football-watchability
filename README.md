@@ -11,9 +11,9 @@ Covers the **NFL** and **college football** on separate tabs, each with its own 
 
 No API key, no account, no database.
 
-> **The screenshots below use test data.** Scores, clocks and records are fabricated, and the
-> slate is whichever week they happened to be captured in, so nothing shown is a real assessment
-> of any game.
+> **The screenshots below use test data.** The games are the real week of September 17, 2026,
+> shown as of the afternoon before, but the live scores, clocks and records are fabricated, so
+> nothing shown is a real assessment of any game. `npm run screenshots` retakes all four.
 
 | | What is on right now | What to plan around |
 | --- | --- | --- |

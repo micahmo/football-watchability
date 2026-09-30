@@ -10,6 +10,7 @@
     "build": "npm run build:web && npm run build:server",
     "start": "node dist-server/server/index.js",
     "preview": "vite preview",
+    "screenshots": "npm run build && node scripts/capture-screens.mjs",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && tsc -p tsconfig.server.json",
     "prod": "npm run build && npm start",
     "build:web": "vite build",

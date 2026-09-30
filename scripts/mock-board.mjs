@@ -1,5 +1,5 @@
 /**
- * Serves the built board against a fabricated slate, for capturing the README
+ * Serves the built board against a fixed slate, for capturing the README
  * screenshots.
  *
  * Screenshots need a busy live board, and a live board only exists while games
@@ -7,27 +7,31 @@
  * workflow, and the alternative of shipping stale images is worse: the pair in
  * docs/ went three features out of date before anyone noticed.
  *
- * The scores here are invented but everything around them is real. Teams,
- * records, lines and networks come from the live ESPN slate, and the ratings are
- * produced by importing the actual scoring model rather than being typed in, so
- * a screenshot cannot show a number the board would never produce.
+ * Everything but the scoring comes from `scripts/screenshot-slate.json`, recorded
+ * once from ESPN: teams, pregame records, ranks, closing lines, networks, nfelo
+ * strength, which games make the live board and in what order, and the listings
+ * for the postal code in the pictures. So serving needs no network, and the same
+ * games appear every time. Micah, on why: "there should be practically nothing to
+ * re-build/re-discover when we do these screenshots. it should just be as simple
+ * as: run the app and take them". The ratings are still produced by importing the
+ * actual scoring model rather than being stored, so the pictures follow tuning and
+ * a screenshot cannot show a number the board would never produce. The live
+ * scores, clocks and situations are invented, and fixed below.
  *
- *   npm run build
- *   node scripts/mock-board.mjs --mode live      # or: --mode upcoming
- *
- * Then open http://localhost:8799 and capture at a phone width.
+ *   npm run screenshots                          # everything, start to finish
+ *   node scripts/mock-board.mjs --mode live      # or: --mode upcoming, to look by hand
+ *   node scripts/mock-board.mjs --record         # only to replace the slate itself
  */
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { fetchScoreboard } from "../dist-server/server/espn.js";
-import { scoreGame, buildTags } from "../dist-server/server/scoring.js";
-import { StandingsStore } from "../dist-server/server/standings.js";
+import { scoreGame, buildTags, anticipationScore } from "../dist-server/server/scoring.js";
 
 const PORT = 8799;
 const here = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(here, "..", "dist");
+const SLATE_FILE = path.join(here, "screenshot-slate.json");
 const mode = process.argv.includes("--mode")
   ? process.argv[process.argv.indexOf("--mode") + 1]
   : "live";
@@ -119,88 +123,135 @@ function clockLabel(seconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-/*
- * Which day to build the fabricated slate from.
- *
- * The pool is drawn from games that have not kicked off, so run late on a Sunday
- * there is one game left and the screenshot has a single card on it. Pass
- * `--dates 20260920` (or a `20260919-20260921` range) to borrow a full slate from
- * a day that has one, which is what the screenshots want and what the time of day
- * should not be deciding.
- */
-const DATES = process.argv.includes("--dates")
-  ? process.argv[process.argv.indexOf("--dates") + 1]
-  : undefined;
 
-async function liveSlate(league) {
-  const { games, season, week } = await fetchScoreboard({ league, limit: 200, dates: DATES });
-  if (league === "nfl") await new StandingsStore().enrich(games);
-  /*
-   * Only games the fabricated scores could plausibly belong to. Week one is full
-   * of FCS visitors at 45-point underdogs, and a 24-23 fourth quarter in one of
-   * those reads as nonsense: the model correctly screams UPSET ALERT at every
-   * card, and the picture stops describing a normal Saturday. Close lines first,
-   * ranked teams ahead of unranked, so the slate looks like one worth watching.
+/**
+ * Recording the slate. Run once, when the pictures should show different games.
+ *
+ * The week of 2026-09-17, which the pictures have shown since they were first
+ * taken on the afternoon of the 16th, and which Micah wanted kept: "we ended up
+ * liking those particular games". Played since, so each game's closing line comes
+ * from its summary (the scoreboard drops odds at kickoff) and each record has that
+ * game's own result backed out (the scoreboard carries records as they stand now).
+ * AP ranks survive as they were at game time. nfelo strength is as of recording,
+ * the one input that cannot be rewound.
+ */
+const RECORD = {
+  dates: "20260917-20260921",
+  now: "2026-09-16T15:00:00-04:00",
+  zip: "10001",
+  marketName: "New York",
+  /**
+   * The live board, in the order the situations below are dealt out. These are
+   * the games the pictures have always shown; a slot left null is filled by
+   * matchup quality from what remains.
    */
-  /*
-   * Any state, not only `pre`, and a line invented where the feed has none.
-   *
-   * Everything about these games is overwritten anyway: the state, the clock, the
-   * scores and the situation are all fabricated. Requiring `pre` only meant the
-   * slate had to be borrowed from the future, so a screenshot taken on a Tuesday
-   * drew on next weekend and one taken late on a Sunday found a single game left.
-   *
-   * ESPN drops the odds the moment a game kicks off, so a past day returns its
-   * matchups with no line at all: 20260912 gives eighty college games and zero
-   * spreads. A screenshot needs one on every card, so it is made up here, the same
-   * way the scores are. Derived from the event id rather than randomly, so the same
-   * day always produces the same picture.
+  live: {
+    nfl: ["DET@BUF", "CIN@HOU", "WSH@DAL", "JAX@DEN", "MIN@CHI", "NYG@LAR"],
+    cfb: ["LSU@MISS", "UGA@ARK", "MIA@WAKE", null, "UK@TA&M", "FSU@ALA"],
+  },
+  /**
+   * What the listings grid said for the postal code, which cannot be asked of a
+   * past week. The two out-of-market games are the ones the first pictures showed
+   * under "not on your channels"; the stations are the New York affiliates.
    */
-  /*
-   * The lines the feed no longer has, taken from the screenshots they produced.
-   *
-   * ESPN drops the odds the moment a game kicks off, so a past day returns its
-   * matchups with no spread at all: 20260912 gives eighty college games and zero
-   * lines. The cards print one, and the pool needs one to keep FCS visitors and
-   * their forty-five point mismatches out of the picture.
-   *
-   * A table rather than a heuristic, because both heuristics tried were worse than
-   * the problem. A tight invented line walked Howard at Indiana into a screenshot
-   * as a one-score fourth quarter, and sizing the line by rank collapses in college,
-   * where almost everybody is unranked and every game came out a pick 'em.
-   *
-   * Keyed `AWAY@HOME`, and negative means the home side is favored. Being a table
-   * is the point: only these matchups are eligible on a day with no odds, so the
-   * slate is the one already known to make a good picture.
-   */
-  const KNOWN_LINES = {
-    // College, 2026-09-12.
-    "OSU@TEX": -1.5,
-    "ALA@UK": 10,
-    "ARIZ@BYU": -7.5,
-    "MSST@MINN": 1.5,
-    "ORE@OKST": 24.5,
-    "ISU@IOWA": -3.5,
-    // NFL, 2026-09-13.
-    "BUF@HOU": 1.5,
-    "CHI@CAR": 3,
-    "NO@DET": -7,
-    "DEN@KC": -2.5,
-    "WSH@PHI": -6.5,
-    "TB@CIN": -3.5,
+  outOfMarket: ["MIN@CHI", "SEA@ARI"],
+  stations: { CBS: "WCBS", FOX: "WNYW", NBC: "WNBC", ABC: "WABC" },
+};
+
+const key = (g) => `${g.away.abbrev}@${g.home.abbrev}`;
+
+async function record() {
+  const { fetchScoreboard, fetchPregameLine } = await import("../dist-server/server/espn.js");
+  const { StandingsStore } = await import("../dist-server/server/standings.js");
+  const { StrengthStore } = await import("../dist-server/server/strength.js");
+
+  const withLine = async (league, g) => {
+    if (g.homeSpread !== null) return g;
+    const line = await fetchPregameLine(league, g.id).catch(() => null);
+    if (line === null) return g;
+    return { ...g, homeSpread: line.homeSpread, spread: Math.abs(line.homeSpread), overUnder: line.overUnder, odds: line.details };
+  };
+  const pregame = (side, other, played) => {
+    const parts = String(side.record ?? "").split("-").map(Number);
+    if (!played || parts.length < 2 || parts.some((n) => !Number.isFinite(n))) return side;
+    let [w, l, t = 0] = parts;
+    if (side.score > other.score) w -= 1;
+    else if (side.score < other.score) l -= 1;
+    else t -= 1;
+    [w, l, t] = [Math.max(0, w), Math.max(0, l), Math.max(0, t)];
+    const n = w + l + t;
+    return {
+      ...side,
+      score: 0,
+      record: t > 0 ? `${w}-${l}-${t}` : `${w}-${l}`,
+      winPct: n > 0 ? (w + t / 2) / n : null,
+      playoffSeed: null,
+    };
+  };
+  const market = (g) => {
+    if (RECORD.outOfMarket.includes(key(g))) return [];
+    const station = RECORD.stations[g.broadcast];
+    return station ? [station] : null;
   };
 
-  const pool = games
-    .map((g) => {
-      if (g.homeSpread !== null) return g;
-      const known = KNOWN_LINES[`${g.away.abbrev}@${g.home.abbrev}`];
-      return known === undefined ? g : { ...g, homeSpread: known, odds: null };
-    })
-    .filter((g) => g.homeSpread !== null && Math.abs(g.homeSpread) <= 25)
-    .sort((a, b) => quality(league, b) - quality(league, a) || Math.abs(a.homeSpread) - Math.abs(b.homeSpread))
-    .slice(0, SITUATIONS.length);
+  const slate = { now: RECORD.now, dates: RECORD.dates, market: { zip: RECORD.zip, stations: Object.values(RECORD.stations), detected: false, city: null, marketName: RECORD.marketName }, leagues: {} };
+  for (const league of ["nfl", "cfb"]) {
+    const { games, season, week } = await fetchScoreboard({ league, limit: 300, dates: RECORD.dates });
+    if (league === "nfl") {
+      await new StandingsStore().enrich(games);
+      await new StrengthStore().enrich(games);
+    }
+    const days = [...new Set(games.map((g) => new Date(g.startDate).toDateString()))].slice(0, 4);
+    const rows = [];
+    for (const raw of games) {
+      if (!days.includes(new Date(raw.startDate).toDateString())) continue;
+      const g = await withLine(league, raw);
+      const played = g.state !== "pre";
+      rows.push({
+        ...g,
+        state: "pre",
+        period: 0,
+        clock: "0:00",
+        clockSeconds: 0,
+        home: pregame(g.home, g.away, played),
+        away: pregame(g.away, g.home, played),
+        homeWinProb: null,
+        possessionTeamId: null,
+        lastPlay: null,
+        marketStations: market(g),
+      });
+    }
+    // Only games the invented scores could belong to: close enough lines that a
+    // one-score fourth quarter is not an absurd upset, best matchups first.
+    const fits = rows
+      .filter((g) => g.homeSpread !== null && Math.abs(g.homeSpread) <= 25)
+      .sort((a, b) => quality(league, b) - quality(league, a) || Math.abs(a.homeSpread) - Math.abs(b.homeSpread));
+    const chosen = RECORD.live[league].map((k) => (k === null ? null : fits.find((g) => key(g) === k) ?? null));
+    const spare = fits.filter((g) => !chosen.includes(g));
+    const live = chosen.map((g) => g ?? spare.shift()).map((g) => g.id);
+    for (const [i, k] of RECORD.live[league].entries()) {
+      if (k !== null && !rows.some((g) => g.id === live[i] && key(g) === k)) console.warn(`[record] ${league}: ${k} not found`);
+    }
+    slate.leagues[league] = { season, week, live, games: rows };
+    console.log(`[record] ${league}: ${rows.length} games, live ${live.map((id) => key(rows.find((g) => g.id === id))).join(", ")}`);
+  }
+  fs.writeFileSync(SLATE_FILE, JSON.stringify(slate, null, 1) + "\n");
+  console.log(`[record] wrote ${SLATE_FILE}`);
+}
 
-  return pool.map((raw, i) => {
+if (process.argv.includes("--record")) {
+  await record();
+  process.exit(0);
+}
+
+const slate = JSON.parse(fs.readFileSync(SLATE_FILE, "utf8"));
+const NOW = Date.parse(slate.now);
+
+/** The live board: the recorded games with invented scores, scored by the real model. */
+function liveBoard(league) {
+  const { games, live } = slate.leagues[league];
+  return live.map((id, i) => {
+    const raw = games.find((g) => g.id === id);
     const s = SITUATIONS[i % SITUATIONS.length];
     const [homeRecord, homeWinPct] = recordFor(league, raw.home);
     const [awayRecord, awayWinPct] = recordFor(league, raw.away);
@@ -244,42 +295,51 @@ async function liveSlate(league) {
       overUnder: game.overUnder,
     });
     const favoredAbbrev = game.homeSpread <= 0 ? game.home.abbrev : game.away.abbrev;
-    const odds =
-      game.odds ?? `${favoredAbbrev} ${(-Math.abs(game.homeSpread)).toFixed(1)}`;
+    const odds = game.odds ?? `${favoredAbbrev} ${(-Math.abs(game.homeSpread)).toFixed(1)}`;
     const full = { ...game, score, anticipation: null, pregameSpread: game.homeSpread, pregameOdds: odds, tags: [] };
     full.tags = buildTags(full, score);
-    return { full, season, week };
+    return full;
   });
 }
 
-const cache = new Map();
+/** The planning list: every recorded game, rated by the real model. */
+function planningList(league) {
+  return slate.leagues[league].games
+    .map((g) => ({
+      ...g,
+      score: null,
+      tags: [],
+      pregameSpread: g.homeSpread,
+      pregameOdds: g.odds,
+      anticipation: anticipationScore({
+        league,
+        spread: g.spread,
+        overUnder: g.overUnder,
+        home: g.home,
+        away: g.away,
+        network: g.broadcast,
+        conferenceGame: g.conferenceGame,
+        divisionGame: g.divisionGame,
+        startDate: g.startDate,
+      }),
+    }))
+    .sort((a, b) => b.anticipation - a.anticipation);
+}
 
-async function snapshot(league) {
-  const hit = cache.get(league);
-  if (hit) return { ...hit, updatedAt: new Date().toISOString() };
-  const live = mode === "live" ? await liveSlate(league) : [];
-  const { games, season, week } = await fetchScoreboard({ league, limit: 200 });
-  if (league === "nfl") await new StandingsStore().enrich(games);
-  const snap = {
+function snapshot(league) {
+  const { season, week } = slate.leagues[league];
+  return {
     league,
-    updatedAt: new Date().toISOString(),
-    season: live[0]?.season ?? season,
-    week: live[0]?.week ?? week,
-    live: live.map((g) => g.full).sort((a, b) => b.score.total - a.score.total),
-    upcoming: [],
+    updatedAt: new Date(NOW).toISOString(),
+    season,
+    week,
+    live: mode === "live" ? liveBoard(league).sort((a, b) => b.score.total - a.score.total) : [],
+    upcoming: mode === "upcoming" ? planningList(league) : [],
     recent: [],
-    market: null,
+    market: slate.market,
+    build: null,
     error: null,
   };
-  if (mode === "upcoming") {
-    const real = await fetch(
-      `http://127.0.0.1:8790/api/snapshot?league=${league}&zip=10001`,
-    ).then((r) => r.json());
-    snap.upcoming = real.upcoming;
-    snap.market = real.market;
-  }
-  cache.set(league, snap);
-  return { ...snap, updatedAt: new Date().toISOString() };
 }
 
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -289,18 +349,8 @@ http
     const url = (req.url ?? "/").split("?")[0];
     if (url === "/api/snapshot") {
       const league = new URL(req.url, "http://x").searchParams.get("league") === "cfb" ? "cfb" : "nfl";
-      // ESPN times out occasionally. Unhandled, that rejection kills the whole
-      // script mid-capture, which is a poor way to find out.
-      void snapshot(league)
-        .then((s) => {
-          res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-          res.end(JSON.stringify(s));
-        })
-        .catch((err) => {
-          console.error(`[mock] ${league} failed: ${err instanceof Error ? err.message : err}`);
-          res.writeHead(503, { "content-type": "application/json" });
-          res.end(JSON.stringify({ error: "upstream failed, retry" }));
-        });
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      res.end(JSON.stringify(snapshot(league)));
       return;
     }
     const candidate = path.resolve(distDir, "." + decodeURIComponent(url));
