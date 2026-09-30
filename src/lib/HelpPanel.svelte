@@ -97,7 +97,7 @@
       Two kinds, and a handful a day at most. Something already on is worth switching to: it has
       become the best thing available, it is turning into a classic, or an underdog is doing
       something it should not be. Or something is about to start: the best game of a busy kickoff
-      window, or the only game in its slot. An upset can be worth knowing about without being the
+      window, or two or three of them when they are too close to call, or the only game in its slot. An upset can be worth knowing about without being the
       best game on, so when something else is, the alert names it. A game is only ever recommended
       once, and never with under a minute left, when you could not get to it in time. Each one names the channel, and
       says when a game is out of market. Turn on My channels first and those stop arriving altogether, and a team on your no

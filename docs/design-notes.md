@@ -2305,3 +2305,25 @@ The individual changes, with the reasoning, are at their constants: `BILLING_UNT
 `ONE_SCORE_FLOOR` in `server/scoring.ts`, `UPSET_PROMINENCE_BASE` in `shared/weights.ts`. The
 fourth-quarter floor does nothing for a two-score game, deliberately: Seattle down nine with 3:57
 left was reported low and stays where it was.
+
+## Two ideas from the second review's comments (2026-09-30)
+
+**Games abroad say where they are.** From Ravens against Cowboys in Rio: "is there a way to
+identify international games?" ESPN gives every venue a country, "USA" for the rest, so anything
+else gets a chip with the city on both the planning row and the card. The city rather than the
+country because "in London" and "in Rio de Janeiro" are how people talk about these games, and
+ESPN's title-casing ("Rio De Janeiro") is corrected for the small joining words. A game played
+abroad is also the one whose kickoff lands outside every domestic time slot, which is the other
+reason it is worth marking.
+
+**A kickoff window with no clear pick names the close ones.** Micah, on Bengals at Steelers: "if
+there a bunch of games starting at the same time and a lot of similar scores... we shouldn't
+highlight just one". Up to three games whose expectations are within three points of the pick are
+named together, one line each, under "Two good games kicking off". Micah picked that title over
+"Take your pick" and "Too close to call" as the simplest. Three points, because
+inside that the order is noise against a line that moves by more during the week. It fires rarely:
+none of the eleven busy college windows on record had a second game that close, and the case that
+prompted it had a clear pick by eight. The 1 pm NFL window of 2026-09-27 would have named Bengals at
+Steelers and Patriots at Jaguars, 75 and 72, for a viewer without the Patriots on their no-spoilers
+list. Co-picks go through the same filters as the pick, so a spoiler team or an unavailable game
+is never named.

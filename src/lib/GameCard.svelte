@@ -309,6 +309,8 @@
            and the row already wraps for multiple tags, so holding this one back was
            an exception with no rule behind it. -->
       {#if game.conferenceGame}<span class="note">conference game</span>{/if}
+      <!-- Played abroad, which changes when it is on as much as where. -->
+      {#if game.abroad}<span class="note">in {game.abroad}</span>{/if}
       <!-- "INSTANT CLASSIC" and "2OT" describe how the game is going, which is the
            whole of what is being withheld. -->
       {#if !hidden}

@@ -128,6 +128,12 @@ export interface Game {
   divisionGame: boolean;
   neutralSite: boolean;
   venue: string | null;
+  /**
+   * Where a game played outside the United States is being played, "Rio de
+   * Janeiro", or null for every game at home. The city when ESPN gives one,
+   * otherwise the country.
+   */
+  abroad: string | null;
   odds: string | null;
   /** Absolute point spread. Sign is meaningless here; `odds` carries the favorite. */
   spread: number | null;

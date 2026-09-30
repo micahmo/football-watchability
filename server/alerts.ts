@@ -69,6 +69,16 @@ const KICKOFF_MIN_SLATE = 4;
  */
 const KICKOFF_MIN_SCORE = 55;
 /**
+ * How close to the pick another game has to be expected to count as a co-pick.
+ *
+ * Three points is less than the week-to-week movement of a line, so inside it the
+ * order is noise. It would not have split the one window that prompted it:
+ * Bengals at Steelers led the visible 1 pm games by eight, and turned out well.
+ */
+const CO_PICK_WITHIN = 3;
+/** The pick and at most two more, so the notification stays readable. */
+const MAX_PICKS = 3;
+/**
  * A window with one game in it is the whole slate, which is its own reason to
  * say something: not "this is the best of several" but "football is on".
  *
@@ -151,6 +161,18 @@ export interface Alert {
    * then refused, and it would never be mentioned again.
    */
   slotKey?: string;
+  /**
+   * Kickoff only: other games in the window too close to the pick to call.
+   *
+   * Micah, 2026-09-27: "maybe if there a bunch of games starting at the same time
+   * and a lot of similar scores / potentially good games, we shouldn't highlight
+   * just one as the one to put on". Naming one game as the best of three that are
+   * within a point or two of each other claims a precision the expectation does
+   * not have. Empty for a window with a clear pick.
+   */
+  coPicks?: Game[];
+  /** Their expectations, clamped as the pick's is, in the same order. */
+  coScores?: number[];
 }
 
 function secondsLeft(game: Game): number {
@@ -443,9 +465,10 @@ export class AlertEngine {
        */
       const rank = (g: Game) =>
         (g.anticipation ?? this.anticipation.get(g.id) ?? 0) + favoriteBoost(g, favorites);
-      const best = games
+      const eligible = games
         .filter((g) => !avoided(g, sub) && !(sub.inMarketFirst && unavailable(g)))
-        .sort((a, b) => rank(b) - rank(a))[0];
+        .sort((a, b) => rank(b) - rank(a));
+      const best = eligible[0];
       if (!best) continue;
 
       /*
@@ -478,6 +501,21 @@ export class AlertEngine {
       // "The pick of a busy window" has to actually be a pick worth making.
       if (category === "kickoff" && rank(best) < KICKOFF_MIN_SCORE) continue;
 
+      // Only games whose expectation is known, for the same reason as the pick.
+      const coPicks =
+        category === "kickoff"
+          ? eligible
+              .slice(1)
+              .filter(
+                (g) =>
+                  (g.anticipation !== null || this.anticipation.has(g.id)) &&
+                  rank(best) - rank(g) <= CO_PICK_WITHIN &&
+                  // The title calls them good, so each has to clear the same bar.
+                  rank(g) >= KICKOFF_MIN_SCORE,
+              )
+              .slice(0, MAX_PICKS - 1)
+          : [];
+
       out.push({
         category,
         game: best,
@@ -485,6 +523,8 @@ export class AlertEngine {
         score: Math.min(100, rank(best)),
         alternatives: games.length - 1,
         slotKey: key,
+        coPicks,
+        coScores: coPicks.map((g) => Math.min(100, rank(g))),
       });
     }
     return out;
@@ -650,6 +690,16 @@ function lineLabel(game: Game): string {
   return `${favorite.abbrev} -${Math.abs(game.pregameSpread)}`;
 }
 
+/**
+ * One game of a kickoff window with no clear pick: the matchup, then what the
+ * single-pick body says about its one game, so each line stands on its own.
+ */
+function pickLine(game: Game, score: number): string {
+  const channel = channelLabel(game);
+  const line = lineLabel(game);
+  return `${matchupWithRanks(game)} · expected ${Math.round(score)}${line ? ` · ${line}` : ""}${channel ? ` · ${channel}` : ""}`;
+}
+
 function detail(alert: Alert): string {
   const game = alert.game;
   /*
@@ -709,7 +759,10 @@ function explain(
         ? `rating ${lead.score.toFixed(1)} >= ${HERO}, ${Math.round(secondsLeft(game))}s left`
         : lead.category === "classic"
           ? `rating ${lead.score.toFixed(1)} >= ${CLASSIC}, period ${game.period}`
-          : `expected ${lead.score.toFixed(1)}, ${lead.alternatives + 1} game(s) in the window`;
+          : `expected ${lead.score.toFixed(1)}, ${lead.alternatives + 1} game(s) in the window` +
+            ((lead.coPicks?.length ?? 0) > 0
+              ? `, co-picks ${(lead.coPicks ?? []).map((g, i) => `${g.shortName} ${lead.coScores?.[i]?.toFixed(1) ?? "?"}`).join(", ")}`
+              : "");
   const board =
     rank >= 0
       ? `board #${rank + 1} of ${view.live.length}${rank > 0 && top ? `, led by ${top.shortName} ${top.score?.total ?? "?"}` : ""}`
@@ -729,6 +782,11 @@ export function buildPayload(alerts: Alert[]): unknown {
   // Ranks belong in the title, where the matchup is named. College is the only
   // league with a poll, so `team.rank` is simply absent for the NFL.
   const matchup = matchupWithRanks(game);
+  // A kickoff window with no clear pick names each of the close ones instead.
+  const picks =
+    lead.category === "kickoff" && (lead.coPicks?.length ?? 0) > 0
+      ? [game, ...(lead.coPicks ?? [])]
+      : null;
 
   /*
    * How many other games are on picks the wording, never whether to send. Making
@@ -747,19 +805,27 @@ export function buildPayload(alerts: Alert[]): unknown {
           // invites somebody to put it on.
           `Football is on: ${matchup}`
         : lead.category === "kickoff"
-          ? `${matchup} kicks off now`
+          ? picks !== null
+            ? // Only games that cleared the kickoff bar reach here, so "good" is earned.
+              `${picks.length === 2 ? "Two" : "Three"} good games kicking off`
+            : `${matchup} kicks off now`
           : lead.category === "upset"
             ? `Upset alert: ${matchup}`
             : lead.alternatives > 0
               ? `Switch to ${matchup}`
               : `${matchup} is worth putting on`;
 
+  const named = new Set((picks ?? [game]).map((g) => g.id));
   const also = alerts
     .slice(1)
+    .filter((a) => !named.has(a.game.id))
     .map((a) => `${a.game.away.abbrev} at ${a.game.home.abbrev}`)
     .join(", ");
 
-  const lines = [detail(lead)];
+  const lines =
+    picks === null
+      ? [detail(lead)]
+      : picks.map((g, i) => pickLine(g, i === 0 ? lead.score : (lead.coScores?.[i - 1] ?? 0)));
   // Only when the better game is not already named further down the same buzz.
   const elsewhere = lead.category === "upset" ? (lead.bestElsewhere ?? null) : null;
   if (elsewhere !== null && !alerts.slice(1).some((a) => a.game.id === elsewhere.id)) {

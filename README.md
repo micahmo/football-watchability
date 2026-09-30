@@ -38,7 +38,8 @@ splits the day into its kickoff windows and ranks within each, so an NFL Sunday 
 window the naming does not fit keeps its kickoff time. It appears only on days whose kickoffs
 actually form windows, which in practice means the NFL: a Saturday in college spans eleven distinct
 kickoff hours and has none.
-Each row shows kickoff time, the line, the over/under and the network.
+Each row shows kickoff time, the line, the over/under and the network, and where the game is being
+played when that is outside the United States.
 
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
 kickoff. A finished game's rating does not change: it is scored on the closing line, the teams'
@@ -51,12 +52,13 @@ there and empty.
 
 Live cards fold by default and open when tapped, six at a time with an expander for the rest. The
 best game on starts open. A folded card keeps the teams, records, line, possession, score, clock,
-network and tags; opening one adds the win probability, down and distance, and the last play.
+network, tags and the city of a game played abroad; opening one adds the win probability, down and distance, and the last play.
 Finished games do not fold, but the same six-at-a-time expander applies.
 
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
-kickoff window, and NFL primetime, where the only game in its slot is starting and the alert says
+kickoff window (or the two or three picks, when they are expected within three points of each
+other), and NFL primetime, where the only game in its slot is starting and the alert says
 plainly how good it is expected to be. An upset alert is about the underdog rather than the
 board, so when a different game is the best one on, it names that game too. A game gets one
 "worth switching to" or "memorable" alert, never both, and neither with under a minute to play.

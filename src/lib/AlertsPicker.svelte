@@ -44,7 +44,7 @@
     hero: "A game gets good enough to switch to, with time left to get there",
     classic: "It goes from good to memorable",
     upset: "An underdog is doing something it should not be",
-    kickoff: "The pick of a busy kickoff window is starting",
+    kickoff: "The pick of a busy kickoff window is starting, or the few too close to call",
     primetime: "The only game in its slot is on. Might not be great, but football is on",
   };
 

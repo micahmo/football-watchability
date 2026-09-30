@@ -72,6 +72,7 @@
       {#if game.odds}<span>{game.odds}</span>{/if}
       {#if game.overUnder}<span>o/u {game.overUnder}</span>{/if}
       {#if !game.nationalBroadcast}<span class="local">local feed</span>{/if}
+      {#if game.abroad}<span class="abroad">in {game.abroad}</span>{/if}
     </span>
   </div>
 </div>
@@ -183,6 +184,9 @@
   }
   .local {
     color: var(--warm);
+  }
+  .abroad {
+    color: var(--text-dim);
   }
   .row.unavailable {
     opacity: 0.55;

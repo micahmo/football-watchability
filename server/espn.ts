@@ -113,6 +113,23 @@ function fieldNumber(raw: unknown, min: number, max: number): number | null {
 const MARKER_PLAY_TYPES = new Set(["75", "2", "65"]); // two-minute warning, end period, end of half
 const MARKER_PLAY_TEXT = /^\s*(two-minute warning|end (of )?(quarter|half|period|regulation)\b)/i;
 
+/**
+ * The city of a game played abroad, for the location chip.
+ *
+ * Asked on 2026-09-27, from Ravens against Cowboys in Rio de Janeiro: "is there a
+ * way to identify international games?" ESPN marks the venue's country on every
+ * game, "USA" for the rest, so anything else is abroad. Its city names come
+ * title-cased word by word ("Rio De Janeiro"), so the small joining words are put
+ * back in lower case.
+ */
+function abroadOf(address: any): string | null {
+  const country: string = typeof address?.country === "string" ? address.country.trim() : "";
+  if (country === "" || /^(usa|us|united states)$/i.test(country)) return null;
+  const city: string = typeof address?.city === "string" ? address.city.trim() : "";
+  if (city === "") return country;
+  return city.replace(/ (De|Da|Do|Del|La|Le)(?= )/g, (m) => m.toLowerCase());
+}
+
 function markerPlay(play: any): boolean {
   const type = play?.type?.id;
   if (type !== undefined && type !== null && MARKER_PLAY_TYPES.has(String(type))) return true;
@@ -195,6 +212,7 @@ function normalize(event: any, league: League): RawGame | null {
     divisionGame: false,
     neutralSite: Boolean(comp.neutralSite),
     venue: comp?.venue?.fullName ?? null,
+    abroad: abroadOf(comp?.venue?.address),
     odds: odds?.details ?? null,
     spread: typeof spreadRaw === "number" && Number.isFinite(spreadRaw) ? Math.abs(spreadRaw) : null,
     homeSpread: typeof spreadRaw === "number" && Number.isFinite(spreadRaw) ? spreadRaw : null,
