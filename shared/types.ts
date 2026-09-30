@@ -38,7 +38,7 @@ export interface ScoreComponents {
   clutch: number;
   /** 0..1 for an upset in progress, peaking while the result is still in doubt. */
   upsetTension: number;
-  /** What the game was billed as, fading out by halftime. */
+  /** What the game was billed as, fading out over the game and at once in a blowout. */
   billing: number;
   /** The largest of the ways a game can earn the dominant term. */
   primary: number;

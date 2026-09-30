@@ -34,12 +34,17 @@
     </p>
     <p>Four things can take over when closeness alone misses the point:</p>
     <ul>
-      <li>A one-score game in the last few minutes, with the team behind holding the ball.</li>
-      <li>An underdog well ahead of what the bookmakers expected, whether or not it is close.</li>
+      <li>A one-score game in the last few minutes, with the team behind holding the ball. Any
+        one-score game in the fourth quarter counts as close, whatever the win probability says.</li>
+      <li>
+        An underdog well ahead of what the bookmakers expected, whether or not it is close. It counts
+        for more the bigger the teams: an upset nobody is watching is still an upset nobody is
+        watching.
+      </li>
       <li>A finished game a real underdog won, because the recap is asking what mattered.</li>
       <li>
-        A game that has only just kicked off keeps what it was billed as until it shows you
-        otherwise. That fades away by halftime, and faster if it turns into a blowout.
+        A big game keeps what it was billed as while it stays close. That fades over the game, and
+        goes at once if it turns into a blowout.
       </li>
     </ul>
 

@@ -1,5 +1,5 @@
 import type { Game, League, ScoreBreakdown, ScoreComponents, TeamSide } from "../shared/types.js";
-import { WEIGHTS, combine } from "../shared/weights.js";
+import { UPSET_PROMINENCE_BASE, WEIGHTS, combine } from "../shared/weights.js";
 import { prominenceScore } from "./prominence.js";
 
 const PERIOD_SECONDS = 900;
@@ -602,6 +602,10 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
   } else {
     tension = tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds));
   }
+  if (!input.isFinal && margin <= ONE_SCORE && progress >= ONE_SCORE_FLOOR_FROM) {
+    const ramp = clamp((progress - ONE_SCORE_FLOOR_FROM) / ONE_SCORE_FLOOR_RAMP);
+    tension = Math.max(tension, ONE_SCORE_FLOOR * ramp);
+  }
 
   const lateness = latenessWeight(progress);
   const core = tension * lateness;
@@ -823,9 +827,27 @@ const BILLING_CARRY = 1;
 /**
  * When the billing has fully given way to what the game is actually doing.
  *
- * Halftime. By then there is real evidence either way and an expectation formed
- * last Tuesday should not be competing with it.
+ * The final whistle. It was halftime, on the reasoning that by then there is real
+ * evidence either way, and the second weekly review (2026-09-30) found that wrong
+ * in the direction Micah kept reporting: 23 of his 38 "should be higher" verdicts
+ * were one-score games between prominent teams in the first three quarters, and
+ * the billing had faded to nothing under them while they were still close. Texas
+ * at Tennessee went 85 at kickoff to 43 at 10-3 early in the second quarter, and
+ * his note was "still a one score game - it can go lower if it starts to be a
+ * blowout". That is the rule the billing already had for the scoreboard, squared
+ * margin against time left; only the clock was retiring it too soon. The
+ * scoreboard's veto is unchanged, so a blowout still loses it at once.
  *
+ * Not no fade at all. That moved 24 of the 38 but doubled how often a first-half
+ * game led the board while a one-score game was in its last five minutes, from 8%
+ * to 18% of those minutes, which is his other complaint ("better than all the
+ * close games at the end?"). Fading to the end, with the one-score floor below,
+ * moved 23 and left that at 9%.
+ *
+ *   kickoff  end Q1  halftime  end Q3  final
+ *    1.00     0.94     0.75     0.44    0
+ *
+ * The history of the halftime version, kept because the shape still applies:
  * The fade is a quarter circle rather than a straight line, so the billing keeps
  * nearly all of itself while the game has said almost nothing and then falls away
  * quickly. Linear was the first attempt and spent the billing too early: Bills at
@@ -836,7 +858,28 @@ const BILLING_CARRY = 1;
  *   kickoff  Q1 half  end Q1  Q2 half  halftime
  *    0.90     0.84     0.68    0.39      0
  */
-const BILLING_UNTIL = 0.5;
+const BILLING_UNTIL = 1;
+
+/**
+ * The least a one-score game in the fourth quarter counts as close.
+ *
+ * Win probability writes off a one-score game with minutes left far faster than
+ * a viewer does, and the margin floor, which exists for exactly that, follows a
+ * curve that is harsh late: a seven-point game with seven minutes left reads 0.27
+ * of a coin flip on margin alone. Micah's verdicts disagreed every time: Oregon
+ * leading USC 34-27 with 7:10 left rated 39, "still a one score game - giving win
+ * prob too much weight?"; the Rams down four at Denver with 4:49 left rated 60;
+ * the Chargers down four at Buffalo with 7:35 left, 55.
+ *
+ * It reaches full strength over the first three minutes of the fourth quarter so
+ * the rating does not jump at the change of ends. 0.7 lands the fourth-quarter
+ * one-score games he called right, the ties and three-point games at 65 to 78,
+ * where they were, and lifts the ones he called low. At 0.8 it began lifting
+ * games he had called right.
+ */
+const ONE_SCORE_FLOOR = 0.7;
+const ONE_SCORE_FLOOR_FROM = 0.75;
+const ONE_SCORE_FLOOR_RAMP = 0.05;
 
 /**
  * Every number that decides what a rating comes out as, in one place.
@@ -864,6 +907,10 @@ export const TUNING: Record<string, number> = {
   contestScale: CONTEST_SCALE,
   billingCarry: BILLING_CARRY,
   billingUntil: BILLING_UNTIL,
+  oneScoreFloor: ONE_SCORE_FLOOR,
+  oneScoreFloorFrom: ONE_SCORE_FLOOR_FROM,
+  oneScoreFloorRamp: ONE_SCORE_FLOOR_RAMP,
+  upsetProminenceBase: UPSET_PROMINENCE_BASE,
   marginFloor: MARGIN_FLOOR,
   marginFloorRampSeconds: MARGIN_FLOOR_RAMP_SECONDS,
   // Not a tunable: marks that NFL planning quality comes from nfelo, so reports

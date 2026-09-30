@@ -47,13 +47,29 @@ export const WEIGHTS: Weights = {
  * the app than in the feed it came from. Anything that shapes the number has to
  * be in the function both sides call.
  */
+/**
+ * How much of an upset counts when nobody much is playing.
+ *
+ * An upset stood in for prominence in full, so Gardner-Webb at Marshall drew as
+ * hard as a top-ten game and rated 97 in its final seconds, and Robert Morris at
+ * Buffalo 84 when it finished. Micah's verdict on both was one word, "who", and
+ * across the second weekly review every live "should be lower" but one was a game
+ * of prominence under 0.6. The surprise matters in proportion to who is being
+ * surprised: an upset now counts from half, for the most obscure matchup, to all
+ * of it, for the most prominent. That moved 8 of the 12 "lower" verdicts, and 4 of
+ * the 5 from the first review, and touched none of the "right" ones. Wake Forest
+ * at Louisville keeps nearly all of its upset; the FCS ones lose about a third.
+ */
+export const UPSET_PROMINENCE_BASE = 0.5;
+
 export function combine(c: ScoreComponents, w: Weights, maxTotal: number | null = null): number {
   // Whichever of the two the game has a claim to, not the sum: a game is not
   // asked to be both a marquee fixture and an upset of one.
-  const draw = Math.max(c.prominence, c.upset);
+  const upset = c.upset * (UPSET_PROMINENCE_BASE + (1 - UPSET_PROMINENCE_BASE) * c.prominence);
+  const draw = Math.max(c.prominence, upset);
   const raw = 100 * (w.primary * c.primary + w.draw * draw + w.swing * c.swing + w.pace * c.pace);
   // Before a game has said anything, its rating is what it was expected to be.
-  // `billing` already carries the clock and the scoreboard, and is zero by halftime.
+  // `billing` already carries the clock and the scoreboard, and is zero at the final whistle.
   const floored = Math.max(raw, c.billing * 100);
   const capped = maxTotal === null ? floored : Math.min(floored, maxTotal);
   return Math.round(Math.max(0, Math.min(100, capped)) * 10) / 10;

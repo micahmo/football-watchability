@@ -2267,3 +2267,41 @@ primetime now pass the soft cap and do not set its bar; the hard cap still count
 clock gate, so it fired at 0:30, 0:26 and 0:03, and once on the phantom 1:27. It now needs the same
 minute as the hero alert, and a game gets one of the two, never both, which is what Micah asked of
 Rams at Broncos: "got a notification at 3 seconds left lmao and had already gotten one earlier".
+
+## Tuning from the second weekly review (2026-09-30)
+
+87 reports, and for the first time two patterns with enough behind them to act on. Every live
+report sorted by phase, closeness and prominence:
+
+- 34 of the 38 "should be higher" were one-score games with prominence of 0.6 or more, 23 of them
+  in the first three quarters.
+- Every live "should be lower" but one was a game with prominence under 0.6; the exception was a
+  0-0 first quarter.
+
+Both say the board weighs who is playing too lightly against how close it is. Three changes, each
+measured the same way before shipping: every game on the board at the moment of every report was
+re-scored from the history log, which reproduces the logged rating exactly for 99.7% of rows once
+each game's live expectation is recovered from the rows where the billing floor binds. A candidate
+was judged on whether "higher" rose (or climbed past a neighbour), "lower" fell, and "right" stayed
+within three points and in place, and separately on how often a first-half game led the board
+while a one-score game elsewhere was in its last five minutes, which is the complaint that pulls
+the other way.
+
+| candidate | higher moved | lower moved | right disturbed | first-half game leads |
+| --- | --- | --- | --- | --- |
+| today | 0 / 38 | 0 / 12 | 0 / 36 | 8% |
+| upset scaled by prominence | 2 | 8 | 0 | 10% |
+| + billing never fades on the clock | 24 | 9 | 6 | 18% |
+| + billing fades to the final whistle | 17 | 9 | 2 | 13% |
+| + that, and a one-score floor in the fourth | 23 | 9 | 3 | 9% |
+
+The last row shipped. The "right" verdicts it disturbs are mostly four simultaneous early NFL games
+rising together and trading places. It also moves one earlier verdict the wrong way: New Orleans at
+Baltimore, a final Micah called low at 59, goes to 54, because its upset is now discounted for a
+matchup of middling prominence. That is the case the first review deferred the pattern over, and it
+is now outvoted twelve to one, but it is the one to watch.
+
+The individual changes, with the reasoning, are at their constants: `BILLING_UNTIL` and
+`ONE_SCORE_FLOOR` in `server/scoring.ts`, `UPSET_PROMINENCE_BASE` in `shared/weights.ts`. The
+fourth-quarter floor does nothing for a two-score game, deliberately: Seattle down nine with 3:57
+left was reported low and stays where it was.

@@ -86,13 +86,14 @@ Every live game gets a 0-100 score and the board sorts on it.
 **The main term is how close the game is, weighted by how late it is.** Closeness comes from
 ESPN's live win probability, falling back to a margin curve when ESPN stops publishing one. From
 the third quarter the margin also sets a floor, so a one-score game is not written off because
-ESPN makes one side a heavy favourite.
+ESPN makes one side a heavy favourite, and in the fourth quarter a one-score game always counts as
+at least fairly close.
 
 **Four other terms can take over when closeness misses the point.** A one-score game inside the final
 five minutes, with the trailing team holding the ball, gets a `clutch` score. An underdog running
 away from where the closing line put it gets an `upsetTension` score. A finished game that a real
-underdog won gets a `decisiveness` score. And a game that has only just kicked off keeps a fading
-share of what it was billed as, gone by halftime and sooner if it turns into a blowout. The dominant
+underdog won gets a `decisiveness` score. And a game keeps a share of what it was billed as, fading
+over the game and gone at once if it turns into a blowout. The dominant
 term is whichever of the five is highest.
 
 Five smaller components adjust it, with fixed weights:
@@ -100,7 +101,7 @@ Five smaller components adjust it, with fixed weights:
 | Component | What it measures | Weight |
 | --- | --- | --- |
 | `primary` | Closeness weighted by how late, or whichever of the three escape hatches beats it | 0.63 |
-| `draw` | The higher of `prominence` (how much of the country cares) and `upset` (how far the underdog is running ahead of the closing line) | 0.25 |
+| `draw` | The higher of `prominence` (how much of the country cares) and `upset` (how far the underdog is running ahead of the closing line, counted from half to in full as the matchup gets more prominent) | 0.25 |
 | `swing` | Win-probability movement over the last fifteen minutes | 0.08 |
 | `pace` | Projected total points, so a 45-38 beats a 10-7 | 0.04 |
 

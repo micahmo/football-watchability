@@ -367,7 +367,7 @@ export class AlertEngine {
       ) {
         // Not asking anyone to switch; it tells somebody already watching that they
         // picked the right game. But only once something has happened: a kickoff
-        // rating carries the pregame billing, which fades by halftime, and LSU at
+        // rating carries the pregame billing, which fades over the game, and LSU at
         // Ole Miss cleared this bar at 0-0 on prominence and hype alone.
         out.push({ category: "classic", game, score, alternatives });
         continue;
