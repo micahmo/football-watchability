@@ -2225,3 +2225,45 @@ one verdict per game takes the latest.
 `alongside` changed with it. It recorded the live board whatever the game was, which for a verdict
 on an upcoming or finished game is the wrong list to compare against. It now records the list the
 game was in: the planning list by anticipation, or the recap.
+
+## Six bugs from the second weekly review (2026-09-30)
+
+None of these is a tuning change. All six came out of reading 87 reports against the history log
+and the container log, which now keeps the reasoning behind every alert.
+
+**The rewind guard made wrong documents permanent.** It judged a poll stale whenever it looked
+earlier than the pushed document, however far apart they were. Three ways in, all on one slate:
+a Rice touchdown taken off the board, so the poll had fewer points and was refused for twelve hours,
+final included; USF at Bowling Green pushed to "Q4 0:00" at the end of the third, frozen for fifty
+minutes while the fourth quarter was played; and Oregon at USC's clock blips. Staleness can only put
+REST behind by seconds of game time, so the guard now refuses a poll only within two minutes of game
+clock, always takes a polled final, and takes a poll further on in the game even with fewer points,
+since that is a correction and not a rewind. This is very probably what froze the game on
+2026-09-20 as well, though those logs were lost.
+
+**A clock cannot run faster than time.** Oregon at USC went 12:41, 1:27, 12:41 in two minutes, and
+the 1:27 was scored as the end of a tie game and sent a "getting good" alert with thirteen minutes to
+play. A clock that falls more than five minutes faster than real time is held for up to ninety
+seconds. The slack is wide because ESPN's clock often sits stale and then catches up by a minute or
+two; at five minutes it caught every one of the twelve blips in two weekends of history and would
+have delayed 35 real catch-ups by ninety seconds each.
+
+**The kicking team is not the team with the ball.** After a score ESPN keeps the scorer in
+possession, first and ten at its own 35, until the kickoff is returned, so the clutch term treated a
+leader lining up to kick off as a leader running out the clock. Rams at Broncos fell from 69 to 58 at
+26-30 with 0:47 left. An extra point, two-point try or made field goal now hands possession to the
+other side for scoring.
+
+**An alert day ended at 8 pm Eastern.** It was the UTC date. It is now local, rolling over at 5 am so
+a late kickoff counts against the evening it started in.
+
+**Kickoffs were held to the live alerts' bar.** Past three alerts a new one must beat the best sent
+so far by five, and a kickoff's score is an expectation while a live alert's is a rating at the end
+of a close game. Gardner-Webb at Marshall's 93.3 set the bar at 98.3, so Oregon at USC, the
+evening's biggest kickoff, went out 25 minutes late, when the UTC day rolled over. Kickoffs and
+primetime now pass the soft cap and do not set its bar; the hard cap still counts them.
+
+**"Getting good" arrived with seconds left, and after "worth putting on".** The classic alert had no
+clock gate, so it fired at 0:30, 0:26 and 0:03, and once on the phantom 1:27. It now needs the same
+minute as the hero alert, and a game gets one of the two, never both, which is what Micah asked of
+Rams at Broncos: "got a notification at 3 seconds left lmao and had already gotten one earlier".

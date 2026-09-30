@@ -58,8 +58,10 @@ Finished games do not fold, but the same six-at-a-time expander applies.
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
 kickoff window, and NFL primetime, where the only game in its slot is starting and the alert says
 plainly how good it is expected to be. An upset alert is about the underdog rather than the
-board, so when a different game is the best one on, it names that game too. At most three a day
-per league. Each one names the channel
+board, so when a different game is the best one on, it names that game too. A game gets one
+"worth switching to" or "memorable" alert, never both, and neither with under a minute to play.
+Three a day per league, and after that only a game clearly better than any already sent, up to
+six; kickoff alerts are not held back by the live ones. The day runs 5 am to 5 am. Each one names the channel
 and says when a game is out of market; **My channels first** stops those arriving at all. The
 screen stays awake while the board is open.
 

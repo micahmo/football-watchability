@@ -209,7 +209,7 @@
         {/each}
       </div>
       {#if error}<p class="error">{error}</p>{/if}
-      {#if anyOn && !error}<p class="note">At most three a day per league.</p>{/if}
+      {#if anyOn && !error}<p class="note">About three a day per league.</p>{/if}
     {/if}
   </div>
 {/if}

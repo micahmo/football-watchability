@@ -222,8 +222,27 @@ function avoided(game: Game, sub: Subscription): boolean {
   return sub.noSpoilers.includes(game.away.id) || sub.noSpoilers.includes(game.home.id);
 }
 
+/**
+ * The football day an alert counts against: local time, rolling over at 5 am.
+ *
+ * It was the UTC date, which rolls over at 8 pm Eastern, in the middle of the
+ * evening slate: on 2026-09-26 the day's budget was spent by the afternoon and
+ * then silently refilled at 8, so what the cap allowed depended on the time zone
+ * of a server clock. Five in the morning, because a late West Coast kickoff still
+ * belongs to the evening it started in. Local is the container's `TZ`.
+ */
+const DAY_ROLLOVER_HOURS = 5;
 function dayKey(now: number): string {
-  return new Date(now).toISOString().slice(0, 10);
+  const d = new Date(now - DAY_ROLLOVER_HOURS * 60 * 60 * 1000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
+ * A kickoff or a lone primetime game, whose score is an expectation rather than a
+ * rating. The two scales cannot be compared, so neither judges the other.
+ */
+function isAnnouncement(category: Category): boolean {
+  return category === "kickoff" || category === "primetime";
 }
 
 /**
@@ -256,12 +275,23 @@ export class AlertEngine {
    * through by being clearly better than the best already sent, so an evening
    * classic is not silenced by three ordinary afternoon alerts.
    */
-  private allowed(sub: Subscription, league: League, now: number, score: number): boolean {
+  private allowed(sub: Subscription, league: League, now: number, lead: Alert): boolean {
     const key = `${sub.id}:${league}:${dayKey(now)}`;
     const count = this.dailyCount.get(key) ?? 0;
     if (count >= HARD_CAP) return false;
     if (count < DAILY_CAP) return true;
-    return score >= (this.bestSent.get(key) ?? 0) + BETTER_BY;
+    /*
+     * A kickoff is not held to "better than the best live alert today".
+     *
+     * Its score is what the game is expected to be, and it was being compared
+     * against live ratings, which run hotter at the end of a close game than any
+     * pregame expectation does. On 2026-09-26 Gardner-Webb at Marshall sent a
+     * "getting good" at 93.3 and raised the bar to 98.3, which no kickoff can
+     * reach, so Oregon at USC, the evening's biggest game, was announced 25
+     * minutes late when the day rolled over. The hard cap still applies.
+     */
+    if (isAnnouncement(lead.category)) return true;
+    return lead.score >= (this.bestSent.get(key) ?? 0) + BETTER_BY;
   }
 
   private record(
@@ -269,7 +299,6 @@ export class AlertEngine {
     league: League,
     now: number,
     alerts: Alert[],
-    score: number,
   ): void {
     for (const alert of alerts) {
       this.sent.add(`${sub.id}:${alert.game.id}:${alert.category}`);
@@ -278,7 +307,12 @@ export class AlertEngine {
     this.lastSentAt.set(sub.id, now);
     const key = `${sub.id}:${league}:${dayKey(now)}`;
     this.dailyCount.set(key, (this.dailyCount.get(key) ?? 0) + 1);
-    this.bestSent.set(key, Math.max(this.bestSent.get(key) ?? 0, score));
+    // Only live ratings set the bar live ratings have to beat. See `allowed`.
+    const live = alerts.filter((a) => !isAnnouncement(a.category));
+    if (live.length > 0) {
+      const best = Math.max(...live.map((a) => a.score));
+      this.bestSent.set(key, Math.max(this.bestSent.get(key) ?? 0, best));
+    }
   }
 
   private liveCandidates(sub: Subscription, snapshot: Snapshot): Alert[] {
@@ -307,6 +341,16 @@ export class AlertEngine {
       const score = earned(game, favorites);
       const alternatives = live.length - 1;
       const already = (c: Category) => this.sent.has(`${sub.id}:${game.id}:${c}`);
+      /*
+       * One "this game is worth it" per game, whichever of the two comes first.
+       *
+       * They used to be separate, so a game could send both: Rams at Broncos said
+       * "worth putting on" at 2:35 and "getting good" at 0:03 on 2026-09-28, and
+       * the second told somebody already watching what they had been told eight
+       * minutes earlier.
+       */
+      const endorsed = already("classic") || already("hero");
+      const inTime = secondsLeft(game) >= HERO_MIN_SECONDS_LEFT;
 
       // Checked first, so a game that vaults straight past both thresholds
       // announces the bigger thing rather than the smaller one.
@@ -314,7 +358,12 @@ export class AlertEngine {
         wants.includes("classic") &&
         game.period >= 3 &&
         score >= CLASSIC &&
-        !already("classic")
+        !endorsed &&
+        // The hero alert's gate, for the same reason. Four of the first weekly
+        // review's "getting good" alerts landed with 0:30, 0:26 and 0:03 left, and
+        // one on a clock ESPN had briefly got wrong: a game cannot be getting good
+        // once it is over by the time anybody could turn it on.
+        inTime
       ) {
         // Not asking anyone to switch; it tells somebody already watching that they
         // picked the right game. But only once something has happened: a kickoff
@@ -326,8 +375,8 @@ export class AlertEngine {
       if (
         wants.includes("hero") &&
         score >= HERO &&
-        !already("hero") &&
-        secondsLeft(game) >= HERO_MIN_SECONDS_LEFT
+        !endorsed &&
+        inTime
       ) {
         out.push({ category: "hero", game, score, alternatives });
         continue;
@@ -526,7 +575,7 @@ export class AlertEngine {
         return true;
       });
       // Judged on the best of them, and only now that there is a score to judge.
-      if (!this.allowed(sub, snapshot.league, now, unique[0].score)) continue;
+      if (!this.allowed(sub, snapshot.league, now, unique[0])) continue;
 
       /*
        * Recorded as sent before it is sent, which is deliberate.
@@ -539,7 +588,7 @@ export class AlertEngine {
        */
       const payload = buildPayload(unique);
       console.log(explain(sub.id, unique, view, payload, sub.delaySeconds ?? 0));
-      this.record(sub, snapshot.league, now, unique, unique[0].score);
+      this.record(sub, snapshot.league, now, unique);
       sent += 1;
       const hold = Math.max(0, sub.delaySeconds ?? 0) * 1000;
       if (hold === 0) {

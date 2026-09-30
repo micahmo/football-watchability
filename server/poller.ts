@@ -139,6 +139,26 @@ function liveDateRange(): string {
   return `${yyyymmdd(yesterday)}-${yyyymmdd(now)}`;
 }
 
+/**
+ * An extra point, a two-point try or a made field goal: the scoring team kicks off next.
+ *
+ * ESPN keeps the scoring team as the side in possession, first and ten at its own
+ * 35, until the kickoff has been returned. Taken at face value that is the leader
+ * holding the ball, and the clutch term marks it down for exactly that. Rams at
+ * Broncos fell from 69 to 58 at 26-30 with 0:47 left, on 2026-09-28, while Denver
+ * was only lining up to kick it to the Rams, and recovered to 81 on the first snap.
+ */
+const SCORE_THEN_KICK = /^\s*\([^()]*\b(kick|two-point conversion[^()]*)\)\s*$|field goal (is )?good/i;
+
+/** The side about to have the ball, which after a score is the one that did not score. */
+function receivingNext(game: RawGame): string | null {
+  const holder = game.possessionTeamId;
+  if (holder === null || !SCORE_THEN_KICK.test(game.lastPlay ?? "")) return holder;
+  if (holder === game.home.id) return game.away.id;
+  if (holder === game.away.id) return game.home.id;
+  return holder;
+}
+
 /** Where a scoreboard document has got to, for comparing two of them. */
 function progressOf(event: any): { period: number; clock: number; points: number } {
   const comp = event?.competitions?.[0];
@@ -184,16 +204,64 @@ function withPolledMarket(held: any, polled: any): any {
   return { ...held, competitions: [comp, ...held.competitions.slice(1)] };
 }
 
+/** Seconds of game played, for measuring how far apart two documents are. */
+function elapsedOf(p: { period: number; clock: number }): number {
+  return (Math.max(p.period, 1) - 1) * 900 + (900 - Math.min(Math.max(p.clock, 0), 900));
+}
+
+/**
+ * The most game time REST can plausibly trail the push feed by.
+ *
+ * The scoreboard is cached upstream for a matter of seconds, and a game clock
+ * cannot run faster than real time, so staleness can put the poll behind by
+ * seconds of game time and never by minutes. A bigger gap is not the poll being
+ * late; it is the two sources disagreeing, and the poll is the one to believe.
+ */
+const MAX_STALE_GAME_SECONDS = 120;
+
+/**
+ * How much faster than time a clock may fall before it is doubted.
+ *
+ * Generous, because ESPN's clock is not continuous: it often sits stale through a
+ * stretch of play and then catches up by a minute or two at once. At thirty
+ * seconds the history log from 2026-09-12 to 2026-09-29 tripped 659 times; at five
+ * minutes it catches all twelve blips that came back within a couple of minutes
+ * and holds 35 real catch-ups, each for the ninety seconds below.
+ */
+const CLOCK_SLACK_SECONDS = 300;
+/** How long a doubted clock is held before it is believed. */
+const CLOCK_DOUBT_MS = 90 * 1000;
+
 /**
  * Whether `candidate` describes an earlier moment of the game than `held`.
  *
  * The two-second tolerance on the clock is for rounding between sources, not for
  * doubt: a real clock never climbs inside a period.
+ *
+ * It used to answer that question for any gap at all, and a wrong pushed document
+ * then became permanent, since every poll after it looked behind. The first weekly
+ * review found three ways in:
+ *
+ * - Rice at Fresno State froze at 30-38 for twelve hours. A Rice touchdown was
+ *   taken off the board, and a poll with fewer points reads as a rewind, final
+ *   whistle included.
+ * - USF at Bowling Green was pushed to "Q4 0:00" at the end of the third, and
+ *   stayed there for fifty minutes while the whole fourth quarter was played.
+ * - Oregon at USC was pushed from 12:41 to 1:27 and back, three times in one
+ *   game, and the blip outlived each poll.
+ *
+ * So a final from the poll is always taken, a poll further on in the game is
+ * taken even with fewer points (that is a correction, not a rewind), and a poll
+ * can only be "behind" by the few seconds staleness can explain.
  */
 function isBehind(candidate: any, held: any): boolean {
+  const state = candidate?.status?.type?.state ?? candidate?.competitions?.[0]?.status?.type?.state;
+  if (state === "post") return false;
   const a = progressOf(candidate);
   const b = progressOf(held);
+  if (elapsedOf(b) - elapsedOf(a) > MAX_STALE_GAME_SECONDS) return false;
   if (a.period !== b.period) return a.period < b.period;
+  if (a.clock < b.clock - 2) return false;
   return a.clock > b.clock + 2 || a.points < b.points;
 }
 
@@ -332,6 +400,12 @@ export class LeaguePoller {
    * is the thing to learn before anything is allowed to act on it.
    */
   private readonly lastMoved = new Map<string, { at: number; signature: string; warnedAt: number }>();
+
+  /** Each live game's clock, and since when it has read that, for `holdImpossibleClocks`. */
+  private readonly clocks = new Map<
+    string,
+    { period: number; seconds: number; clock: string; since: number; doubtedSince: number }
+  >();
 
   constructor(
     league: League,
@@ -528,7 +602,7 @@ export class LeaguePoller {
       divisionGame: raw.divisionGame,
       startDate: raw.startDate,
       swingMovement,
-      possessionTeamId: raw.possessionTeamId,
+      possessionTeamId: receivingNext(raw),
       network: raw.broadcast,
       isFinal: raw.state === "post",
     });
@@ -594,7 +668,9 @@ export class LeaguePoller {
        * already held. Game state only moves one way: periods climb, the clock falls
        * within a period, points never drop. Anything failing that is stale and the
        * patched document stands, and as soon as REST catches up it is accepted
-       * again, which is what keeps the poll able to heal a missed patch.
+       * again, which is what keeps the poll able to heal a missed patch. Points do
+       * drop, when a score is taken off the board, and pushes can be wrong by
+       * minutes; `isBehind` has the limits on this rule.
        */
       const fresh = new Map<string, any>();
       let rewound = 0;
@@ -606,6 +682,19 @@ export class LeaguePoller {
           fresh.set(event.uid, withPolledMarket(held, event));
           rewound += 1;
         } else {
+          // Logged when the poll overrules a pushed document that looked further on,
+          // which the guard used to refuse. How often it happens is worth knowing.
+          if (held !== undefined) {
+            const was = progressOf(held);
+            const now = progressOf(event);
+            if (elapsedOf(was) > elapsedOf(now) + 2 || was.points > now.points) {
+              console.log(
+                `[${this.tag()}] ${event.shortName ?? event.uid}: took the poll ` +
+                  `(Q${now.period} ${now.clock}s, ${now.points} pts) over the push ` +
+                  `(Q${was.period} ${was.clock}s, ${was.points} pts)`,
+              );
+            }
+          }
           fresh.set(event.uid, event);
         }
       }
@@ -804,6 +893,67 @@ export class LeaguePoller {
    * this is a false positive, while one that never resumes is the fault worth
    * chasing. Without both halves the log cannot tell them apart.
    */
+  /**
+   * Keeps a clock that has run faster than time can make it.
+   *
+   * A game clock cannot fall by more than the time that has passed. Oregon at USC
+   * read 12:41, then 1:27 twenty seconds later, then 12:41 again, and the 1:27 was
+   * scored as the last two minutes of a tie game: it put the rating up eleven
+   * points and sent a "getting good" alert about a game with thirteen minutes to
+   * play. Twelve of these between 2026-09-12 and 2026-09-29, every one gone within
+   * a couple of minutes.
+   *
+   * Held rather than dropped, and only for a while: a clock that stays where it
+   * jumped to for ninety seconds is taken, since being wrong about a real jump for
+   * longer than that would be worse than the blip.
+   */
+  private holdImpossibleClocks(games: RawGame[], now: number): void {
+    const live = new Set<string>();
+    for (const game of games) {
+      if (game.state !== "in") continue;
+      live.add(game.id);
+      const seen = this.clocks.get(game.id);
+      // 0:00 is taken straight away: the end of a period is real, and a board that
+      // lags it misses halftime.
+      if (
+        seen !== undefined &&
+        seen.period === game.period &&
+        game.clockSeconds < seen.seconds &&
+        game.clockSeconds > 0
+      ) {
+        const ran = (now - seen.since) / 1000;
+        if (seen.seconds - game.clockSeconds > ran + CLOCK_SLACK_SECONDS) {
+          if (seen.doubtedSince === 0) {
+            seen.doubtedSince = now;
+            console.log(
+              `[${this.tag()}] ${game.shortName}: clock ${seen.clock} -> ${game.clock} ` +
+                `in ${Math.round(ran)}s, holding ${seen.clock}`,
+            );
+          }
+          if (now - seen.doubtedSince < CLOCK_DOUBT_MS) {
+            game.clock = seen.clock;
+            game.clockSeconds = seen.seconds;
+            continue;
+          }
+        }
+      }
+      if (seen === undefined || seen.period !== game.period || seen.seconds !== game.clockSeconds) {
+        this.clocks.set(game.id, {
+          period: game.period,
+          seconds: game.clockSeconds,
+          clock: game.clock,
+          since: now,
+          doubtedSince: 0,
+        });
+      } else {
+        seen.doubtedSince = 0;
+      }
+    }
+    for (const id of [...this.clocks.keys()]) {
+      if (!live.has(id)) this.clocks.delete(id);
+    }
+  }
+
   private reportStalledGames(games: RawGame[], now: number): void {
     const live = new Set<string>();
     for (const raw of games) {
@@ -837,6 +987,7 @@ export class LeaguePoller {
 
   private compose(games: RawGame[], now: number, note = ""): void {
     for (const raw of games) this.ledger.observe(raw);
+    this.holdImpossibleClocks(games, now);
     this.carrySituation(games, now);
     for (const raw of games) {
       if (raw.state === "in") this.swings.record(raw.id, raw.homeWinProb, now);
