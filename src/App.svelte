@@ -707,6 +707,13 @@
   /* Chosen once and then the slate moved on. The preference is kept, so it comes
      back on its own next Sunday, but the list has to render as something today. */
   const groupByWindow = $derived(prefs.upcomingOrder === "window" && windowsOffered);
+  /* The order the list is actually in, for which button shows as selected. Window
+     is one preference across both tabs, and college has no windows to offer, so
+     without this switching tabs left no button selected at all while the list
+     quietly fell back to Best. */
+  const shownOrder = $derived(
+    prefs.upcomingOrder === "window" && !windowsOffered ? "rank" : prefs.upcomingOrder,
+  );
 
   const updatedLabel = $derived.by(() => {
     void now;
@@ -873,15 +880,15 @@
         <span class="order">
           <button
             type="button"
-            class:on={prefs.upcomingOrder === "rank"}
+            class:on={shownOrder === "rank"}
             onclick={() => setUpcomingOrder("rank")}>Best</button
           ><button
             type="button"
-            class:on={prefs.upcomingOrder === "time"}
+            class:on={shownOrder === "time"}
             onclick={() => setUpcomingOrder("time")}>Time</button
           >{#if windowsOffered}<button
               type="button"
-              class:on={prefs.upcomingOrder === "window"}
+              class:on={shownOrder === "window"}
               onclick={() => setUpcomingOrder("window")}>Window</button
             >{/if}
         </span>
