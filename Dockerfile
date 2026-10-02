@@ -43,7 +43,7 @@ EXPOSE 8787
 ARG REVISION=""
 ENV REVISION=$REVISION
 
-# Never root. The uid only has to match whoever owns the notification volume, and
+# Never root. The uid only has to match whoever owns the /config volume, and
 # that is the operator's call at run time: `--user 99:100` on Unraid, where
 # appdata is already owned that way. Switching uid *inside* the container would
 # mean starting as root purely to chown, which buys nothing here.

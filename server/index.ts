@@ -53,7 +53,7 @@ const strength = new StrengthStore();
  * one dataset that says whether the model is any good. Unset the variable and the
  * feature is simply off rather than open.
  */
-const reports = new ReportStore(notifyDir());
+const reports = new ReportStore(dataDir());
 /**
  * Keys by key, giving the name that key reports under.
  *
@@ -120,8 +120,15 @@ const places = new PlaceStore();
  * or in tmpfs. Mount nothing at `/config` and notifications stay off exactly as
  * they did when the variable was unset, with a message saying why.
  */
-function notifyDir(): string | undefined {
-  if (process.env.NOTIFY_DIR) return process.env.NOTIFY_DIR;
+function dataDir(): string | undefined {
+  /*
+   * `DATA_DIR`, falling back to `NOTIFY_DIR`. The directory was named for push
+   * notifications, the first thing kept there, and by 2026-10-01 it also held the
+   * reports, the history log and the per-game ledger, so the old name described a
+   * quarter of it. Existing installs set `NOTIFY_DIR` and keep working.
+   */
+  const configured = process.env.DATA_DIR || process.env.NOTIFY_DIR;
+  if (configured) return configured;
   return fs.existsSync("/.dockerenv") || fs.existsSync("/run/.containerenv")
     ? "/config"
     : undefined;
@@ -129,7 +136,7 @@ function notifyDir(): string | undefined {
 
 function startSubscriptions(): SubscriptionStore {
   try {
-    return new SubscriptionStore(notifyDir());
+    return new SubscriptionStore(dataDir());
   } catch (err) {
     console.error(
       `[notify] disabled after a startup failure: ${err instanceof Error ? err.message : err}`,
@@ -143,7 +150,7 @@ const subscriptions = startSubscriptions();
  * Shares the notification directory, which is the one path guaranteed to be a
  * real mount rather than container-local scratch.
  */
-const history = new History(notifyDir());
+const history = new History(dataDir());
 const alerts = new AlertEngine(subscriptions);
 
 /** Each league polls independently, so a quiet NFL week cannot slow a busy Saturday. */
@@ -271,7 +278,7 @@ function onSnapshot(snapshot: Snapshot): void {
 }
 
 const pollers: Record<League, LeaguePoller> = {
-  cfb: new LeaguePoller("cfb", null, onSnapshot, notifyDir()),
+  cfb: new LeaguePoller("cfb", null, onSnapshot, dataDir()),
   // Divisions and playoff seeds are not on the scoreboard, so NFL games get
   // decorated from the standings feed before scoring.
   nfl: new LeaguePoller(
@@ -281,7 +288,7 @@ const pollers: Record<League, LeaguePoller> = {
       await strength.enrich(games);
     },
     onSnapshot,
-    notifyDir(),
+    dataDir(),
   ),
 };
 

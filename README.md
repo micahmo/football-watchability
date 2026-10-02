@@ -229,8 +229,15 @@ two, so the container can be replaced. A restart is not free during a slate, tho
 None of it lasts more than a few minutes, but a quiet window is a better time to update than the
 middle of a Saturday.
 
-**Notifications need a volume.** A push keypair and its subscriptions cannot be rebuilt from
-anywhere, and the same directory holds the history log. Mount one at `/config`:
+**Mount a volume at `/config`.** The board runs without one, but this is where everything that
+cannot be rebuilt from ESPN lives:
+
+- `notifications.json`: the push keypair and everyone's subscriptions. Alerts need this.
+- `reports.json`: rating feedback, when `REPORT_KEY` is set.
+- `history-<date>.jsonl`: a row per game state change, kept 21 days, which is what scoring
+  changes are measured against.
+- `ledger-nfl.json`, `ledger-cfb.json`: each game's closing line, the teams as they stood at
+  kickoff, and its swing at the final whistle, so a restart changes no rating.
 
 ```bash
 docker run -d --name football-watchability \
@@ -245,11 +252,12 @@ docker run -d --name football-watchability \
 The image runs as a non-root user and never chowns anything, so the uid has to match whoever owns
 the volume. `99:100` is Unraid's appdata owner; elsewhere, use your own.
 
-`/config` is the default inside a container; set `NOTIFY_DIR` only to use a different path.
+`/config` is the default inside a container; set `DATA_DIR` only to use a different path.
 
-Without a volume, notifications are unavailable and everything else is unchanged. The server reads
-the mount table rather than trusting the path, so a forgotten `-v` hides the toggle and says why,
-instead of collecting subscriptions that vanish on the next update.
+Without a volume, notifications are unavailable: the server reads the mount table rather than
+trusting the path, so a forgotten `-v` hides the toggle and says why, instead of collecting
+subscriptions that vanish on the next update. The other files are still written, into the
+container itself, so they last until it is replaced.
 
 **Set `TZ` to US Eastern or near it.** The poller asks ESPN for "yesterday through today", and
 those day boundaries are what keep a game running past midnight visible.
@@ -281,7 +289,7 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `SCHEDULE_POLL_MS` | `600000` | Schedule refresh interval |
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
-| `NOTIFY_DIR` | `/config` in a container | Where push keys, subscriptions and the history log live. Must be a mounted volume; the server checks |
+| `DATA_DIR` | `/config` in a container | Where everything kept on disk lives: push keys and subscriptions, reports, the history log and the per-game ledger. Notifications require a mounted volume; the server checks. `NOTIFY_DIR`, its old name, still works |
 | `REPORT_KEY` | - | Enables rating feedback. One key, or several named ones as `micah:abc123,dad:def456`. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
 | `NOTIFY_CONTACT` | `mailto:nobody@example.com` | Who runs this server, as `mailto:` or `https:`. Web Push signs it into every request so a push service can contact you about a misbehaving server. A private board never needs it |
 

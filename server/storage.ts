@@ -108,7 +108,7 @@ export function explain(d: Durability): string {
     case "ok":
       return `durable storage on ${d.fsType ?? "the host filesystem"}`;
     case "not-configured":
-      return "no storage directory configured (set NOTIFY_DIR)";
+      return "no storage directory configured (set DATA_DIR)";
     case "missing":
       return "the storage directory could not be created";
     case "not-writable":
