@@ -2,14 +2,11 @@
   import type { League } from "../../shared/types";
   import { prefs, setLeague } from "./prefs.svelte";
 
+  /** Which leagues have games on right now, for the dot. */
+  let { live }: { live: Record<League, boolean> } = $props();
+
   /* Order here is the tab order. */
   const LABELS: Record<League, string> = { nfl: "NFL", cfb: "College" };
-
-  function choose(league: League) {
-    // Marked as the viewer's own even when it changes nothing: tapping the tab you
-    // are already on is still a statement that you want to be here.
-    setLeague(league, true);
-  }
 </script>
 
 <nav class="tabs" aria-label="League">
@@ -18,9 +15,13 @@
       type="button"
       class:active={prefs.league === league}
       aria-current={prefs.league === league ? "page" : undefined}
-      onclick={() => choose(league as League)}
+      onclick={() => setLeague(league as League)}
     >
-      {LABELS[league as League]}
+      {LABELS[league as League]}{#if live[league as League]}<span
+          class="live"
+          title="Games on now"
+          aria-label="games on now"
+        ></span>{/if}
     </button>
   {/each}
 </nav>
@@ -53,5 +54,16 @@
   .tabs button.active {
     color: var(--text);
     border-bottom-color: var(--hot);
+  }
+  /* The cards' live dot, smaller and still: it marks where the football is, and
+     a second pulse in the header would compete with the one on the hero card. */
+  .live {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 5px;
+    border-radius: 50%;
+    background: var(--hot);
+    vertical-align: 3px;
   }
 </style>

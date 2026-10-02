@@ -1449,6 +1449,13 @@ as a template nobody checked. The NFL plays at one, four and eight; college star
 
 ## Landing on the tab with the football
 
+**Removed 2026-10-01.** Micah: "can you remove the feature where we focus the tab with live games
+lol. just remembering what the user last selected is fine. maybe you can put a dot on the tab to
+indicate live". The tab is now only ever moved by a tap and is remembered, and a red dot on a tab
+says that league has games on, which answers the question the switch was trying to answer without
+taking the choice away. What follows is the reasoning it was built on, kept because the two rules
+it learned would apply to anything that tries to choose for the viewer again.
+
 Opening the app on a Sunday and finding a college tab with nothing on it, because that is where the
 tab was left in September, is a small thing that happens every week. So when exactly one league has
 live games the board picks that one and persists it, which makes it a selection rather than a hint.

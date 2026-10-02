@@ -72,7 +72,8 @@ on the board hides its score, clock, rating, win probability, drive, last play, 
 sorts it to the bottom and sends no notifications about it. A tap asks before it shows you, and
 reloading forgets that you asked. Games that have not kicked off are untouched.
 
-**League tabs** switch between NFL and college; the NFL opens by default. **Favorite
+**League tabs** switch between NFL and college; the NFL opens by default, and after that the board
+opens on whichever tab you left it on. A red dot on a tab means that league has games on. **Favorite
 conferences** break a tie toward the games you care about, by one point for one team and two
 for both. Tab, favorites and market all persist in the browser.
 

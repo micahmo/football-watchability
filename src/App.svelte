@@ -12,7 +12,6 @@
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
   import HelpPanel from "./lib/HelpPanel.svelte";
-  import { setLeague, tabChoice } from "./lib/prefs.svelte";
   import { updateBoardSettings } from "./lib/push";
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
 
@@ -254,55 +253,19 @@
       }
     }
   }
-  /**
-   * The league with football on, when exactly one of them has any.
-   *
-   * `undefined` until both boards have loaded, which matters: deciding from the
-   * first to arrive would sometimes pick a league because the other had not
-   * answered yet rather than because it had nothing on.
-   */
-  const onlyLive = $derived.by(() => {
-    const nfl = boards.nfl;
-    const cfb = boards.cfb;
-    if (nfl === null || cfb === null) return undefined;
-    const nflLive = nfl.live.length > 0;
-    const cfbLive = cfb.live.length > 0;
-    if (nflLive === cfbLive) return null;
-    return nflLive ? "nfl" : "cfb";
-  });
-
   /*
-   * Opening the app on a Sunday should not show a college tab with nothing on it
-   * because that is where the tab was left in September.
+   * Which leagues have football on, for a dot on each tab.
    *
-   * So when one league has games and the other does not, the board picks that one
-   * and persists it, which makes it a real selection rather than a hint. Two
-   * things stop it being annoying. A tap always wins, and holds until the
-   * situation itself changes, so the board never argues with somebody who has just
-   * told it where they want to be. And the pick only ever fires on a *transition*:
-   * re-evaluating continuously would drag the tab away mid-glance every time the
-   * last game of an afternoon ended.
+   * The board used to move to the tab with games on whenever only one league had
+   * any, and persist that as the choice. Micah, 2026-10-01: "can you remove the
+   * feature where we focus the tab with live games lol. just remembering what the
+   * user last selected is fine. maybe you can put a dot on the tab to indicate
+   * live". So the tab is only ever where it was left, and this says where the
+   * football is without taking anybody there.
    */
-  let settledOn: League | null | undefined = undefined;
-
-  $effect(() => {
-    const only = onlyLive;
-    /*
-     * Nothing on anywhere is not an answer, so it neither moves the tab nor
-     * clears a tap. Treating it as a change was the first attempt and it fell
-     * over: the count dips through zero whenever an afternoon's last game ends,
-     * and every dip revoked the viewer's own choice and re-picked for them. Only
-     * a change in *which* league has the football is a change in the answer.
-     */
-    if (only === undefined || only === null) return;
-    if (only !== settledOn) {
-      settledOn = only;
-      // A different league has the games now, so an earlier tap does not speak
-      // to the situation the viewer is actually in.
-      tabChoice.manual = false;
-    }
-    if (tabChoice.manual) return;
-    setLeague(only, false);
+  const liveLeagues = $derived({
+    nfl: (boards.nfl?.live.length ?? 0) > 0,
+    cfb: (boards.cfb?.live.length ?? 0) > 0,
   });
 
   // Ticks once a second purely so the "updated Ns ago" label stays honest.
@@ -727,7 +690,7 @@
        screen to say something the user already knows, and an installed PWA
        already shows the app name in the task switcher. -->
   <div class="topbar">
-    <LeagueTabs />
+    <LeagueTabs live={liveLeagues} />
     <div class="status">
       {#if loadError}
         <span class="err">offline</span>
