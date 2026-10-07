@@ -45,7 +45,7 @@
     classic: "It goes from good to memorable",
     upset: "An underdog is doing something it should not be",
     kickoff: "The pick of a busy kickoff window is starting, or the few too close to call",
-    primetime: "The only game in its slot is on. Might not be great, but football is on",
+    primetime: "The only game on is starting. Might not be great, but football is on",
   };
 
   let config = $state<PushConfig | null>(null);

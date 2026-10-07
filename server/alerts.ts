@@ -49,6 +49,20 @@ const HERO_MIN_SECONDS_LEFT = 60;
  * four games; the term itself tops out around 0.59.
  */
 const UPSET_TENSION = 0.55;
+/**
+ * How prominent a game has to be for any live alert.
+ *
+ * A notification interrupts somebody, and a close finish between two teams
+ * nobody is following is not worth that, however good the rating. The three
+ * alerts Micah questioned were Southern Miss at Tulane (0.24, "who??? no one is
+ * watching this"), Gardner-Webb at Marshall (0.28, "notification for this?") and
+ * North Texas at Tulsa at one in the morning (0.49). Every other live alert sent
+ * by 2026-10-07 was at 0.59 or above, the lowest Virginia Tech at Boston College,
+ * an upset nobody objected to. The board still rates and shows these games; this
+ * only decides whether to buzz a phone about them. `prominence` already rises as
+ * a game stays close, so this is measured against how big the game is right now.
+ */
+const ALERT_MIN_PROMINENCE = 0.55;
 /** Enough games in a window that choosing between them is actually a problem. */
 const KICKOFF_MIN_SLATE = 4;
 /**
@@ -90,6 +104,16 @@ const MAX_PICKS = 3;
  * about. College has no equivalent, so this is NFL only.
  */
 const PRIMETIME_MAX_SLATE = 1;
+/**
+ * How far either side of a lone kickoff another one cancels "football is on".
+ *
+ * Alone in its slot is not alone on the board. Dolphins at Vikings was the only
+ * 4:05 kickoff on 2026-10-04, so it went out as "Football is on" while the one
+ * o'clock games were still being played, Cowboys at Texans rated 82 among them,
+ * and the 4:25 window opened twenty minutes later. Micah: "why kickoff notif for
+ * this one?" So nothing else may be live, or kicking off within this long.
+ */
+const PRIMETIME_CLEAR_MS = 45 * 60 * 1000;
 /**
  * How long after the scheduled time a kickoff alert may still fire.
  *
@@ -360,6 +384,7 @@ export class AlertEngine {
       // Every one of these says "switch to this", and a game at halftime or in a
       // delay is the one thing that cannot be switched to.
       if (isPaused(game)) continue;
+      if ((game.score?.prominence ?? 0) < ALERT_MIN_PROMINENCE) continue;
       const score = earned(game, favorites);
       const alternatives = live.length - 1;
       const already = (c: Category) => this.sent.has(`${sub.id}:${game.id}:${c}`);
@@ -449,6 +474,15 @@ export class AlertEngine {
       if (solo ? !wantsPrimetime : !(wantsKickoff && games.length >= KICKOFF_MIN_SLATE)) continue;
       const kick = Date.parse(startDate);
       if (!(now >= kick && now - kick < KICKOFF_GRACE_MS)) continue;
+      if (
+        solo &&
+        (snapshot.live.some((g) => g.startDate !== startDate) ||
+          snapshot.upcoming.some(
+            (g) => g.startDate !== startDate && Math.abs(Date.parse(g.startDate) - kick) < PRIMETIME_CLEAR_MS,
+          ))
+      ) {
+        continue;
+      }
       const key = `${league}:${startDate}`;
       if (this.announced.has(key)) continue;
 
@@ -671,7 +705,7 @@ function expectation(alert: Alert): string {
 /** "in the 2nd", or "in OT". Only the third quarter was special-cased, so every
  *  other one read as "1th", "2th", "4th". */
 function quarter(period: number): string {
-  if (period > 4) return "in OT";
+  if (period > 4) return period === 5 ? "in overtime" : `in ${period - 4}OT`;
   const suffix = period === 1 ? "st" : period === 2 ? "nd" : period === 3 ? "rd" : "th";
   return `in the ${period}${suffix}`;
 }
@@ -728,7 +762,14 @@ function detail(alert: Alert): string {
     game.away.score === 0 && game.home.score === 0
       ? ""
       : `${game.away.abbrev} ${game.away.score}, ${game.home.abbrev} ${game.home.score} · `;
-  return `${scoreline}${game.clock} ${quarter(game.period)}${network}`;
+  /*
+   * No clock in college overtime, which is untimed: ESPN reports it as 0:00, and
+   * "0:00 in OT" read as a game that had just ended (2026-10-02, North Texas at
+   * Tulsa; Kentucky at South Carolina the next night). NFL overtime has a real
+   * clock and keeps it.
+   */
+  const untimed = game.period > 4 && (game.league === "cfb" || game.clockSeconds === 0);
+  return `${scoreline}${untimed ? "" : `${game.clock} `}${quarter(game.period)}${network}`;
 }
 
 /**

@@ -58,10 +58,12 @@ Finished games do not fold, but the same six-at-a-time expander applies.
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
 kickoff window (or the two or three picks, when they are expected within three points of each
-other), and NFL primetime, where the only game in its slot is starting and the alert says
-plainly how good it is expected to be. An upset alert is about the underdog rather than the
+other), and NFL primetime, where the only game on is starting and the alert says plainly how
+good it is expected to be. An upset alert is about the underdog rather than the
 board, so when a different game is the best one on, it names that game too. A game gets one
 "worth switching to" or "memorable" alert, never both, and neither with under a minute to play.
+Live alerts skip games few people follow, however close: the board still rates them, but a
+notification is an interruption.
 Three a day per league, and after that only a game clearly better than any already sent, up to
 six; kickoff alerts are not held back by the live ones. The day runs 5 am to 5 am. Each one names the channel
 and says when a game is out of market; **My channels first** stops those arriving at all. The

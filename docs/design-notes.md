@@ -2329,3 +2329,35 @@ prompted it had a clear pick by eight. The 1 pm NFL window of 2026-09-27 would h
 Steelers and Patriots at Jaguars, 75 and 72, for a viewer without the Patriots on their no-spoilers
 list. Co-picks go through the same filters as the pick, so a spoiler team or an unavailable game
 is never named.
+
+## Third weekly review (2026-10-07)
+
+24 reports, 18 of them "right", against 37 of 87 the week before. All were made on the tuning from
+the second review, so this is the first read of it, though a thin one for college: only two of
+the 24 were college games, and the first-half change was mostly about college. Three "higher"
+verdicts repeated last week's mid-game pattern, all on standalone games where the board's order
+could not be wrong, so the billing was left alone: keeping more of it past halftime is the change
+that put first-half games above close finishes elsewhere.
+
+What the review did change was all about notifications.
+
+**College overtime has no clock.** The body said "0:00 in OT", which reads as a finished game.
+Overtime now says "in overtime" or "in 2OT", and NFL overtime, which is timed, keeps its clock.
+
+**"Football is on" means the only game on.** The primetime alert fired for any slot with one game
+in it, and Dolphins at Vikings was alone at 4:05 while the one o'clock games were still being
+played and the 4:25 window was twenty minutes off. It now needs nothing else live and no other
+kickoff within 45 minutes. Thursday, Sunday and Monday nights, London mornings and Thanksgiving's
+staggered slots all still qualify.
+
+**Live alerts need a prominent game.** Every live alert Micah questioned was for a game nobody
+much follows: Southern Miss at Tulane at 0.24 prominence, Gardner-Webb at Marshall at 0.28, North
+Texas at Tulsa at 0.49 at one in the morning. Every other live alert ever sent sat at 0.59 or
+above. The bar is 0.55. The board still rates and shows these games; the rating is right that a
+45-44 overtime is exciting, and only the decision to interrupt somebody about it changed.
+
+**The new guards earned their keep.** No game froze. The poll overruled a pushed state 124 times,
+and 13 of those were touchdowns the push feed had counted and a flag then took off, which ESPN
+records as "TOUCHDOWN nullified by penalty" and the push never corrects. Under the old guard every
+one of those would have frozen its game, as a reversed Rice touchdown froze Rice at Fresno State
+for twelve hours.
