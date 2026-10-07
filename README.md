@@ -30,7 +30,7 @@ situation, who has the ball, the network, the pregame line, and any tags that ap
 or in a delay keeps its place in the list but cannot take the top slot, and sends no live alerts,
 until play resumes.
 
-**Worth planning around**, the next few days grouped by day, days in order, so an earlier day's
+**Worth planning around**, the coming week grouped by day, days in order, so an earlier day's
 games are never buried under a better game later in the week. Every game on a day is listed. Within a day, **Best** ranks by rating and **Time**
 runs chronologically, for reading the day in order and seeing which slots are worth it. **Window**
 splits the day into its kickoff windows and ranks within each, so an NFL Sunday reads as **Early**,

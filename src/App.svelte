@@ -22,8 +22,17 @@
   import UpcomingRow from "./lib/UpcomingRow.svelte";
 
   const REFRESH_MS = 20_000;
-  /** Planning horizon. Beyond a few days out, lines move and this stops being useful. */
-  const MAX_DAYS = 3;
+  /**
+   * Planning horizon, in calendar days counting today.
+   *
+   * It was the first three days *with games*, which is not the same thing: in a
+   * week when college plays Wednesday, Thursday and Friday nights, those filled all
+   * three and Saturday, the whole point of the list, was cut, while the NFL's
+   * Thursday, Sunday and Monday reached the weekend. Micah: "why is nfl showing
+   * games next sunday but college isn't even showing games for saturday". A week
+   * always reaches the coming weekend for both leagues.
+   */
+  const HORIZON_DAYS = 7;
   const MAX_PER_DAY = 6;
   /**
    * How many live and finished cards to show before an expander.
@@ -595,9 +604,10 @@
       if (bucket) bucket.push(game);
       else groups.set(key, [game]);
     }
+    const lastDay = dayKey(new Date(Date.now() + (HORIZON_DAYS - 1) * 86_400_000).toISOString());
     return [...groups.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
-      .slice(0, MAX_DAYS)
+      .filter(([key]) => key <= lastDay)
       .map(([key, games]) => {
         // Games the market is not carrying stay at the bottom either way: the
         // question "what is on next" only means the ones you could actually put

@@ -52,11 +52,14 @@ const SCHEDULE_DAYS = Number(process.env.SCHEDULE_DAYS ?? 8);
  */
 const MAX_UPCOMING_PER_DAY = 100;
 /**
- * The client renders three days. Shipping four covers it with a day of slack while
- * keeping the payload honest: the old eight-day list spent most of its budget on
- * days the client discarded without drawing them.
+ * How many calendar days ahead to send, counting today. The client draws seven;
+ * one more is slack for a viewer a timezone ahead of the server.
+ *
+ * Calendar days, not days with games. "The next four days with games" stopped
+ * short of Saturday in a week when college also played Wednesday, Thursday and
+ * Friday, and the client's own three-day cut lost it outright.
  */
-const MAX_UPCOMING_DAYS = 4;
+const UPCOMING_DAYS = 8;
 const MAX_RECENT = 12;
 /** Cap the one-off line lookups per poll so a full Saturday cannot burst. */
 const MAX_LINE_LOOKUPS_PER_POLL = 4;
@@ -280,7 +283,7 @@ function localDay(iso: string): string {
 function capPerDay(games: Game[]): Game[] {
   const days = [...new Set(games.map((g) => localDay(g.startDate)))]
     .sort()
-    .slice(0, MAX_UPCOMING_DAYS);
+    .filter((day) => day <= localDay(new Date(Date.now() + (UPCOMING_DAYS - 1) * 86_400_000).toISOString()));
   const budget = new Map(days.map((d) => [d, MAX_UPCOMING_PER_DAY]));
   const kept: Game[] = [];
   for (const game of games) {
