@@ -30,11 +30,10 @@ export interface TeamStanding {
   playoffSeed: number | null;
   winPct: number | null;
   /**
-   * ESPN says the team has clinched a first-round bye. Read from the clinch
-   * mark's own description, "Clinched Division and Bye", rather than the "*" it
-   * is drawn as, so the decision stays ESPN's in words as well as in fact.
+   * ESPN's clinch mark and its description: "z", "Clinched Division"; "*",
+   * "Clinched Division and Bye". Null before anything is decided.
    */
-  clinchedBye: boolean;
+  clinch: { mark: string; label: string } | null;
 }
 
 export class StandingsStore {
@@ -85,11 +84,13 @@ export class StandingsStore {
         const teamId = entry?.team?.id != null ? String(entry.team.id) : null;
         if (teamId === null || divisionId === null) continue;
         const stats: Record<string, unknown> = {};
-        let clinchedBye = false;
+        let clinch: TeamStanding["clinch"] = null;
         for (const stat of entry?.stats ?? []) {
           if (stat?.name) stats[stat.name] = stat.value ?? stat.displayValue;
-          if (stat?.name === "clincher" && /\bbye\b/i.test(String(stat.description ?? ""))) {
-            clinchedBye = true;
+          // The mark is the display value; `value` is a number standing for it.
+          const mark = typeof stat?.displayValue === "string" ? stat.displayValue.trim() : "";
+          if (stat?.name === "clincher" && mark !== "") {
+            clinch = { mark, label: String(stat.description ?? mark) };
           }
         }
         const seed = Number(stats.playoffSeed);
@@ -109,7 +110,7 @@ export class StandingsStore {
           conferenceName: confName ?? "",
           playoffSeed: Number.isFinite(seed) && seed > 0 ? seed : null,
           winPct: played > 0 && Number.isFinite(pct) ? pct : null,
-          clinchedBye,
+          clinch,
         });
       }
       for (const child of node?.children ?? []) {
@@ -161,6 +162,7 @@ export class StandingsStore {
         side.divisionId = standing.divisionId;
         side.conferenceName = standing.conferenceName || side.conferenceName;
         side.playoffSeed = standing.playoffSeed;
+        side.clinch = standing.clinch;
         // The standings win percentage is authoritative; the scoreboard record is
         // a fallback for when a team is missing from the feed.
         side.winPct = standing.winPct ?? side.winPct;

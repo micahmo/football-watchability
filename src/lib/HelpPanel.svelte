@@ -106,6 +106,15 @@
       could not switch to it.
     </p>
 
+    <h3>Clinch marks, NFL only</h3>
+    <p>
+      Late in the season a small mark beside a team's name says where it stands, as ESPN marks its
+      standings: <span class="mono">z</span> clinched the division, <span class="mono">y</span>
+      clinched a wild card, <span class="mono">*</span> clinched the division and a first-round
+      bye, <span class="mono">e</span> eliminated from playoff contention. While a game you are
+      avoiding is on the board none are shown, since a result there can change anybody's.
+    </p>
+
     <h3>The other two lists</h3>
     <p>
       <strong>Worth planning around</strong> rates games that have not kicked off, on the matchup

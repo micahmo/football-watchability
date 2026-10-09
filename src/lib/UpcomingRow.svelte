@@ -4,6 +4,7 @@
   import ChannelChip from "./ChannelChip.svelte";
   import { longPress } from "./longPress";
   import { prefs } from "./prefs.svelte";
+  import { clinchesShown } from "./spoilers.svelte";
 
   let {
     game,
@@ -63,6 +64,9 @@
           {/if}
           {#if team.rank}<span class="rk mono">{team.rank}</span>{/if}
           <span class="team-name">{team.name}</span>
+          {#if team.clinch && clinchesShown()}
+            <span class="clinch mono" title={team.clinch.label}>{team.clinch.mark}</span>
+          {/if}
           {#if hasRecord(team.record)}<span class="record mono">{team.record}</span>{/if}
         </span>
       {/each}
@@ -141,6 +145,17 @@
     align-items: center;
     gap: 3px;
     min-width: 0;
+  }
+  /* ESPN's standings mark, drawn small and raised after the name the way ESPN
+     draws it, so it reads as a footnote to the team rather than a tag. */
+  .clinch {
+    position: relative;
+    top: -3px;
+    margin-left: -1px;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--text-dim);
+    flex: none;
   }
   .record {
     font-size: 11px;

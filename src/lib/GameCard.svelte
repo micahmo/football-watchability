@@ -10,7 +10,7 @@
   } from "./format";
   import ChannelChip from "./ChannelChip.svelte";
   import { longPress } from "./longPress";
-  import { isHidden, isProtected, reveal, unreveal } from "./spoilers.svelte";
+  import { clinchesShown, isHidden, isProtected, reveal, unreveal } from "./spoilers.svelte";
   import { prefs } from "./prefs.svelte";
   import { slide } from "svelte/transition";
   import FieldPosition from "./FieldPosition.svelte";
@@ -229,6 +229,9 @@
           {/if}
           {#if team.rank}<span class="rank-badge mono">{team.rank}</span>{/if}
           <span class="team-name">{team.name}</span>
+          {#if team.clinch && clinchesShown()}
+            <span class="clinch mono" title={team.clinch.label}>{team.clinch.mark}</span>
+          {/if}
           <!-- A record is a result: once the game is final it reads 2-1 beside a
                team that was 2-0 and gives away the score sitting hidden next to it. -->
           {#if !hidden && hasRecord(team.record)}
@@ -618,6 +621,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  /* ESPN's standings mark, drawn small and raised after the name the way ESPN
+     draws it, so it reads as a footnote to the team rather than a tag. */
+  .clinch {
+    position: relative;
+    top: -4px;
+    margin-left: -5px;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--text-dim);
+    flex: none;
   }
   .record {
     font-size: 11px;

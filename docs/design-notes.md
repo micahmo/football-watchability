@@ -2394,3 +2394,19 @@ seeds would show; the board shows what ESPN calls a bye and does not infer one f
 The pill set the text a few pixels off the column every other line starts on, and a box like the
 cards' was what fixed it. It sits above the week's first day still to come, so after Thursday
 night the byes move down to Sunday, where they matter.
+
+## Clinch marks (2026-10-08)
+
+Asked while the bye line was being built: "other symbols for other clinchings? should we add these
+to the ui as well for regular game displays". ESPN's standings give every team a clinch mark with
+its own description, "z" with "Clinched Division", and the board draws ESPN's mark and offers ESPN's
+wording on hover, so a new mark or a change of format needs nothing here. The help panel carries
+the key, marked as NFL only.
+
+**Spoilers took the most thought.** A record changes only when the team's own game ends, so hiding
+it on that game's card is enough. A clinch mark is the one thing on a card another game can
+change: a team clinches its division when a rival loses, so a "z" turning up beside the Patriots
+says the Bills lost, on a card with nothing to do with the Bills. So while any game the viewer is
+avoiding is live or finished on the board, no mark is drawn anywhere, which on a Sunday costs a
+small decoration and nothing else. Nothing is marked until around week 12, so this was built
+early, ahead of being needed.

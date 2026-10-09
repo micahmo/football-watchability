@@ -290,7 +290,11 @@ const pollers: Record<League, LeaguePoller> = {
     onSnapshot,
     dataDir(),
     async () =>
-      (await standings.roster()).filter((team) => team.clinchedBye).map((team) => team.abbrev),
+      (await standings.roster())
+        // ESPN's own wording, "Clinched Division and Bye", rather than the "*" it
+        // is drawn as, so the decision stays ESPN's in words as well as in fact.
+        .filter((team) => /\bbye\b/i.test(team.clinch?.label ?? ""))
+        .map((team) => team.abbrev),
   ),
 };
 

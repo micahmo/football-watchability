@@ -26,6 +26,7 @@ import { prefs } from "./prefs.svelte";
  *   - the dimming of the trailing side, which names the loser with no numbers
  *   - the position in the list, since sorting by quality broadcasts quality
  *   - the hero heading, which would otherwise describe the card it is hiding
+ *   - every clinch mark on the board, not only the hidden game's (`clinchesShown`)
  *
  * Notifications are handled separately and more strictly, in `server/alerts.ts`:
  * the board can decline to draw something it was sent, but a push shows itself,
@@ -55,6 +56,26 @@ export function reveal(gameId: string): void {
  */
 export function unreveal(gameId: string): void {
   revealed = revealed.filter((id) => id !== gameId);
+}
+
+/** Whether a hidden game is on the board right now; kept current by the app. */
+let hiddenOnBoard = $state(false);
+
+export function setBoard(games: Game[]): void {
+  hiddenOnBoard = games.some(isHidden);
+}
+
+/**
+ * Whether clinch marks can be drawn anywhere.
+ *
+ * Not per game, like everything else here, because a mark is the one thing on a
+ * card another game can change. A team clinches its division when a rival loses,
+ * so a "z" appearing beside the Patriots says the Bills lost, on a card that has
+ * nothing to do with the game being avoided. While any hidden game is live or
+ * finished on the board, no mark is drawn at all.
+ */
+export function clinchesShown(): boolean {
+  return !hiddenOnBoard;
 }
 
 /** Whether this game involves a team the viewer is avoiding. */

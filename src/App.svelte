@@ -16,7 +16,7 @@
   import UpdatePrompt from "./lib/UpdatePrompt.svelte";
 
   import GameCard from "./lib/GameCard.svelte";
-  import { isHidden } from "./lib/spoilers.svelte";
+  import { isHidden, setBoard } from "./lib/spoilers.svelte";
   import { isPaused } from "../shared/status";
   import { windowLabels, windowTimeLabel, windowsOf } from "./lib/format";
   import UpcomingRow from "./lib/UpcomingRow.svelte";
@@ -593,6 +593,8 @@
   // many show and the expander reaches the rest. Cutting at five before the
   // expander existed meant the server sent twelve and seven were unreachable.
   const recent = $derived([...(snapshot?.recent ?? [])].sort(spoilerLast(scoreOf)));
+  // Which decides whether clinch marks can show anywhere; see `clinchesShown`.
+  $effect(() => setBoard([...(snapshot?.live ?? []), ...(snapshot?.recent ?? [])]));
   // Grouped by day, days in chronological order, ranked within each day. You plan
   // Friday before you plan Saturday, so a better Saturday game must not outrank
   // an earlier day's games in the list.

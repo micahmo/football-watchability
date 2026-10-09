@@ -23,6 +23,12 @@ export interface TeamSide {
   divisionId: string | null;
   playoffSeed: number | null;
   /**
+   * NFL only: ESPN's playoff clinch mark as it draws it, "z", with its own wording,
+   * "Clinched Division". Null while nothing is decided. From the standings as they
+   * stand now, which is why the board withholds it around a hidden game.
+   */
+  clinch?: { mark: string; label: string } | null;
+  /**
    * NFL only: nfelo power rating as a league percentile, 1 the strongest team.
    * Null when unavailable, and then the record stands in.
    */

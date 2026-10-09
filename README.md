@@ -45,6 +45,10 @@ on wild card weekend the teams ESPN has down as having clinched a first-round by
 conference title weekend reads **Championship week** and its whole postseason **Bowl season**, with
 each playoff game naming its round, CFP Quarterfinal and so on, on its row and its card.
 
+NFL teams carry ESPN's clinch mark beside their name once they have one, on every list: **z**
+clinched the division, **y** a wild card, **\*** the division and a first-round bye, **e**
+eliminated. None is shown while a game the viewer is avoiding is live or finished on the board.
+
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
 kickoff. A finished game's rating does not change: it is scored on the closing line, the teams'
 ranks, records and seeds as they stood at kickoff, and its swing at the final whistle.
