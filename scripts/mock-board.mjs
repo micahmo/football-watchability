@@ -307,6 +307,8 @@ function planningList(league) {
   return slate.leagues[league].games
     .map((g) => ({
       ...g,
+      week: weekOf(league),
+      round: null,
       score: null,
       tags: [],
       pregameSpread: g.homeSpread,
@@ -326,6 +328,17 @@ function planningList(league) {
     .sort((a, b) => b.anticipation - a.anticipation);
 }
 
+/*
+ * Which week of the season the slate is, which the recording predates. College's
+ * is not in it, so it is ESPN's for the same dates. No byes, truthfully: every
+ * NFL team played that week.
+ */
+const SLATE_WEEK = { nfl: 2, cfb: 3 };
+
+function weekOf(league) {
+  return `2:${SLATE_WEEK[league]}`;
+}
+
 function snapshot(league) {
   const { season, week } = slate.leagues[league];
   return {
@@ -333,6 +346,9 @@ function snapshot(league) {
     updatedAt: new Date(NOW).toISOString(),
     season,
     week,
+    weeks: {
+      [weekOf(league)]: { label: `Week ${SLATE_WEEK[league]}`, byes: [], byeLabel: "bye" },
+    },
     live: mode === "live" ? liveBoard(league).sort((a, b) => b.score.total - a.score.total) : [],
     upcoming: mode === "upcoming" ? planningList(league) : [],
     recent: [],

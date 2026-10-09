@@ -73,6 +73,7 @@
       {#if game.overUnder}<span>o/u {game.overUnder}</span>{/if}
       {#if !game.nationalBroadcast}<span class="local">local feed</span>{/if}
       {#if game.abroad}<span class="abroad">in {game.abroad}</span>{/if}
+      {#if game.round}<span class="abroad">{game.round}</span>{/if}
     </span>
   </div>
 </div>

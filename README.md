@@ -39,7 +39,11 @@ window the naming does not fit keeps its kickoff time. It appears only on days w
 actually form windows, which in practice means the NFL: a Saturday in college spans eleven distinct
 kickoff hours and has none.
 Each row shows kickoff time, the line, the over/under and the network, and where the game is being
-played when that is outside the United States.
+played when that is outside the United States. Each week of the season has a heading with ESPN's
+name for it, "Week 6", "Wild Card" or "Super Bowl", and in the NFL the teams on bye that week, or
+on wild card weekend the teams ESPN has down as having clinched a first-round bye. College's
+conference title weekend reads **Championship week** and its whole postseason **Bowl season**, with
+each playoff game naming its round, CFP Quarterfinal and so on, on its row and its card.
 
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
 kickoff. A finished game's rating does not change: it is scored on the closing line, the teams'
@@ -52,7 +56,7 @@ there and empty.
 
 Live cards fold by default and open when tapped, six at a time with an expander for the rest. The
 best game on starts open. A folded card keeps the teams, records, line, possession, score, clock,
-network, tags and the city of a game played abroad; opening one adds the win probability, down and distance, and the last play.
+network, tags, the city of a game played abroad and a college playoff game's round; opening one adds the win probability, down and distance, and the last play.
 Finished games do not fold, but the same six-at-a-time expander applies.
 
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth

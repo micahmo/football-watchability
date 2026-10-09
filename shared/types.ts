@@ -134,6 +134,14 @@ export interface Game {
    * otherwise the country.
    */
   abroad: string | null;
+  /**
+   * The week of the season the game belongs to, as ESPN's season type and week
+   * number: "2:6" is week 6 of the regular season. Keys `Snapshot.weeks`. College's
+   * whole postseason is the one key "3:bowls".
+   */
+  week: string | null;
+  /** The College Football Playoff round, "CFP Quarterfinal", or null for every other game. */
+  round: string | null;
   odds: string | null;
   /** Absolute point spread. Sign is meaningless here; `odds` carries the favorite. */
   spread: number | null;
@@ -151,6 +159,16 @@ export interface Game {
   tags: string[];
 }
 
+/** A week of the season, for the planning list's week headings. */
+export interface WeekInfo {
+  /** ESPN's name for it, "Week 6" or "Wild Card", or the board's own "Bowl season". */
+  label: string;
+  /** Abbreviations of the teams not playing that week. NFL only; ESPN has none for college. */
+  byes: string[];
+  /** "bye", or "first-round bye" for the top seeds on wild card weekend. */
+  byeLabel: string;
+}
+
 /** A television lineup the viewer might be on, from the listings provider. */
 export interface Provider {
   lineupId: string;
@@ -165,6 +183,8 @@ export interface Snapshot {
   updatedAt: string;
   season: number | null;
   week: number | null;
+  /** Names and byes for the weeks the planning list reaches, keyed by `Game.week`. */
+  weeks: Record<string, WeekInfo>;
   live: Game[];
   upcoming: Game[];
   recent: Game[];

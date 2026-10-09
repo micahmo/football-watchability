@@ -289,6 +289,8 @@ const pollers: Record<League, LeaguePoller> = {
     },
     onSnapshot,
     dataDir(),
+    async () =>
+      (await standings.roster()).filter((team) => team.clinchedBye).map((team) => team.abbrev),
   ),
 };
 

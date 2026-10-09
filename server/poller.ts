@@ -1,6 +1,7 @@
 import {
   RateLimitError,
   fetchPregameLine,
+  fetchByes,
   fetchScoreboard,
   normalizeEvents,
   type RawGame,
@@ -9,7 +10,7 @@ import { FastcastClient, TOPICS, applyPatch, splitPath, type Patch } from "./fas
 import { GameLedger } from "./ledger.js";
 import { anticipationScore, buildTags, scoreGame } from "./scoring.js";
 import { SwingStore } from "./store.js";
-import type { Game, League, Snapshot } from "../shared/types.js";
+import type { Game, League, Snapshot, WeekInfo } from "../shared/types.js";
 
 const POLL_MS = Number(process.env.POLL_MS ?? 30_000);
 /** With nothing live there is nothing to refresh, so back right off. */
@@ -348,6 +349,12 @@ export class LeaguePoller {
   >();
   private season: number | null = null;
   private week: number | null = null;
+  /** From the schedule fetch, which reaches every week the planning list does. */
+  private weekLabels = new Map<string, string>();
+  /** Teams on bye per week. Kept for good, since a week's byes never change. */
+  private readonly byes = new Map<string, string[]>();
+  /** NFL: the teams ESPN's standings mark as having clinched a first-round bye. */
+  private readonly firstRoundByes: (() => Promise<string[]>) | null;
   private fastcast: FastcastClient | null = null;
   private patchTimer: NodeJS.Timeout | null = null;
   /** Patches applied since the last rebuild, for the log line. */
@@ -415,8 +422,10 @@ export class LeaguePoller {
     enrich: Enricher | null = null,
     onSnapshot: ((snapshot: Snapshot) => void) | null = null,
     dataDir?: string,
+    firstRoundByes: (() => Promise<string[]>) | null = null,
   ) {
     this.league = league;
+    this.firstRoundByes = firstRoundByes;
     this.ledger = new GameLedger(dataDir, league);
     this.enrich = enrich;
     this.onSnapshot = onSnapshot;
@@ -425,6 +434,7 @@ export class LeaguePoller {
       updatedAt: new Date(0).toISOString(),
       season: null,
       week: null,
+      weeks: {},
       live: [],
       upcoming: [],
       recent: [],
@@ -536,12 +546,14 @@ export class LeaguePoller {
     try {
       const from = new Date();
       const to = new Date(Date.now() + SCHEDULE_DAYS * 24 * 60 * 60 * 1000);
-      const { games } = await fetchScoreboard({
+      const { games, weekLabels } = await fetchScoreboard({
         league: this.league,
         groups: GROUPS,
         dates: `${yyyymmdd(from)}-${yyyymmdd(to)}`,
       });
       this.scheduled = games.filter((g) => g.state === "pre");
+      this.weekLabels = weekLabels;
+      await this.fetchByes();
       await this.enrich?.(this.scheduled);
       console.log(
         `[${this.tag()}] schedule: ${this.scheduled.length} upcoming over the next ${SCHEDULE_DAYS} days`,
@@ -557,6 +569,60 @@ export class LeaguePoller {
         setTimeout(() => void this.pollSchedule(), SCHEDULE_RETRY_MS);
       }
     }
+  }
+
+  /**
+   * Byes for the NFL weeks the planning list reaches, the ones not already known.
+   *
+   * The regular season, and wild card weekend for the top seeds. The preseason
+   * has none, and the later playoff rounds have nobody resting, only teams
+   * knocked out. Best effort: a week without its byes still gets its heading.
+   */
+  private async fetchByes(): Promise<void> {
+    if (this.league !== "nfl") return;
+    for (const week of this.weekLabels.keys()) {
+      /*
+       * ESPN's scoreboard lists nobody on bye for wild card weekend (checked for
+       * 2024 and 2025), but its standings mark the teams that clinched one, which
+       * in 2025 was exactly Denver and Seattle. ESPN's mark rather than a rule of
+       * our own about seeds, so a change to the playoff format needs nothing from
+       * here. Asked again each time rather than kept, since a bye can be clinched
+       * during the week before.
+       */
+      if (week === "3:1") {
+        if (this.firstRoundByes) {
+          try {
+            this.byes.set(week, await this.firstRoundByes());
+          } catch (err) {
+            console.error(`[${this.tag()}] first-round byes failed: ${err instanceof Error ? err.message : err}`);
+          }
+        }
+        continue;
+      }
+      if (this.byes.has(week) || !week.startsWith("2:")) continue;
+      try {
+        this.byes.set(week, await fetchByes(this.league, week));
+      } catch (err) {
+        console.error(`[${this.tag()}] byes for ${week} failed: ${err instanceof Error ? err.message : err}`);
+      }
+    }
+  }
+
+  /** Names and byes for the weeks in the planning list. */
+  private weeksFor(upcoming: Game[]): Record<string, WeekInfo> {
+    const out: Record<string, WeekInfo> = {};
+    for (const game of upcoming) {
+      const key = game.week;
+      if (key === null || key in out) continue;
+      const label = this.weekLabels.get(key);
+      if (!label) continue;
+      out[key] = {
+        label,
+        byes: this.byes.get(key) ?? [],
+        byeLabel: key === "3:1" ? "first-round bye" : "bye",
+      };
+    }
+    return out;
   }
 
   private async backfillLines(live: RawGame[]): Promise<void> {
@@ -1058,6 +1124,7 @@ export class LeaguePoller {
     updatedAt: new Date(now).toISOString(),
     season: this.season,
     week: this.week,
+    weeks: this.weeksFor(upcoming),
     live,
     upcoming,
     recent,

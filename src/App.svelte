@@ -661,6 +661,7 @@
           windows,
           label: dayLabel(games[0].startDate),
           date: dayDate(games[0].startDate),
+          week: games[0].week ?? null,
           total: ranked.length,
           hidden: Math.max(0, ranked.length - MAX_PER_DAY),
           showAll,
@@ -866,7 +867,21 @@
             >{/if}
         </span>
       </h2>
-      {#each upcomingByDay as day (day.key)}
+      {#each upcomingByDay as day, i (day.key)}
+        {@const week =
+          day.week !== null && day.week !== upcomingByDay[i - 1]?.week
+            ? snapshot?.weeks?.[day.week]
+            : undefined}
+        <!-- Above the week's first day still to come, so once Thursday night has
+             kicked off it moves down to Sunday with the rest of the week. -->
+        {#if week}
+          <div class="week-band" class:first={i === 0}>
+            <span class="week-name">{week.label}</span>
+            {#if week.byes.length > 0}
+              <span class="byes">{week.byeLabel}<span class="mono">{week.byes.join(" ")}</span></span>
+            {/if}
+          </div>
+        {/if}
         <div class="day-group">
           <h3 class="day-head">
             {day.label}
@@ -1268,6 +1283,43 @@
   }
   .day-group + .day-group {
     margin-top: 14px;
+  }
+  /* Boxed like the cards and inset like their rows: the card's padding plus the
+     row's 4px. A pill or a bare label sat a few pixels off the column every line
+     of the list starts on, and that was the thing that looked wrong. */
+  .week-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 26px 0 10px;
+    padding: 6px 18px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .week-band.first {
+    margin-top: 0;
+  }
+  .week-name {
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .byes {
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .byes .mono {
+    margin-left: 6px;
+    color: var(--text-dim);
+  }
+  @media (max-width: 520px) {
+    .week-band {
+      padding: 6px 14px;
+    }
   }
   /* The same mark as the "not on your channels" divider, because it does the same
      job: an entry in the list that labels the rows under it rather than a title

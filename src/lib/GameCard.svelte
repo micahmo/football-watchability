@@ -311,6 +311,9 @@
       {#if game.conferenceGame}<span class="note">conference game</span>{/if}
       <!-- Played abroad, which changes when it is on as much as where. -->
       {#if game.abroad}<span class="note">in {game.abroad}</span>{/if}
+      <!-- The playoff round. College's postseason is one heading on the planning
+           list, so this is the only place a quarterfinal says it is one. -->
+      {#if game.round}<span class="note">{game.round}</span>{/if}
       <!-- "INSTANT CLASSIC" and "2OT" describe how the game is going, which is the
            whole of what is being withheld. -->
       {#if !hidden}

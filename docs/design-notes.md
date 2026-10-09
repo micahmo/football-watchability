@@ -2361,3 +2361,36 @@ and 13 of those were touchdowns the push feed had counted and a flag then took o
 records as "TOUCHDOWN nullified by penalty" and the push never corrects. Under the old guard every
 one of those would have frozen its game, as a reversed Rice touchdown froze Rice at Fresno State
 for twelve hours.
+
+## Week headings and byes (2026-10-08)
+
+Micah: "for nfl with clearly defined weeks can you add a heading like week 4", and a section for
+teams on bye. The planning list became seven calendar days the day before, so on a Monday it shows
+the end of one week and the start of the next, which a list of days did not say.
+
+**Every name is ESPN's.** Each event carries its season type and week number, and every scoreboard
+document carries the season's calendar with a label per week, so the preseason reads "Hall of
+Fame Weekend" and "Preseason Week 1" and the playoffs "Wild Card", "Divisional Round",
+"Conference Championship" and "Super Bowl" without a rule of ours. College has two exceptions.
+Conference championship weekend is just a number to ESPN, and which number moves (15 in 2025, 14 in
+2026), so the week is recognised from its games, whose notes read "SEC Championship"; the FCS
+playoff, which the FBS feed also carries as "FCS Championship - Second Round", is excluded. And the
+postseason is one heading, "Bowl season": ESPN's calendar has overlapping "Bowls" and "CFP" entries
+spanning six weeks, and playoff quarterfinals share New Year's Day with ordinary bowls, so a split
+by round could not keep the list in day order. The round goes on the game instead, from its note
+("College Football Playoff Quarterfinal at the Rose Bowl"), checked against the 2025 playoff.
+
+**Byes are ESPN's too.** A scoreboard fetched by date leaves `teamsOnBye` out, so each week's list
+is fetched once by week number and kept. This season's longest is six, in week 11. College has no
+list at all. Wild card weekend is the exception: ESPN lists nobody, in 2024 or 2025. The first
+version took the number one seeds, and Micah turned that down: "i don't want us to have our own
+logic for this especially as the rules can change". The standings mark clinches, each with its own
+description, and one reads "Clinched Division and Bye", which in 2025 was exactly Denver and
+Seattle. That description is what is matched, not the "*" it is drawn as. Before 2020 the number one
+seeds were marked "Clinched Division and Home Field" instead, so under that format only the second
+seeds would show; the board shows what ESPN calls a bye and does not infer one from home field.
+
+**The heading is a box the width of the cards**, its text inset like the cards' rows, after mockups of a ruled divider, a title, a pill, a bare label and the week on the day heading.
+The pill set the text a few pixels off the column every other line starts on, and a box like the
+cards' was what fixed it. It sits above the week's first day still to come, so after Thursday
+night the byes move down to Sunday, where they matter.

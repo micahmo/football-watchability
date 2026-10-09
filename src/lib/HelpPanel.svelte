@@ -113,7 +113,8 @@
       college and from nfelo's weekly power ratings for the NFL, since a record says little early in
       a season. Sort it by rating, by time, or, on a day whose
       kickoffs fall into proper windows, by window: an NFL Sunday reads as early, late and
-      primetime, which is how everybody talks about it anyway.
+      primetime, which is how everybody talks about it anyway. Each week starts with a heading, and
+      in the NFL the teams on bye that week.
       <strong>Recently finished</strong> is the recap, and asks whether a game mattered rather than
       whether it stayed close, so a big upset ranks alongside a thriller.
     </p>

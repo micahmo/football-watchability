@@ -32,6 +32,8 @@ export interface FetchOptions {
 export interface ScoreboardResult {
   season: number | null;
   week: number | null;
+  /** The name of every week the fetched games fall in, keyed like `Game.week`. */
+  weekLabels: Map<string, string>;
   games: RawGame[];
   /** ESPN's untouched event documents, which the push feed patches. */
   events: any[];
@@ -130,6 +132,95 @@ function abroadOf(address: any): string | null {
   return city.replace(/ (De|Da|Do|Del|La|Le)(?= )/g, (m) => m.toLowerCase());
 }
 
+/**
+ * The season type and week number, "2:6".
+ *
+ * College's postseason is one key whatever ESPN numbers it. Bowls and playoff
+ * rounds share dates, quarterfinals on New Year's Day among ordinary bowls, so
+ * the list cannot be split by round and still run in day order; the round goes on
+ * the game instead (`playoffRound`).
+ */
+function weekKey(event: any, league: League): string | null {
+  const type = Number(event?.season?.type);
+  if (!Number.isInteger(type) || type <= 0) return null;
+  if (league === "cfb" && type === 3) return "3:bowls";
+  const week = Number(event?.week?.number);
+  if (!Number.isInteger(week) || week <= 0) return null;
+  return `${type}:${week}`;
+}
+
+/*
+ * ESPN's note on every playoff game names its round, checked against the 2025
+ * playoff: "College Football Playoff First Round Game", "College Football Playoff
+ * Quarterfinal at the Rose Bowl Presented by Prudential", "College Football
+ * Playoff National Championship Presented by AT&T".
+ */
+const CFP_ROUND = /College Football Playoff (First Round|Quarterfinal|Semifinal|National Championship)/i;
+
+function playoffRound(comp: any): string | null {
+  for (const note of comp?.notes ?? []) {
+    const match = typeof note?.headline === "string" ? CFP_ROUND.exec(note.headline) : null;
+    if (!match) continue;
+    const round = match[1].toLowerCase();
+    if (round === "national championship") return "National Championship";
+    if (round === "first round") return "CFP First Round";
+    return round === "quarterfinal" ? "CFP Quarterfinal" : "CFP Semifinal";
+  }
+  return null;
+}
+
+/*
+ * A conference title game: "SEC Championship", "Big Ten Championship". Not the
+ * FCS playoff, which the FBS feed also carries as "FCS Championship - Second
+ * Round", nor the national one.
+ */
+function conferenceTitleGame(event: any): boolean {
+  return (event?.competitions?.[0]?.notes ?? []).some(
+    (note: any) =>
+      typeof note?.headline === "string" &&
+      /^[\w .&-]+ Championship( Game)?$/.test(note.headline.trim()) &&
+      !/FCS|NCAA|Playoff|National/i.test(note.headline),
+  );
+}
+
+/** ESPN's season calendar, "2:6" to "Week 6", as every scoreboard document carries it. */
+function calendarOf(body: any): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const section of body?.leagues?.[0]?.calendar ?? []) {
+    for (const entry of section?.entries ?? []) {
+      if (typeof entry?.label === "string" && entry?.value != null) {
+        out.set(`${section.value}:${entry.value}`, entry.label);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * What to call each week the events fall in.
+ *
+ * ESPN's own names, which already say "Wild Card" and "Divisional Round" for the
+ * NFL playoffs and "Hall of Fame Weekend" for the preseason. College gets two of
+ * its own. Conference championship weekend is a numbered week to ESPN, and which
+ * number moves with the calendar (15 in 2025, 14 in 2026), so it is recognised
+ * from the games in it. And the postseason is "Bowl season", one heading over the
+ * month, for the reason under `weekKey`.
+ */
+function weekLabelsOf(league: League, calendar: Map<string, string>, events: any[]): Map<string, string> {
+  const labels = new Map<string, string>();
+  for (const event of events) {
+    const key = weekKey(event, league);
+    if (key === null) continue;
+    if (league === "cfb" && key.startsWith("2:") && conferenceTitleGame(event)) {
+      labels.set(key, "Championship week");
+    }
+    if (labels.has(key)) continue;
+    const label = key === "3:bowls" ? "Bowl season" : calendar.get(key);
+    if (label) labels.set(key, label);
+  }
+  return labels;
+}
+
 function markerPlay(play: any): boolean {
   const type = play?.type?.id;
   if (type !== undefined && type !== null && MARKER_PLAY_TYPES.has(String(type))) return true;
@@ -213,6 +304,8 @@ function normalize(event: any, league: League): RawGame | null {
     neutralSite: Boolean(comp.neutralSite),
     venue: comp?.venue?.fullName ?? null,
     abroad: abroadOf(comp?.venue?.address),
+    week: weekKey(event, league),
+    round: league === "cfb" ? playoffRound(comp) : null,
     odds: odds?.details ?? null,
     spread: typeof spreadRaw === "number" && Number.isFinite(spreadRaw) ? Math.abs(spreadRaw) : null,
     homeSpread: typeof spreadRaw === "number" && Number.isFinite(spreadRaw) ? spreadRaw : null,
@@ -309,8 +402,26 @@ async function fetchOneDay(opts: FetchOptions, date: string | null): Promise<any
   // Sending groups to the NFL endpoint returns an empty slate.
   if (opts.league === "cfb") params.set("groups", opts.groups ?? "80");
   if (date) params.set("dates", date);
+  return fetchBody(opts.league, params);
+}
 
-  const res = await fetch(`${SITE_API}/${SPORT_PATH[opts.league]}/scoreboard?${params}`, {
+/**
+ * The teams on bye in one week, by abbreviation. Week is a key as in `Game.week`.
+ *
+ * Asked for by week, because a scoreboard fetched by date leaves the list out:
+ * only the current-week document and a `week=` query carry `teamsOnBye`.
+ */
+export async function fetchByes(league: League, week: string): Promise<string[]> {
+  const [type, number] = week.split(":");
+  const params = new URLSearchParams({ seasontype: type, week: number, limit: "1" });
+  const body = await fetchBody(league, params);
+  return (body?.week?.teamsOnBye ?? [])
+    .map((team: any) => team?.abbreviation)
+    .filter((abbrev: unknown): abbrev is string => typeof abbrev === "string");
+}
+
+async function fetchBody(league: League, params: URLSearchParams): Promise<any> {
+  const res = await fetch(`${SITE_API}/${SPORT_PATH[league]}/scoreboard?${params}`, {
     headers: {
       accept: "application/json",
       // Identify ourselves rather than showing up as an anonymous bot. Not
@@ -348,6 +459,7 @@ export async function fetchScoreboard(opts: FetchOptions): Promise<ScoreboardRes
   return {
     season: body?.season?.year ?? null,
     week: body?.week?.number ?? null,
+    weekLabels: weekLabelsOf(opts.league, calendarOf(body), events),
     games: normalizeEvents(events, opts.league),
     // Kept so the push feed has something to patch. Patch paths address fields
     // inside ESPN's own document, which normalising throws away, so the raw

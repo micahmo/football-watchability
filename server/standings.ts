@@ -29,6 +29,12 @@ export interface TeamStanding {
   /** 1..16 within the conference. 0 before any games have been played. */
   playoffSeed: number | null;
   winPct: number | null;
+  /**
+   * ESPN says the team has clinched a first-round bye. Read from the clinch
+   * mark's own description, "Clinched Division and Bye", rather than the "*" it
+   * is drawn as, so the decision stays ESPN's in words as well as in fact.
+   */
+  clinchedBye: boolean;
 }
 
 export class StandingsStore {
@@ -79,8 +85,12 @@ export class StandingsStore {
         const teamId = entry?.team?.id != null ? String(entry.team.id) : null;
         if (teamId === null || divisionId === null) continue;
         const stats: Record<string, unknown> = {};
+        let clinchedBye = false;
         for (const stat of entry?.stats ?? []) {
           if (stat?.name) stats[stat.name] = stat.value ?? stat.displayValue;
+          if (stat?.name === "clincher" && /\bbye\b/i.test(String(stat.description ?? ""))) {
+            clinchedBye = true;
+          }
         }
         const seed = Number(stats.playoffSeed);
         const pct = Number(stats.winPercent);
@@ -99,6 +109,7 @@ export class StandingsStore {
           conferenceName: confName ?? "",
           playoffSeed: Number.isFinite(seed) && seed > 0 ? seed : null,
           winPct: played > 0 && Number.isFinite(pct) ? pct : null,
+          clinchedBye,
         });
       }
       for (const child of node?.children ?? []) {
