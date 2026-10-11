@@ -58,10 +58,10 @@ far the drive has come and which way the offense is going. The field is always d
 appears only while the data behind it is current, so between drives and on kickoffs the field is
 there and empty.
 
-Live cards fold by default and open when tapped, six at a time with an expander for the rest. The
+Live cards fold by default and open when tapped: the best game and nine more, then an expander. The
 best game on starts open. A folded card keeps the teams, records, line, possession, score, clock,
 network, tags, the city of a game played abroad and a college playoff game's round; opening one adds the win probability, down and distance, and the last play.
-Finished games do not fold, but the same six-at-a-time expander applies.
+Finished games do not fold, and show six at a time before the expander.
 
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy

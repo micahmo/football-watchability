@@ -455,6 +455,13 @@ So the live cards fold. Folded is 80 to 100px depending on how many tags a game 
 six show before an expander, the same number a day of the planning list shows and for the same
 reason: the list is ranked, so the tail is the part nobody would switch to.
 
+Six turned out to be short for the NFL (2026-10-11). Micah asked whether the cutoff was a game or two
+under a normal Sunday, and it was: the history log peaked at 9 games live at once, and a game or two
+sat behind the expander for two and a half hours of every one o'clock window. The biggest single
+kickoff slot from 2024 to 2026 was 10 games, so the live list now shows the best game and nine more,
+enough for a Sunday without byes. College Saturdays peak at 19 to 25, so there it is a few more
+folded rows and the expander still does the work. Finished cards do not fold and stay at six.
+
 The chips row is not gated at all. The conference note was held back for a while on the reasoning
 that it would be wallpaper, and that reasoning is sound on its own terms, since conference games run
 about 13% of a September slate and 90% of a November one. It was still wrong, because every other

@@ -35,14 +35,25 @@
   const HORIZON_DAYS = 7;
   const MAX_PER_DAY = 6;
   /**
-   * How many live and finished cards to show before an expander.
+   * How many finished cards to show before an expander.
    *
-   * The same number as a day of the planning list, for the same reason. A busy
-   * Saturday peaks at 32 concurrent games, which at full card size is nearly
-   * eight phone screens before the planning list even begins, and the list is
-   * ranked, so the tail is the part nobody would switch to anyway.
+   * The same number as a day of the planning list, for the same reason. Finished
+   * cards do not fold, and the list is ranked, so the tail is the part nobody
+   * would go back to anyway.
    */
   const MAX_CARDS = 6;
+  /**
+   * How many live cards to show under the best game before an expander.
+   *
+   * Enough for a whole NFL Sunday. At six, the one o'clock window kept a game or
+   * two behind the expander for over two hours every week: the history log peaked
+   * at 9 games live at once on 2026-09-27 and 8 on 2026-10-04. The biggest single
+   * kickoff slot from 2024 to 2026 was 10 games, week 2 of 2024, so the best game
+   * and nine more covers a Sunday without byes. Live cards fold, so on a college
+   * Saturday, which peaks at 19 to 25, it costs a few short rows and the expander
+   * still holds the rest.
+   */
+  const MAX_LIVE_CARDS = 9;
 
   /**
    * Cards the viewer has explicitly opened or closed, by game id. Survives a poll,
@@ -816,7 +827,7 @@
       <!-- Folded by default. The hero above is the answer to "what should I put
            on" and stays open; these are the alternatives, and a glance down a list
            of them is the question being asked here. -->
-      {#each showAllLive ? rest : rest.slice(0, MAX_CARDS) as game (game.id)}
+      {#each showAllLive ? rest : rest.slice(0, MAX_LIVE_CARDS) as game (game.id)}
         <GameCard
           {game}
           score={scoreOf(game)}
@@ -827,7 +838,7 @@
         />
       {/each}
     </div>
-    {#if rest.length > MAX_CARDS}
+    {#if rest.length > MAX_LIVE_CARDS}
       <button type="button" class="show-all" onclick={() => (showAllLive = !showAllLive)}>
         {showAllLive ? "Show fewer" : `Show all ${rest.length}`}
       </button>
