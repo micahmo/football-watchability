@@ -51,7 +51,8 @@ eliminated. None is shown while a game the viewer is avoiding is live or finishe
 
 **Recently finished**, the recap, best first. Games stay on the board for eighteen hours after
 kickoff. A finished game's rating does not change: it is scored on the closing line, the teams'
-ranks, records and seeds as they stood at kickoff, and its swing at the final whistle.
+ranks, records and seeds as they stood at kickoff, and its swing at the final whistle. A game that
+went to overtime counts as level, however overtime ended.
 
 An open live card draws the field: where the ball is, the line of scrimmage, the line to gain, how
 far the drive has come and which way the offense is going. The field is always drawn. Each marker

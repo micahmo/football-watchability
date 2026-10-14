@@ -2417,3 +2417,31 @@ says the Bills lost, on a card with nothing to do with the Bills. So while any g
 avoiding is live or finished on the board, no mark is drawn anywhere, which on a Sunday costs a
 small decoration and nothing else. Nothing is marked until around week 12, so this was built
 early, ahead of being needed.
+
+## Fourth weekly review (2026-10-14)
+
+60 reports, 41 of them "right": 30 of 37 for the NFL, 11 of 23 for college, where nine "higher"
+verdicts fell on one game, Georgia at Alabama.
+
+**The mid-game sag.** That game was 81 at the end of the first quarter and called right, 56 at
+halftime while still a one-score game, and 82 in the fourth quarter, "finally!". Every time it lost
+the top spot the game above it was later and at least as close, so the ordering stood; what drew the
+verdicts was the number sagging through the middle, the third review running with that complaint on
+prominent close games. It was the pregame billing spending itself. Its fade became cubic: 0.88 of it
+is left at halftime rather than 0.75. Re-scored from the history log, the game holds 8 to 9 more
+points through the second quarter and halftime and stays top at halftime, and nothing changes from
+the middle of the third quarter on, where the live score has taken over. No "lower" verdict on record
+moves. The second review's guard, how often a first-half game is top while a one-score game is in
+its last five minutes, goes from 2.4% of those minutes to 2.5%.
+
+**Overtime finals.** The recap scored a final's closeness on its final margin, and Ravens at Falcons,
+level at the end of regulation and won by an overtime touchdown, came out 69 against 87 to 94 for
+every other overtime game that week. The margin after regulation only says how overtime ended, so an
+overtime final is scored as level.
+
+**A flicker left open.** Bills at Rams went 97, 91, 97 in the last five seconds of regulation. The
+board already carries ESPN's win probability through its gaps, but lets go when the score changes,
+and after the extra point ESPN had none, then re-sent the pre-kick 45%. The two closeness readings
+disagree, by up to 20 points. In October the probability dropped out or came back at an unchanged
+score 942 times, and 293 of those moved a rating by 5 points or more. It is the data pipeline rather
+than tuning, so it is an open item rather than part of this review.

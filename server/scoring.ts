@@ -552,7 +552,7 @@ function billingCarry(input: ScoreInputs, progress: number): number {
     divisionGame: input.divisionGame,
     startDate: input.startDate,
   });
-  const fade = 1 - Math.pow(progress / BILLING_UNTIL, 2);
+  const fade = 1 - Math.pow(progress / BILLING_UNTIL, BILLING_FADE_POWER);
   return clamp((expected / 100) * BILLING_CARRY * fade * contradiction);
 }
 
@@ -593,7 +593,14 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
   const hasWinProb = input.homeWinProb !== null;
   let tension: number;
   if (input.isFinal) {
-    tension = tensionFromFinalMargin(margin);
+    /*
+     * An overtime game was level when regulation ended, and the margin after that
+     * only says whether overtime ended on a touchdown or a field goal. Ravens at
+     * Falcons (2026-10-11) was 23-23 at the end of regulation and won 30-23 with a
+     * touchdown, and the recap had it at 69 against 87 to 94 for the other
+     * overtime finals that week. Micah: "overtime?"
+     */
+    tension = tensionFromFinalMargin(input.period > 4 ? 0 : margin);
   } else if (hasWinProb) {
     tension = Math.max(
       tensionFromWinProb(input.homeWinProb as number),
@@ -842,7 +849,7 @@ const BILLING_CARRY = 1;
  * game led the board while a one-score game was in its last five minutes, from 8%
  * to 18% of those minutes, which is his other complaint ("better than all the
  * close games at the end?"). Fading to the end, with the one-score floor below,
- * moved 23 and left that at 9%.
+ * moved 23 and left that at 9%. That was squared; `BILLING_FADE_POWER` has the shape now.
  *
  *   kickoff  end Q1  halftime  end Q3  final
  *    1.00     0.94     0.75     0.44    0
@@ -859,6 +866,32 @@ const BILLING_CARRY = 1;
  *    0.90     0.84     0.68    0.39      0
  */
 const BILLING_UNTIL = 1;
+/**
+ * The shape of that fade: the share of the game played, raised to this, is the
+ * share of the billing spent.
+ *
+ * Cubed since the fourth weekly review (2026-10-14). Squared, a close game between
+ * prominent teams sagged through the middle: Georgia at Alabama, two top-ten teams
+ * and a one-score game all night, read 81 at the end of the first quarter, 56 at
+ * halftime and 82 again in the fourth, and drew seven "should be higher" verdicts
+ * in between ("two top 10 teams is as good as it gets so as long as this is a
+ * relatively competitive game it should be scored pretty highly"). This is the
+ * third review running with that complaint on mid-game prominent games.
+ *
+ * Cubed lifts that game 8 to 9 points through the second quarter and halftime,
+ * enough to keep it top at halftime, and changes nothing from the middle of the
+ * third quarter on, where the live score has taken over from the billing anyway.
+ * Against every live verdict on the current model it moves no "lower" verdict;
+ * "right" ones rise 1 to 3 points, except Denver at San Francisco at halftime,
+ * 3-3, from 60 to 71. And it leaves the measure the second review guarded alone:
+ * a first-half game was top while a one-score game was in its last five minutes
+ * in 2.4% of those minutes in October, and would have been in 2.5%. Raised to the
+ * fourth it is 2.9%.
+ *
+ *   kickoff  end Q1  halftime  end Q3  final
+ *    1.00     0.98     0.88     0.58    0
+ */
+const BILLING_FADE_POWER = 3;
 
 /**
  * The least a one-score game in the fourth quarter counts as close.
@@ -907,6 +940,7 @@ export const TUNING: Record<string, number> = {
   contestScale: CONTEST_SCALE,
   billingCarry: BILLING_CARRY,
   billingUntil: BILLING_UNTIL,
+  billingFadePower: BILLING_FADE_POWER,
   oneScoreFloor: ONE_SCORE_FLOOR,
   oneScoreFloorFrom: ONE_SCORE_FLOOR_FROM,
   oneScoreFloorRamp: ONE_SCORE_FLOOR_RAMP,
