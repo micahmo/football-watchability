@@ -2439,9 +2439,14 @@ level at the end of regulation and won by an overtime touchdown, came out 69 aga
 every other overtime game that week. The margin after regulation only says how overtime ended, so an
 overtime final is scored as level.
 
-**A flicker left open.** Bills at Rams went 97, 91, 97 in the last five seconds of regulation. The
-board already carries ESPN's win probability through its gaps, but lets go when the score changes,
-and after the extra point ESPN had none, then re-sent the pre-kick 45%. The two closeness readings
-disagree, by up to 20 points. In October the probability dropped out or came back at an unchanged
-score 942 times, and 293 of those moved a rating by 5 points or more. It is the data pipeline rather
-than tuning, so it is an open item rather than part of this review.
+**The win-probability flicker.** Bills at Rams went 97, 91, 97 in the last five seconds of
+regulation. The board carries ESPN's win probability through its gaps but lets go when the score
+changes, and ESPN drops it for a few minutes after most scores (median 192 seconds) and at halftime.
+The margin curve that answers meanwhile reads games much closer than ESPN does, 0.39 closer at the
+median in the first quarter and 0.24 in the second, so a rating rose through every gap and fell when
+ESPN came back: 225 drops of 5 points or more in October. Micah asked to fix it the same day. The
+stand-in is now the margin scaled to what it may say with ESPN present (the 0.8 floor from the third
+quarter) or 0.6 of it in the first half, the share that fits ESPN best there. Re-scored, the drops
+fall to 41, the mean jump on ESPN's return halves in the first half, and in the second what is left
+mostly rises to meet ESPN rather than falling. Only 8 of the 314 large jumps were ESPN re-sending a
+stale pre-score value, as it did at Bills at Rams, so that case is left alone.

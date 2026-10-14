@@ -60,6 +60,24 @@ export function tensionFromMargin(margin: number, secsLeft: number): number {
  * so a close game does not jump twenty points with nobody on the field.
  */
 const MARGIN_FLOOR = 0.8;
+/**
+ * How much of the margin curve stands in for ESPN's win probability while ESPN has
+ * none, in the first half; from the third quarter the margin floor above is used.
+ *
+ * ESPN drops the probability for a few minutes after most scores (median gap 192
+ * seconds in October) and at halftime, and the margin curve on its own reads games
+ * as much closer than ESPN does: 0.39 closer at the median in the first quarter,
+ * 0.24 in the second, about even after halftime. So a rating rose through every gap
+ * and fell back when ESPN returned, by 5 points or more 225 times in October, and
+ * Bills at Rams went 97, 91, 97 with five seconds left (2026-10-12: "why'd it go
+ * down?"). Scaled to what the margin is allowed to say with ESPN present, plus
+ * this share in the first half, those drops fall to 41 and the mean jump on ESPN's
+ * return from 3.3 points to 1.6 in the first half and from 3.0 to 2.1 in the
+ * second, where what is left mostly moves up to meet ESPN rather than down. 0.6 is
+ * the share that fits ESPN's own number best in the first half; 0.5 and 0.7 were
+ * tried and did no better between them.
+ */
+const MISSING_WIN_PROB_SHARE = 0.6;
 const MARGIN_FLOOR_RAMP_SECONDS = 300;
 
 function marginFloorShare(progress: number): number {
@@ -607,7 +625,9 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
       marginFloorShare(progress) * tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds)),
     );
   } else {
-    tension = tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds));
+    tension =
+      Math.max(MISSING_WIN_PROB_SHARE, marginFloorShare(progress)) *
+      tensionFromMargin(margin, secondsRemaining(input.period, input.clockSeconds));
   }
   if (!input.isFinal && margin <= ONE_SCORE && progress >= ONE_SCORE_FLOOR_FROM) {
     const ramp = clamp((progress - ONE_SCORE_FLOOR_FROM) / ONE_SCORE_FLOOR_RAMP);
@@ -941,6 +961,7 @@ export const TUNING: Record<string, number> = {
   billingCarry: BILLING_CARRY,
   billingUntil: BILLING_UNTIL,
   billingFadePower: BILLING_FADE_POWER,
+  missingWinProbShare: MISSING_WIN_PROB_SHARE,
   oneScoreFloor: ONE_SCORE_FLOOR,
   oneScoreFloorFrom: ONE_SCORE_FLOOR_FROM,
   oneScoreFloorRamp: ONE_SCORE_FLOOR_RAMP,
