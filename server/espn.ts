@@ -221,6 +221,20 @@ function weekLabelsOf(league: League, calendar: Map<string, string>, events: any
   return labels;
 }
 
+/**
+ * ESPN's down-and-distance text, unless it names a spot that is not on the field.
+ *
+ * For a minute after a punt on 2026-10-13, Delaware at Middle Tennessee, ESPN had
+ * Delaware in possession but still on the punting team's fourth and ten, at a
+ * yard line of 91 it wrote as "4th & 10 at DEL -9". The next update was right.
+ * The text is ESPN's and is otherwise shown as it comes; a negative yard line is
+ * only ever this, so the card says nothing rather than something impossible.
+ */
+function possibleDownDistance(text: unknown): string | null {
+  if (typeof text !== "string" || text.trim() === "") return null;
+  return /\s-\d/.test(text) ? null : text;
+}
+
 function markerPlay(play: any): boolean {
   const type = play?.type?.id;
   if (type !== undefined && type !== null && MARKER_PLAY_TYPES.has(String(type))) return true;
@@ -291,7 +305,7 @@ function normalize(event: any, league: League): RawGame | null {
     broadcastTier: broadcastTier(broadcast || null),
     nationalBroadcast,
     possessionTeamId: comp?.situation?.possession != null ? String(comp.situation.possession) : null,
-    downDistance: comp?.situation?.downDistanceText ?? null,
+    downDistance: possibleDownDistance(comp?.situation?.downDistanceText),
     isRedZone: redZone(comp, home.id),
     // ESPN uses -1 for "no play in progress", which is a value, not a position.
     yardLine: fieldNumber(comp?.situation?.yardLine, 0, 100),
