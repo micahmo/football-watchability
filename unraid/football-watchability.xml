@@ -19,7 +19,7 @@
 
     Needs no API keys. The appdata path holds what cannot be rebuilt from ESPN:
     push notification keys and subscriptions, rating feedback, a history log, and
-    each game's closing line. The board runs without it, but alerts need it.
+    each game's closing line. The board runs without it, but alerts and rating feedback need it.
   </Overview>
   <Category>Other: Tools:</Category>
   <WebUI>http://[IP]:[PORT:8787]/</WebUI>
@@ -62,11 +62,11 @@
           Type="Variable" Display="advanced" Required="false" Mask="false">18</Config>
 
   <Config Name="Storage" Target="/config" Default="/mnt/user/appdata/football-watchability" Mode="rw"
-          Description="Where the board keeps what cannot be rebuilt from ESPN: push keys and subscriptions, rating feedback, the history log, and each game&apos;s closing line. Alerts need it; without it everything else is lost on every update."
+          Description="Where the board keeps what cannot be rebuilt from ESPN: push keys and subscriptions, rating feedback, the history log, and each game&apos;s closing line. Alerts and rating feedback need it; without it the rest is lost on every update."
           Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/football-watchability</Config>
 
   <Config Name="Storage directory" Target="DATA_DIR" Default="/config" Mode=""
-          Description="Where inside the container that storage is. Leave as /config to match the path above. Alerts stay off unless this points at a real volume."
+          Description="Where inside the container that storage is. Leave as /config to match the path above. Alerts and rating feedback stay off unless this points at a real volume."
           Type="Variable" Display="always" Required="false" Mask="false">/config</Config>
 
   <Config Name="Notification contact" Target="NOTIFY_CONTACT" Default="" Mode=""

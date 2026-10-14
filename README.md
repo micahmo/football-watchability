@@ -266,10 +266,11 @@ the volume. `99:100` is Unraid's appdata owner; elsewhere, use your own.
 
 `/config` is the default inside a container; set `DATA_DIR` only to use a different path.
 
-Without a volume, notifications are unavailable: the server reads the mount table rather than
-trusting the path, so a forgotten `-v` hides the toggle and says why, instead of collecting
-subscriptions that vanish on the next update. The other files are still written, into the
-container itself, so they last until it is replaced.
+Without a volume, notifications and rating feedback are unavailable: the server reads the mount
+table rather than trusting the path, so a forgotten `-v` hides the toggle, refuses report keys and
+says why in the log, instead of collecting subscriptions and reports that vanish on the next update.
+The history log and the ledger are still written, into the container itself, so they last until it
+is replaced.
 
 **Set `TZ` to US Eastern or near it.** The poller asks ESPN for "yesterday through today", and
 those day boundaries are what keep a game running past midnight visible.
@@ -301,8 +302,8 @@ only offers to install from a secure context, which rules out plain-http LAN add
 | `SCHEDULE_POLL_MS` | `600000` | Schedule refresh interval |
 | `RECENT_WINDOW_HOURS` | `18` | How far back the recap reaches |
 | `ALLOWED_HOSTS` | - | Extra hostnames the dev server answers to, comma separated |
-| `DATA_DIR` | `/config` in a container | Where everything kept on disk lives: push keys and subscriptions, reports, the history log and the per-game ledger. Notifications require a mounted volume; the server checks. `NOTIFY_DIR`, its old name, still works |
-| `REPORT_KEY` | - | Enables rating feedback. One key, or several named ones as `micah:abc123,dad:def456`. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
+| `DATA_DIR` | `/config` in a container | Where everything kept on disk lives: push keys and subscriptions, reports, the history log and the per-game ledger. Notifications and reports require a mounted volume; the server checks. `NOTIFY_DIR`, its old name, still works |
+| `REPORT_KEY` | - | Enables rating feedback, given a mounted volume. One key, or several named ones as `micah:abc123,dad:def456`. Unset and the endpoints are off rather than open, which matters because the board is a public URL |
 | `NOTIFY_CONTACT` | `mailto:nobody@example.com` | Who runs this server, as `mailto:` or `https:`. Web Push signs it into every request so a push service can contact you about a misbehaving server. A private board never needs it |
 
 Replaying a past slate is the easiest way to see a full board on a quiet weeknight:

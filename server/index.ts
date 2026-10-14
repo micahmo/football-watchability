@@ -834,6 +834,13 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
        needs when one is typed in. The full list is thousands of components wide
        and no use for that. */
     if (query.get("check") !== null) {
+      // Refused when reports are off, so a key is never taken for a board that
+      // would throw the feedback away. The browser shows one message for every
+      // refusal, so this says nothing about the server to anybody without a key.
+      if (!reports.available) {
+        json(res, { error: "reports are not configured" }, 503);
+        return;
+      }
       json(res, { ok: true, model: reports.model });
       return;
     }

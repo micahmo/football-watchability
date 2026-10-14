@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Game, League, ScoreComponents, Snapshot } from "../shared/types.js";
 import { tuningStamp } from "./scoring.js";
+import { checkDurability, explain } from "./storage.js";
 
 /** Every component plus the derived numbers, as the snapshot carries them. */
 type ScoreBreakdownLike = ScoreComponents & {
@@ -120,6 +121,18 @@ export class ReportStore {
     this.dir = typeof dir === "string" && dir.length > 0 ? dir : null;
     if (this.dir === null) {
       console.log("[reports] disabled: no directory configured");
+      return;
+    }
+    /*
+     * Off without a real volume, as notifications are. Without one the file lands
+     * in the container's own layer, so every report would be accepted and then
+     * lost on the next update, which is worse than a board that says plainly it
+     * is not collecting any.
+     */
+    const durability = checkDurability(this.dir);
+    if (!durability.durable) {
+      console.log(`[reports] disabled: ${explain(durability)}`);
+      this.dir = null;
       return;
     }
     try {
