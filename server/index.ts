@@ -11,7 +11,8 @@ import { PlaceStore } from "./places.js";
 import { ListingsStore, isLocalStation } from "./listings.js";
 import { SubscriptionStore, CATEGORIES, type Category } from "./subscriptions.js";
 import { AlertEngine } from "./alerts.js";
-import type { Game, League, Snapshot } from "../shared/types.js";
+import type { Game, League, Snapshot, TeamSchedule } from "../shared/types.js";
+import { fetchSeasonByes, fetchTeamSchedule } from "./espn.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 /** Bind all interfaces by default so other devices on the LAN can reach the board. */
@@ -299,6 +300,58 @@ const pollers: Record<League, LeaguePoller> = {
 };
 
 const DEFAULT_LEAGUE: League = "nfl";
+
+/*
+ * Team schedules, kept briefly. A sheet is opened and closed and opened again on
+ * the same team while somebody reads a card, and a result changes at most once a
+ * game, so a few minutes of staleness costs nothing and saves ESPN the repeats.
+ */
+const TEAM_CACHE_MS = 5 * 60 * 1000;
+const teamCache = new Map<string, { at: number; schedule: Promise<TeamSchedule> }>();
+
+/* The season's byes do not change once the schedule is out, so they are asked for
+   once a day rather than once a sheet. */
+let byesHeld: { at: number; byes: Promise<Map<string, number>> } | null = null;
+
+function seasonByes(): Promise<Map<string, number>> {
+  if (byesHeld && Date.now() - byesHeld.at < 24 * 60 * 60 * 1000) return byesHeld.byes;
+  const byes = fetchSeasonByes();
+  byesHeld = { at: Date.now(), byes };
+  byes.catch(() => (byesHeld = null));
+  return byes;
+}
+
+function teamSchedule(league: League, id: string): Promise<TeamSchedule> {
+  const key = `${league}:${id}`;
+  const held = teamCache.get(key);
+  if (held && Date.now() - held.at < TEAM_CACHE_MS) return held.schedule;
+  const schedule = fetchTeamSchedule(league, id).then(async (s) => {
+    if (league !== "nfl") return s;
+    const [byes, roster] = await Promise.all([
+      seasonByes().catch(() => null),
+      standings.roster().catch(() => []),
+    ]);
+    // The schedule only carries records for games already played, so the ones
+    // still to come take each opponent's record now from the standings.
+    const records = new Map(roster.map((team) => [team.id, team.record]));
+    return {
+      ...s,
+      byeWeek: byes?.get(id) ?? null,
+      games: s.games.map((g) =>
+        g.state === "post"
+          ? g
+          : { ...g, opponent: { ...g.opponent, record: records.get(g.opponent.id) ?? null } },
+      ),
+    };
+  });
+  teamCache.set(key, { at: Date.now(), schedule });
+  // A failure is not kept, so the next tap asks again.
+  schedule.catch(() => teamCache.delete(key));
+  if (teamCache.size > 300) {
+    for (const [k, v] of teamCache) if (Date.now() - v.at >= TEAM_CACHE_MS) teamCache.delete(k);
+  }
+  return schedule;
+}
 
 /** Five digits, or nothing. Anything else is not worth a call upstream. */
 function validZip(value: string | null | undefined): string | null {
@@ -858,6 +911,23 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
     /* The current stamp rides along, so a reader can see at a glance which
        reports were about the model that is running now. */
     json(res, { model: reports.model, reports: reports.all });
+    return;
+  }
+
+  if (url === "/api/team") {
+    const query = new URLSearchParams(raw.split("?")[1] ?? "");
+    const league = query.get("league");
+    const id = query.get("id") ?? "";
+    if ((league !== "nfl" && league !== "cfb") || !/^\d{1,6}$/.test(id)) {
+      json(res, { error: "league and id required" }, 400);
+      return;
+    }
+    void teamSchedule(league, id)
+      .then((schedule) => json(res, schedule))
+      .catch((err) => {
+        console.error(`[team] ${league} ${id}: ${err instanceof Error ? err.message : err}`);
+        json(res, { error: "could not load the schedule" }, 502);
+      });
     return;
   }
 

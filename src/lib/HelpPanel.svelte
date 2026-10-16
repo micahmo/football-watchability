@@ -106,6 +106,12 @@
       could not switch to it.
     </p>
 
+    <h3>Team schedules</h3>
+    <p>
+      Tap a team's logo or name for its whole season, results and what is left. A team you are
+      avoiding asks first while one of its games is hidden.
+    </p>
+
     <h3>Clinch marks, NFL only</h3>
     <p>
       Late in the season a small mark beside a team's name says where it stands, as ESPN marks its

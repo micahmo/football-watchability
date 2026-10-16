@@ -9,6 +9,8 @@
   import MarketPicker from "./lib/MarketPicker.svelte";
   import NoSpoilers from "./lib/NoSpoilers.svelte";
   import ReportDialog from "./lib/ReportDialog.svelte";
+  import TeamSheet from "./lib/TeamSheet.svelte";
+  import { closeTeam, openedTeam } from "./lib/team.svelte";
   import AlertsPicker from "./lib/AlertsPicker.svelte";
   import DelayPicker from "./lib/DelayPicker.svelte";
   import HelpPanel from "./lib/HelpPanel.svelte";
@@ -849,6 +851,18 @@
     <strong>Nothing is live right now.</strong>
     <p class="hint">The board fills in once games kick off. What is coming up is below.</p>
   </div>
+{/if}
+
+{#if openedTeam()}
+  {@const team = openedTeam()!}
+  {#key `${team.league}:${team.id}`}
+    <TeamSheet
+      {team}
+      board={[...(snapshot?.live ?? []), ...(snapshot?.recent ?? []), ...(snapshot?.upcoming ?? [])]}
+      ratingFor={(game) => (game.state === "pre" ? anticipationOf(game) : scoreOf(game))}
+      onclose={closeTeam}
+    />
+  {/key}
 {/if}
 
 {#if reporting}

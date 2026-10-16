@@ -29,6 +29,8 @@ export interface TeamStanding {
   /** 1..16 within the conference. 0 before any games have been played. */
   playoffSeed: number | null;
   winPct: number | null;
+  /** "4-1", ESPN's own overall record. */
+  record: string | null;
   /**
    * ESPN's clinch mark and its description: "z", "Clinched Division"; "*",
    * "Clinched Division and Bye". Null before anything is decided.
@@ -85,10 +87,14 @@ export class StandingsStore {
         if (teamId === null || divisionId === null) continue;
         const stats: Record<string, unknown> = {};
         let clinch: TeamStanding["clinch"] = null;
+        let overall: string | null = null;
         for (const stat of entry?.stats ?? []) {
           if (stat?.name) stats[stat.name] = stat.value ?? stat.displayValue;
           // The mark is the display value; `value` is a number standing for it.
           const mark = typeof stat?.displayValue === "string" ? stat.displayValue.trim() : "";
+          if (stat?.name === "overall" && typeof stat.displayValue === "string") {
+            overall = stat.displayValue;
+          }
           if (stat?.name === "clincher" && mark !== "") {
             clinch = { mark, label: String(stat.description ?? mark) };
           }
@@ -110,6 +116,7 @@ export class StandingsStore {
           conferenceName: confName ?? "",
           playoffSeed: Number.isFinite(seed) && seed > 0 ? seed : null,
           winPct: played > 0 && Number.isFinite(pct) ? pct : null,
+          record: overall,
           clinch,
         });
       }

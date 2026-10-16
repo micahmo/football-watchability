@@ -5,6 +5,7 @@
   import { longPress } from "./longPress";
   import { prefs } from "./prefs.svelte";
   import { clinchesShown } from "./spoilers.svelte";
+  import { openTeam } from "./team.svelte";
 
   let {
     game,
@@ -57,13 +58,24 @@
       {#each [game.away, game.home] as team, i (team.id)}
         {#if i === 1}<span class="at">at</span>{/if}
         <span class="team">
-          {#if team.logo}
-            <img class="logo" src={team.logo} alt="" loading="lazy" />
-          {:else}
-            <span class="logo placeholder" style="background: {teamColor(team)}"></span>
-          {/if}
-          {#if team.rank}<span class="rk mono">{team.rank}</span>{/if}
-          <span class="team-name">{team.name}</span>
+          <button
+            type="button"
+            class="team-link"
+            aria-label="{team.displayName} schedule"
+            onclick={(e: MouseEvent) => {
+              e.stopPropagation();
+              openTeam({ league: game.league, id: team.id, name: team.name, logo: team.logo });
+            }}
+            onkeydown={(e: KeyboardEvent) => e.stopPropagation()}
+          >
+            {#if team.logo}
+              <img class="logo" src={team.logo} alt="" loading="lazy" />
+            {:else}
+              <span class="logo placeholder" style="background: {teamColor(team)}"></span>
+            {/if}
+            {#if team.rank}<span class="rk mono">{team.rank}</span>{/if}
+            <span class="team-name">{team.name}</span>
+          </button>
           {#if team.clinch && clinchesShown()}
             <span class="clinch mono" title={team.clinch.label}>{team.clinch.mark}</span>
           {/if}
@@ -156,6 +168,28 @@
     line-height: 1;
     color: var(--text-dim);
     flex: none;
+  }
+  /* The logo and name open the team's season. A button of its own, so a tap on it
+     does not also fold the card it sits in. */
+  .team-link {
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    .team-link:hover .team-name {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
   }
   .record {
     font-size: 11px;

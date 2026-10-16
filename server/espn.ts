@@ -1,4 +1,4 @@
-import type { Game, GameState, League, TeamSide } from "../shared/types.js";
+import type { Game, GameState, League, ScheduleGame, TeamSchedule, TeamSide } from "../shared/types.js";
 import { broadcastTier, conferenceName } from "./prominence.js";
 
 const SITE_API = "https://site.api.espn.com/apis/site/v2/sports/football";
@@ -432,6 +432,113 @@ export async function fetchByes(league: League, week: string): Promise<string[]>
   return (body?.week?.teamsOnBye ?? [])
     .map((team: any) => team?.abbreviation)
     .filter((abbrev: unknown): abbrev is string => typeof abbrev === "string");
+}
+
+/** ESPN's `score`, which is an object on a schedule and a string on a scoreboard. */
+function pointsOf(raw: unknown): number | null {
+  const value = typeof raw === "object" && raw !== null ? (raw as any).value ?? (raw as any).displayValue : raw;
+  const n = Number(value);
+  return value === undefined || value === null || value === "" || !Number.isFinite(n) ? null : n;
+}
+
+/**
+ * Every NFL team's regular-season bye week, by team id, from ESPN's weekly bye
+ * lists, the same ones the planning list's week headings use.
+ *
+ * Not the team schedule's own `byeWeek` field, which is wrong for some teams: on
+ * 2026-10-15 it gave the Falcons week 5, the Bills week 5 and the Bears week 7,
+ * all weeks they played, where the weekly lists matched every one of the 32
+ * schedules.
+ */
+export async function fetchSeasonByes(): Promise<Map<string, number>> {
+  const byes = new Map<string, number>();
+  const weeks = await Promise.all(
+    Array.from({ length: 18 }, (_, i) =>
+      fetchBody("nfl", new URLSearchParams({ seasontype: "2", week: String(i + 1), limit: "1" })),
+    ),
+  );
+  weeks.forEach((body, i) => {
+    for (const team of body?.week?.teamsOnBye ?? []) {
+      if (team?.id != null) byes.set(String(team.id), i + 1);
+    }
+  });
+  return byes;
+}
+
+/**
+ * One team's season. ESPN's team schedule carries every game with its result,
+ * the record and standing, and the NFL bye week, so the sheet needs nothing else.
+ */
+export async function fetchTeamSchedule(league: League, teamId: string): Promise<TeamSchedule> {
+  const res = await fetch(`${SITE_API}/${SPORT_PATH[league]}/teams/${encodeURIComponent(teamId)}/schedule`, {
+    headers: { accept: "application/json", "user-agent": "football-watchability/0.1 (personal dashboard)" },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (res.status === 429) throw new RateLimitError(res.headers.get("retry-after"));
+  if (!res.ok) throw new Error(`ESPN team schedule returned ${res.status} ${res.statusText}`);
+  const body: any = await res.json();
+  const team = body?.team ?? {};
+
+  let rank: number | null = null;
+  let rankSettled = false;
+  const games: ScheduleGame[] = [];
+  for (const event of body?.events ?? []) {
+    const comp = event?.competitions?.[0];
+    const competitors: any[] = comp?.competitors ?? [];
+    const self = competitors.find((c) => String(c?.team?.id ?? c?.id) === teamId);
+    const other = competitors.find((c) => c !== self);
+    if (!self || !other) continue;
+    const rawState = comp?.status?.type?.state ?? event?.status?.type?.state;
+    const state: GameState = rawState === "in" ? "in" : rawState === "post" ? "post" : "pre";
+    const score = pointsOf(self.score);
+    const opponentScore = pointsOf(other.score);
+    // The poll as it stands now: the rank beside the next game still to be played,
+    // or the last one there was once the season is over.
+    if (!rankSettled) {
+      rank = toRank(self?.curatedRank?.current);
+      rankSettled = state !== "post";
+    }
+    games.push({
+      id: String(event.id),
+      week: Number.isInteger(Number(event?.week?.number)) ? Number(event.week.number) : null,
+      startDate: event?.date ?? comp?.date ?? "",
+      state,
+      home: self.homeAway === "home",
+      opponent: {
+        id: String(other?.team?.id ?? other?.id ?? ""),
+        name: other?.team?.shortDisplayName ?? other?.team?.displayName ?? "TBD",
+        logo: other?.team?.logos?.[0]?.href ?? other?.team?.logo ?? null,
+        rank: toRank(other?.curatedRank?.current),
+        record:
+          (other?.record ?? []).find((r: any) => r?.type === "total")?.displayValue ?? null,
+      },
+      timeValid: event?.timeValid !== false && comp?.timeValid !== false,
+      score: state === "pre" ? null : score,
+      opponentScore: state === "pre" ? null : opponentScore,
+      result:
+        state !== "post" || score === null || opponentScore === null
+          ? null
+          : score > opponentScore
+            ? "W"
+            : score < opponentScore
+              ? "L"
+              : "T",
+      broadcast: comp?.broadcasts?.[0]?.media?.shortName ?? null,
+    });
+  }
+
+  return {
+    league,
+    id: teamId,
+    name: team.displayName ?? team.name ?? "Unknown",
+    logo: team.logo ?? team.logos?.[0]?.href ?? null,
+    rank,
+    record: team.recordSummary || null,
+    standing: team.standingSummary || null,
+    // Filled in by the caller from `fetchSeasonByes`; see there for why not here.
+    byeWeek: null,
+    games,
+  };
 }
 
 async function fetchBody(league: League, params: URLSearchParams): Promise<any> {

@@ -165,6 +165,51 @@ export interface Game {
   tags: string[];
 }
 
+/** One game of a team's season, from ESPN's team schedule. */
+export interface ScheduleGame {
+  id: string;
+  /** ESPN's week, 6 for "Week 6"; null where it gives none. */
+  week: number | null;
+  startDate: string;
+  state: GameState;
+  /** Whether this team is the home side. A neutral site still has one. */
+  home: boolean;
+  opponent: {
+    id: string;
+    name: string;
+    logo: string | null;
+    rank: number | null;
+    /**
+     * A played game: the opponent's record as ESPN had it after that game. One
+     * still to come: their record now, where it is known, which is the NFL.
+     */
+    record: string | null;
+  };
+  /** False while ESPN has no kickoff time yet, as for college games weeks out. */
+  timeValid: boolean;
+  /** This team's points and the opponent's, once the game has any. */
+  score: number | null;
+  opponentScore: number | null;
+  result: "W" | "L" | "T" | null;
+  broadcast: string | null;
+}
+
+/** A team's season, for the sheet a tap on a team opens. */
+export interface TeamSchedule {
+  league: League;
+  id: string;
+  name: string;
+  logo: string | null;
+  /** College poll rank as it stands now. */
+  rank: number | null;
+  record: string | null;
+  /** "2nd in AFC East". */
+  standing: string | null;
+  /** NFL week number of the bye. */
+  byeWeek: number | null;
+  games: ScheduleGame[];
+}
+
 /** A week of the season, for the planning list's week headings. */
 export interface WeekInfo {
   /** ESPN's name for it, "Week 6" or "Wild Card", or the board's own "Bowl season". */

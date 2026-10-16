@@ -64,6 +64,14 @@ best game on starts open. A folded card keeps the teams, records, line, possessi
 network, tags, the city of a game played abroad and a college playoff game's round; opening one adds the win probability, down and distance, and the last play.
 Finished games do not fold, and show six at a time before the expander.
 
+Tap a team's logo or name anywhere on the board for its season: every result so far, then what is
+left, in order, with the bye week, each opponent's record, every kickoff date, time and channel,
+and the board's rating for any game it is showing. A played game shows the opponent's record
+as it stood after that game; one still to come, their record now.
+For a team the viewer is avoiding, while one of its games is hidden, the sheet asks first, and
+showing it reveals that game too. Anybody else's schedule shows a hidden game without its result,
+and leaves out the record and standing until it is no longer hidden.
+
 **Alerts**, optional, off by default. Five kinds, chosen per league: a game becoming worth
 switching to, one turning into something memorable, an upset in progress, the pick of a busy
 kickoff window (or the two or three picks, when they are expected within three points of each

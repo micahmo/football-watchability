@@ -27,6 +27,8 @@ import { prefs } from "./prefs.svelte";
  *   - the position in the list, since sorting by quality broadcasts quality
  *   - the hero heading, which would otherwise describe the card it is hiding
  *   - every clinch mark on the board, not only the hidden game's (`clinchesShown`)
+ *   - a hidden game's line on any team's schedule, and that team's record and
+ *     standing; the avoided team's own schedule asks first (`TeamSheet`)
  *
  * Notifications are handled separately and more strictly, in `server/alerts.ts`:
  * the board can decline to draw something it was sent, but a push shows itself,

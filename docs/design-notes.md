@@ -2464,3 +2464,29 @@ The memorable alert's title went from "is getting good" to "is an instant classi
 above the 80 at which a card already wears INSTANT CLASSIC, so by the time it arrives the game has
 been good a while, as Micah put it: "usually this alert sends once it's already good or been good a
 bit". The new title says what the board is already showing, in the setting's own name.
+
+## Team schedules (2026-10-15)
+
+Micah: "can you add the ability to tap on a team/logo anywhere (live, upcoming, completed) and it
+shows their schedule and past results". ESPN's team schedule has every game with its score, result
+and channel, plus the record and standing, so the server only fetches it and keeps it five minutes.
+
+**One list, in order.** The first mockup put the next game in a card above the results, and it was
+dropped: "especially confusing since it doesn't slot chronologically". A "Next" rule marks where the
+season has got to instead. The board's own rating shows on any game it is currently carrying.
+
+**Byes come from the weekly bye lists, not the team schedule.** The schedule feed has a `byeWeek`
+field, and it is wrong for some teams: on 2026-10-15 it gave the Falcons, Bills and Bears weeks they
+played in, among them Bills at Rams and Ravens at Falcons, both games this board covered. The weekly
+bye lists, which the planning list's week headings already use, matched all 32 schedules. Working
+the bye out from the gap in a schedule was the first fix, and Micah turned it down: "i don't like
+the idea of us calculating that kind of thing ourself". So it is ESPN's answer from ESPN's other
+source, 18 small requests a day.
+
+**Spoilers.** Micah set the shape: a schedule is safe from the planning list, and from a live or
+finished card it asks first. The prompt is tied to the team having a game hidden on the board rather
+than to where it was tapped, because the planning list is not always safe: a team playing Sunday
+and Thursday has the Thursday game listed while Sunday's is still hidden. Saying yes reveals that
+game on the board as well, since the sheet shows its score. The opponent's schedule does not ask; it
+shows that one game without a result, and leaves out the record and the standing, which the result
+changes, until the game is no longer hidden.
