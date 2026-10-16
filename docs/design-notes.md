@@ -2450,3 +2450,17 @@ quarter) or 0.6 of it in the first half, the share that fits ESPN best there. Re
 fall to 41, the mean jump on ESPN's return halves in the first half, and in the second what is left
 mostly rises to meet ESPN rather than falling. Only 8 of the 314 large jumps were ESPN re-sending a
 stale pre-score value, as it did at Bills at Rams, so that case is left alone.
+
+## Alert wording, re-banded (2026-10-15)
+
+Micah: "is 'should be decent' the right wording for a game in mid 70s?" It was not. The band only
+appears on the primetime alert, which is NFL-only, and through 2026-10-14 the NFL's median pregame
+rating was 68 with the top quarter starting at 72, so the 70s were being called decent while being
+the best quarter of the schedule. Each label moved up a band: 80 and up "Should be a great one",
+the 70s "Should be a good one", 55 to 69 "Should be decent", which also brings it in line with the
+README's own table of what a number means.
+
+The memorable alert's title went from "is getting good" to "is an instant classic". It fires at 87,
+above the 80 at which a card already wears INSTANT CLASSIC, so by the time it arrives the game has
+been good a while, as Micah put it: "usually this alert sends once it's already good or been good a
+bit". The new title says what the board is already showing, in the setting's own name.

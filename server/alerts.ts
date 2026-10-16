@@ -696,9 +696,16 @@ export class AlertEngine {
  */
 function expectation(alert: Alert): string {
   if (alert.category === "kickoff") return "Best of the games kicking off";
-  if (alert.score >= 80) return "Should be a good one";
-  if (alert.score >= 70) return "Should be decent";
-  if (alert.score >= 55) return "Worth having on";
+  /*
+   * Banded on the NFL's scale, since primetime is the only alert that says this.
+   * Through 2026-10-14 the median NFL game was 68 and the top quarter started at
+   * 72, so "Should be decent" for the 70s undersold the best quarter of the
+   * schedule (Micah: "is 'should be decent' the right wording for a game in mid
+   * 70s?"). Moved up a band each, which also agrees with the README's own table.
+   */
+  if (alert.score >= 80) return "Should be a great one";
+  if (alert.score >= 70) return "Should be a good one";
+  if (alert.score >= 55) return "Should be decent";
   return "Not expected to be much";
 }
 
@@ -838,7 +845,11 @@ export function buildPayload(alerts: Alert[]): unknown {
    */
   const title =
     lead.category === "classic"
-      ? `${matchup} is getting good`
+      ? // It fires at 87, above the 80 where a card already reads INSTANT CLASSIC, so
+        // by then the game has been good a while. "Is getting good" said it late
+        // (Micah: "usually this alert sends once it's already good or been good a
+        // bit"); this says what the board is already showing, in the setting's own name.
+        `${matchup} is an instant classic`
       : lead.category === "primetime"
         ? // Not a claim that it is good. The point is that it is the only one on,
           // and it has to read as an offer rather than as an answer to a question
