@@ -176,7 +176,13 @@
       </div>
     </div>
   {:else}
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="{team.name} schedule">
+    <div
+      class="sheet"
+      class:loading={!schedule && !failed}
+      role="dialog"
+      aria-modal="true"
+      aria-label="{team.name} schedule"
+    >
       <div class="head">
         {#if schedule?.logo ?? team.logo}
           <img class="logo" src={schedule?.logo ?? team.logo} alt="" />
@@ -278,6 +284,12 @@
     border-radius: 16px;
     padding: 14px 16px 10px;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+  }
+  /* Opened at the height a season fills, rather than as a header and a loading
+     line that then jumped up the screen when the games arrived: a season of 12
+     to 17 games fills the sheet's maximum on a phone anyway. */
+  .sheet.loading {
+    height: 82vh;
   }
   .sheet.ask {
     align-self: center;
