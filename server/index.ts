@@ -223,6 +223,7 @@ interface Stream {
    * off appearing as both live and upcoming until the next poll.
    */
   sentUpcoming: string | null;
+  sentRecent: string | null;
 }
 const streams = new Set<Stream>();
 
@@ -239,12 +240,19 @@ function sendSnapshot(stream: Stream, base: Snapshot): void {
     const upcoming = JSON.stringify(snapshot.upcoming);
     const unchanged = upcoming === stream.sentUpcoming;
     stream.sentUpcoming = upcoming;
+    /* The recap the same way. It holds every game of the last eighteen hours, up
+       to sixty on a college Saturday at about 2 KB each, and a finished game does
+       not change, so resending it with every push was most of every frame. */
+    const recent = JSON.stringify(snapshot.recent);
+    const recentUnchanged = recent === stream.sentRecent;
+    stream.sentRecent = recent;
 
     const payload = JSON.stringify({
       ...snapshot,
       // Omitted, not emptied: the client keeps the list it already has, and an
       // empty array would read as "every upcoming game is gone".
       upcoming: unchanged ? undefined : snapshot.upcoming,
+      recent: recentUnchanged ? undefined : snapshot.recent,
       build: BUILD,
     });
     stream.res.write(`event: snapshot\ndata: ${payload}\n\n`);
@@ -850,7 +858,7 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
       "access-control-allow-origin": "*",
     });
 
-    const stream: Stream = { viewer, res, sentUpcoming: null };
+    const stream: Stream = { viewer, res, sentUpcoming: null, sentRecent: null };
     streams.add(stream);
     // The current board immediately, so a fresh connection is never blank while
     // it waits for whatever happens next.

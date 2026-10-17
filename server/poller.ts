@@ -61,7 +61,6 @@ const MAX_UPCOMING_PER_DAY = 100;
  * Friday, and the client's own three-day cut lost it outright.
  */
 const UPCOMING_DAYS = 8;
-const MAX_RECENT = 12;
 /** Cap the one-off line lookups per poll so a full Saturday cannot burst. */
 const MAX_LINE_LOOKUPS_PER_POLL = 4;
 /* Longer than any halftime, which is 20 minutes in college and 13 in the NFL, so
@@ -1116,8 +1115,15 @@ export class LeaguePoller {
       // Swing as it stood at the final whistle. Read live, the window drains over
       // the next fifteen minutes and the recap rating falls with it.
       .map((g) => this.withScore(g, this.ledger.finalSwing(g.id, this.swings.movement(g.id, now))))
-      .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0))
-      .slice(0, MAX_RECENT);
+      /*
+       * Every game in the window, not the best twelve. The cap is from before the
+       * recap had an expander; since then the board shows six and the expander
+       * the rest, so the cap only made games vanish. On 2026-10-17 the twelfth
+       * college game rated 57.5, and Alabama at Tennessee, a 16-point game rated
+       * 18 at the end, was nowhere on the board half an hour after it finished
+       * (Micah: "am i stupid or is the tennessee gaem not on the board").
+       */
+      .sort((a, b) => (b.score?.total ?? 0) - (a.score?.total ?? 0));
 
     this.snapshot = {
     league: this.league,
