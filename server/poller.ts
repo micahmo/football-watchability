@@ -1130,7 +1130,8 @@ export class LeaguePoller {
     updatedAt: new Date(now).toISOString(),
     season: this.season,
     week: this.week,
-    weeks: this.weeksFor(upcoming),
+    // Live games too, since the week the board is in heads the live games.
+    weeks: this.weeksFor([...live, ...upcoming]),
     live,
     upcoming,
     recent,

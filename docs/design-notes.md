@@ -2402,6 +2402,14 @@ The pill set the text a few pixels off the column every other line starts on, an
 cards' was what fixed it. It sits above the week's first day still to come, so after Thursday
 night the byes move down to Sunday, where they matter.
 
+**The current week moved to the top (2026-10-18).** Micah: "should we move the week and bye info
+above the live games?" On a Sunday the byes matter most while the games are on, and they sat below
+every live card. Only the week the board is in moved: the planning list's bands are what mark where
+one week ends and the next begins, so a later week still gets its band there, and the first planning
+day gets one only if it starts a new week. Only while games are live, though: with nothing on, a top
+band above "Nothing is live right now" headed nothing, and Micah called it "kind of disconnected
+from the important content", so then it stays on the planning list's first day as before.
+
 ## Clinch marks (2026-10-08)
 
 Asked while the bye line was being built: "other symbols for other clinchings? should we add these

@@ -257,6 +257,8 @@ function liveBoard(league) {
     const [awayRecord, awayWinPct] = recordFor(league, raw.away);
     const game = {
       ...raw,
+      week: weekOf(league),
+      round: null,
       state: "in",
       period: s.period,
       clock: clockLabel(s.clock),

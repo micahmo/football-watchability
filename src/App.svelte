@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Game, League, Snapshot } from "../shared/types";
+  import type { Game, League, Snapshot, WeekInfo } from "../shared/types";
   import { WEIGHTS, combine } from "../shared/weights";
   import { fetchSnapshot, openBoardStream } from "./lib/api";
   import { dayDate, dayKey, dayLabel, relativeTime, scoreColor } from "./lib/format";
@@ -693,6 +693,13 @@
    * control that reorders nothing is a control that has to be explained.
    */
   const windowsOffered = $derived(upcomingByDay.some((day) => day.windows !== null));
+
+  /* The week of what is live, which heads the board while it is on. Only then:
+     above "Nothing is live" the band headed nothing and sat apart from the games
+     it named, so with nothing on it stays with the planning list's first day.
+     Micah: "otherwise it's kind of disconnected from the important content". */
+  const currentWeek = $derived(live[0]?.week ?? null);
+  const currentWeekInfo = $derived(currentWeek ? snapshot?.weeks?.[currentWeek] : undefined);
   /* Chosen once and then the slate moved on. The preference is kept, so it comes
      back on its own next Sunday, but the list has to render as something today. */
   const groupByWindow = $derived(prefs.upcomingOrder === "window" && windowsOffered);
@@ -804,6 +811,22 @@
   <p class="empty">Loading the slate...</p>
 {/if}
 
+{#snippet weekBand(info: WeekInfo, where: "top" | "first" | "later")}
+  <div class="week-band" class:top={where === "top"} class:first={where === "first"}>
+    <span class="week-name">{info.label}</span>
+    {#if info.byes.length > 0}
+      <span class="byes">{info.byeLabel}<span class="mono">{info.byes.join(" ")}</span></span>
+    {/if}
+  </div>
+{/snippet}
+
+<!-- The week of the live games, above them, since its byes matter most while that
+     week's games are on. The planning list marks the weeks after it, where one
+     ends and the next begins. -->
+{#if currentWeekInfo}
+  {@render weekBand(currentWeekInfo, "top")}
+{/if}
+
 {#if top}
   <section class="hero">
     <div class="hero-label">
@@ -896,18 +919,13 @@
       </h2>
       {#each upcomingByDay as day, i (day.key)}
         {@const week =
-          day.week !== null && day.week !== upcomingByDay[i - 1]?.week
+          day.week !== null && day.week !== (i === 0 ? currentWeek : upcomingByDay[i - 1].week)
             ? snapshot?.weeks?.[day.week]
             : undefined}
-        <!-- Above the week's first day still to come, so once Thursday night has
-             kicked off it moves down to Sunday with the rest of the week. -->
+        <!-- Where a new week starts. The week the board is already in has its band
+             at the top, so the first day here only gets one if it is the next. -->
         {#if week}
-          <div class="week-band" class:first={i === 0}>
-            <span class="week-name">{week.label}</span>
-            {#if week.byes.length > 0}
-              <span class="byes">{week.byeLabel}<span class="mono">{week.byes.join(" ")}</span></span>
-            {/if}
-          </div>
+          {@render weekBand(week, i === 0 ? "first" : "later")}
         {/if}
         <div class="day-group">
           <h3 class="day-head">
@@ -1327,6 +1345,9 @@
   }
   .week-band.first {
     margin-top: 0;
+  }
+  .week-band.top {
+    margin: 0 0 16px;
   }
   .week-name {
     font-size: 11px;

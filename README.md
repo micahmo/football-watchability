@@ -39,7 +39,8 @@ window the naming does not fit keeps its kickoff time. It appears only on days w
 actually form windows, which in practice means the NFL: a Saturday in college spans eleven distinct
 kickoff hours and has none.
 Each row shows kickoff time, the line, the over/under and the network, and where the game is being
-played when that is outside the United States. Each week of the season has a heading with ESPN's
+played when that is outside the United States. While games are live their week heads the board,
+above them, and the planning list marks each later week where it starts, both with ESPN's
 name for it, "Week 6", "Wild Card" or "Super Bowl", and in the NFL the teams on bye that week, or
 on wild card weekend the teams ESPN has down as having clinched a first-round bye. College's
 conference title weekend reads **Championship week** and its whole postseason **Bowl season**, with
