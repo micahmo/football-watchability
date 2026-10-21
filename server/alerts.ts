@@ -1,6 +1,6 @@
 import type { Game, League, Snapshot } from "../shared/types.js";
 import { isPaused } from "../shared/status.js";
-import { WEIGHTS, combine } from "../shared/weights.js";
+import { combine, weightsFor } from "../shared/weights.js";
 import { channelLabel } from "../shared/channel.js";
 import type { Category, Subscription, SubscriptionStore } from "./subscriptions.js";
 
@@ -237,7 +237,7 @@ function favoriteBoost(game: Game, favorites: string[]): number {
  */
 function earned(game: Game, favorites: string[]): number {
   if (!game.score) return 0;
-  const base = combine({ ...game.score, billing: 0 }, WEIGHTS, game.score.maxTotal);
+  const base = combine({ ...game.score, billing: 0 }, weightsFor(game.league), game.score.maxTotal);
   return Math.min(100, base + favoriteBoost(game, favorites));
 }
 

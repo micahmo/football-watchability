@@ -2498,3 +2498,31 @@ and Thursday has the Thursday game listed while Sunday's is still hidden. Saying
 game on the board as well, since the sheet shows its score. The opponent's schedule does not ask; it
 shows that one game without a result, and leaves out the record and the standing, which the result
 changes, until the game is no longer hidden.
+
+## Fifth weekly review (2026-10-21)
+
+65 reports on one model: 33 of 38 right for the NFL, 5 of 27 for college. College carried the
+week's complaint from both sides at once, which is what made it actionable: close finishes between
+teams almost nobody follows led the board and drew "lower" (Ball State at Bowling Green, 0.23
+prominence, top at 76 three times; UMass at Buffalo the same), while one-score games between the
+biggest programmes sat far down and drew "higher" (Ohio State at Indiana eighth at 45 starting the
+fourth; Auburn at Georgia 41 at 14-14; Notre Dame at BYU, Florida State at Miami, Alabama at
+Tennessee early).
+
+**College moved ten points of weight from closeness to prominence**, 0.53 and 0.35 against the
+NFL's 0.63 and 0.25; the reasons and the measurements are on `CFB_WEIGHTS`. Scaling closeness by
+prominence was tried first and was worse: it cut NFL games called right by 3 to 7 points, and the
+NFL, where every team is a big one and prominence hardly varies, had nothing to fix. The second
+review's guard was re-measured against finishes between prominent teams, and there it did not move
+at all; the only minutes it gained were big first-half games over obscure finishes, which is the
+point of the change.
+
+**A dropped line is now carried.** ESPN's scoreboard lost the 49ers at Falcons odds for three and
+a half hours, and the game's pregame rating went 70, 55, 70. The ledger already held the last line,
+so an upcoming game without one uses it until ESPN publishes another.
+
+**Left for later, with the evidence so far.** NFL pregame ratings ignore records: Texans at Jaguars
+topped the week at 84 with the Texans 1-4, and Cowboys at Packers and Chargers at Chiefs, with the
+Chargers 0-5, drew "lower", four reports over two weeks counting the Chargers the week before. The
+kickoff alert went to Missouri at Ole Miss rather than Alabama at Tennessee, one report, and the
+same question for college pregame: brand against a close line.

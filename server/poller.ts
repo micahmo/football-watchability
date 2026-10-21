@@ -687,7 +687,30 @@ export class LeaguePoller {
     return game;
   }
 
-  private withAnticipation(raw: RawGame): Game {
+  /**
+   * The last line ESPN published, for an upcoming game it has briefly dropped.
+   *
+   * ESPN's scoreboard loses a game's odds for hours at a time: 49ers at Falcons
+   * had none from 00:31 to 04:02 UTC on 2026-10-20, and its rating went from 70 to
+   * 55 and back, because a game without a line is rated as one nobody can
+   * price (Micah: "no line?"). The ledger already keeps the last one seen, so
+   * that stands until ESPN publishes another.
+   */
+  private withLastLine(raw: RawGame): RawGame {
+    if (raw.spread !== null) return raw;
+    const line = this.ledger.line(raw.id);
+    if (line === null) return raw;
+    return {
+      ...raw,
+      homeSpread: line.homeSpread,
+      spread: Math.abs(line.homeSpread),
+      overUnder: raw.overUnder ?? line.overUnder,
+      odds: raw.odds ?? line.details,
+    };
+  }
+
+  private withAnticipation(pregame: RawGame): Game {
+    const raw = this.withLastLine(pregame);
     return {
       ...raw,
       score: null,

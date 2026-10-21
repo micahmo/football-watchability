@@ -124,11 +124,12 @@ Five smaller components adjust it, with fixed weights:
 
 | Component | What it measures | Weight |
 | --- | --- | --- |
-| `primary` | Closeness weighted by how late, or whichever of the three escape hatches beats it | 0.63 |
-| `draw` | The higher of `prominence` (how much of the country cares) and `upset` (how far the underdog is running ahead of the closing line, counted from half to in full as the matchup gets more prominent) | 0.25 |
+| `primary` | Closeness weighted by how late, or whichever of the three escape hatches beats it | 0.63 (college 0.53) |
+| `draw` | The higher of `prominence` (how much of the country cares) and `upset` (how far the underdog is running ahead of the closing line, counted from half to in full as the matchup gets more prominent) | 0.25 (college 0.35) |
 | `swing` | Win-probability movement over the last fifteen minutes | 0.08 |
 | `pace` | Projected total points, so a 45-38 beats a 10-7 | 0.04 |
 
+College gives how big the game is more of the weight; the NFL's teams are all big ones.
 `prominence` and `upset` share one weight rather than holding two, since a marquee
 game is not an upset and an upset is rarely a marquee game. `stakes` is still
 computed and reported but no longer weighted.

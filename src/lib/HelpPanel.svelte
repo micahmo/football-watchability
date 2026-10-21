@@ -50,7 +50,10 @@
 
     <h3>What else moves it</h3>
     <ul>
-      <li>How much of the country cares: rankings, records, the broadcast slot.</li>
+      <li>
+        How much of the country cares: rankings, records, the broadcast slot. It counts for more in
+        college, where a big game and a small one are much further apart.
+      </li>
       <li>How fast points are going up.</li>
       <li>What the game decides, like a conference or division fixture.</li>
       <li>How far the odds have swung in the last fifteen minutes.</li>

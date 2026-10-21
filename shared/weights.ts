@@ -1,4 +1,4 @@
-import type { ScoreComponents } from "./types.js";
+import type { League, ScoreComponents } from "./types.js";
 
 export interface Weights {
   primary: number;
@@ -36,6 +36,40 @@ export const WEIGHTS: Weights = {
   swing: 0.08,
   pace: 0.04,
 };
+
+/**
+ * College, where how big the game is counts for more.
+ *
+ * The fifth weekly review (2026-10-21). College prominence runs from FCS
+ * programmes to Georgia, where every NFL team is a big one, and at the NFL's
+ * split a close finish between two teams almost nobody follows outranked a
+ * one-score game between two of the biggest: Ball State at Bowling Green, at 0.23
+ * prominence, was the top game at 76 three times and drew "lower" each time,
+ * while Ohio State at Indiana, 13-7 starting the fourth, sat eighth at 45 ("still
+ * one of the best games on"), and Auburn at Georgia, 14-14 in the second, was 41
+ * ("should be the top game this is crazy").
+ *
+ * Ten points from closeness to prominence. Across every college verdict on record
+ * it lifts 31 of the 54 "higher" and lowers 11 of the 20 "lower", and moves 3 of
+ * the 34 "right". The minutes in which a game under 0.4 prominence led the board
+ * while one over 0.8 was within a score fell from 16% to 4%. The guard from the
+ * second review, a first-half game leading while a one-score game finishes, rose
+ * from 7% to 12%, but every added minute was a big first-half game over an
+ * obscure finish: counting only finishes over 0.5 prominence it stayed at 6.8%.
+ * Fifteen points went further and began moving "right" verdicts. The NFL keeps
+ * its split, which changes nothing measurable there, since its prominence barely
+ * varies.
+ */
+export const CFB_WEIGHTS: Weights = {
+  primary: 0.53,
+  draw: 0.35,
+  swing: 0.08,
+  pace: 0.04,
+};
+
+export function weightsFor(league: League): Weights {
+  return league === "cfb" ? CFB_WEIGHTS : WEIGHTS;
+}
 
 /**
  * Weighted sum, floored by what the game was billed as.

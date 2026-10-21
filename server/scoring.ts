@@ -1,5 +1,5 @@
 import type { Game, League, ScoreBreakdown, ScoreComponents, TeamSide } from "../shared/types.js";
-import { UPSET_PROMINENCE_BASE, WEIGHTS, combine } from "../shared/weights.js";
+import { CFB_WEIGHTS, UPSET_PROMINENCE_BASE, WEIGHTS, combine, weightsFor } from "../shared/weights.js";
 import { prominenceScore } from "./prominence.js";
 
 const PERIOD_SECONDS = 900;
@@ -720,7 +720,7 @@ export function scoreGame(input: ScoreInputs): ScoreBreakdown {
     ...components,
     maxTotal,
     hasWinProb,
-    total: combine(components, WEIGHTS, maxTotal),
+    total: combine(components, weightsFor(input.league), maxTotal),
   };
 }
 
@@ -947,6 +947,8 @@ const ONE_SCORE_FLOOR_RAMP = 0.05;
  */
 export const TUNING: Record<string, number> = {
   ...WEIGHTS,
+  cfbPrimary: CFB_WEIGHTS.primary,
+  cfbDraw: CFB_WEIGHTS.draw,
   latenessFloor: 0.2,
   latenessExponent: 1.3,
   clutchWindowSeconds: CLUTCH_WINDOW_SECONDS,
