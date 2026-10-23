@@ -830,7 +830,10 @@
 {#if top}
   <section class="hero">
     <div class="hero-label">
-      <span class="pill" style="--pill: {scoreColor(topScore)}">
+      <!-- Gray when the game is hidden, as its card's rail is: the label said "no
+           spoilers" in the rating's own color, so a red pill over the only game
+           on gave away that it was a good one. -->
+      <span class="pill" style="--pill: {isHidden(top) ? 'var(--calm)' : scoreColor(topScore)}">
         {heroLabel}
       </span>
     </div>

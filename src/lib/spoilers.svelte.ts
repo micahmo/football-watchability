@@ -25,7 +25,8 @@ import { prefs } from "./prefs.svelte";
  *   - both records, because a final turns 2-0 into 2-1
  *   - the dimming of the trailing side, which names the loser with no numbers
  *   - the position in the list, since sorting by quality broadcasts quality
- *   - the hero heading, which would otherwise describe the card it is hiding
+ *   - the hero heading, which would otherwise describe the card it is hiding,
+ *     and its color, which is the rating again
  *   - every clinch mark on the board, not only the hidden game's (`clinchesShown`)
  *   - a hidden game's line on any team's schedule, and that team's record and
  *     standing; the avoided team's own schedule asks first (`TeamSheet`)
