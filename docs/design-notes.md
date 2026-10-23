@@ -280,7 +280,7 @@ same day: a raw accumulating quantity compared against a full-game constant. Poi
 so a fixed bar is guaranteed to be crossed given enough game, and "enough game" arrives in every
 game. Auditing the rest of the tags for it found no others, and the reason is a useful test:
 `margin` moves in both directions, ranks and periods are facts, and every other gate reads a
-normalised term off the breakdown. `totalPoints` was the only raw accumulating value in a gate.
+normalized term off the breakdown. `totalPoints` was the only raw accumulating value in a gate.
 
 The fix compares against the **projected** total, which blends the pregame expectation with what has
 actually happened, weighted by the square of how much game has been played.
@@ -372,7 +372,7 @@ conservative rather than trusting one. Thirty seconds while games are live, five
 none are, which avoids roughly 3,000 requests a day for no benefit outside game windows. When
 idle it schedules the next poll for just after the next kickoff, so nothing is missed by more
 than one interval. Consecutive failures back off exponentially, and HTTP 429 is handled
-explicitly, honouring `Retry-After`.
+explicitly, honoring `Retry-After`.
 
 ## Planning ahead is a different question
 
@@ -407,7 +407,7 @@ drawing.
 
 The day boundary used for the cap is the server's, and the one used for grouping is the viewer's.
 They agree whenever the two share a timezone; where they do not, a game near midnight counts
-against the neighbouring day's budget, which at this size trims nothing.
+against the neighboring day's budget, which at this size trims nothing.
 
 ## What the expand animation actually costs
 
@@ -427,7 +427,7 @@ rather than collapsing to a placeholder and lurching the scrollbar. **It made no
 difference**, which is itself informative. Off-screen work was not the cost, so the expense is in
 the handful of cards actually visible, and at that size it is as likely to be repaint as layout:
 each frame shifts cards carrying an SVG field, a probability bar and shadows, and all of it has to
-be rasterised again. It stays in because skipping invisible work is right regardless, but it is not
+be rasterized again. It stays in because skipping invisible work is right regardless, but it is not
 the fix.
 
 That leaves the FLIP rewrite: set the final height in one layout, then animate `transform:
@@ -664,7 +664,7 @@ wrong when it was written; its meaning depended on a cadence that quietly stoppe
 the rest of the server for the same shape found no other metric that accumulates across observations:
 everything else either recomputes from current state or counts within a single pass. It did turn up
 a different fault in the same commit, enrichment fired and forgotten on the push path, where it
-resolved after the snapshot had already been published and so never landed at all. Normalising builds
+resolved after the snapshot had already been published and so never landed at all. Normalizing builds
 fresh objects each rebuild, so nothing carried over, and every push-driven NFL rebuild lost its
 divisions, playoff seeds and standings win percentage until the next poll repaired it.
 
@@ -984,7 +984,7 @@ and the same count would lie.
 which near a boundary sweeps in every transmitter the area could receive: Fitchburg MA returns
 Boston, Providence, Manchester and Springfield affiliates together, and a viewer receives one
 market's worth of those. The first fix only narrowed when the lists visibly disagreed, three or
-more matchups in one window. That was too weak, because whether neighbouring markets happen to
+more matchups in one window. That was too weak, because whether neighboring markets happen to
 show the same games in a given week is luck. It now always narrows through a satellite lineup,
 which is scoped to the television market the postal code sits in and is the best available answer
 to "which market is this really".
@@ -994,7 +994,7 @@ YouTube TV, Hulu Live or Fubo, only over-the-air, cable and satellite. That turn
 matter: every provider in a market carries the same local affiliates, and it is the affiliate that
 decides which regional game you get.
 
-**Call signs need care when normalising.** Stripping transmission-class suffixes blindly turns
+**Call signs need care when normalizing.** Stripping transmission-class suffixes blindly turns
 WFLD, FOX Chicago, into "WF", and WWLP into "WW". A trim only stands if what it leaves behind is
 itself a valid call sign: K or W plus two or three letters.
 
@@ -1166,7 +1166,7 @@ reassert itself. The moment is the half.
 
 So `upsetTension` became a third way to earn the dominant term, alongside `core` and `clutch`:
 how far the underdog's live win probability has climbed from where the closing line put it,
-multiplied by how much doubt remains. Magnitude survives the normalisation, so a 29.5-point
+multiplied by how much doubt remains. Magnitude survives the normalization, so a 29.5-point
 underdog reaching 67% outscores a 7-point underdog reaching 60%.
 
 The game now peaks at **60.8**, at Q2 with UMass 24-7, and decays to 40.1 by the fourth. Checked
@@ -1175,7 +1175,7 @@ and 6 to 6, and seven college games reached 0.5+ on the new term without crossin
 threshold. Upsets rank better on the board without adding notification noise, which is right,
 because an upset is a different kind of event and has its own alert category.
 
-**The lesson generalises.** The same argument says the notification rule was wrong too: "underdog
+**The lesson generalizes.** The same argument says the notification rule was wrong too: "underdog
 ahead, within one score" measures the raw margin, and UMass were 16 ahead. The quantity that
 matters is performance against the line, `underdog margin + spread`, which is +45.5 here against
 +10 for a seven-point underdog leading by three.
@@ -1451,7 +1451,7 @@ speaks alone.
 ### No notification may assume a time of day
 
 "Worth clearing the evening" arrived at one in the afternoon, for a Sunday window. The wording bands
-are comparative judgements about a game, and the moment one of them names a part of the day it reads
+are comparative judgments about a game, and the moment one of them names a part of the day it reads
 as a template nobody checked. The NFL plays at one, four and eight; college starts at noon.
 
 ## Landing on the tab with the football
@@ -1615,12 +1615,12 @@ initial state, subscribe, apply patches, re-score. It would take the live board 
 seconds stale to a couple of seconds.
 
 Now built, together with SSE, because either both or neither. The chain is: a patch arrives, it is
-applied to ESPN's own document, that document is re-normalised and re-scored, and the new board is
+applied to ESPN's own document, that document is re-normalized and re-scored, and the new board is
 pushed to every open client.
 
-**The raw document had to be kept.** `fetchScoreboard` normalised and threw ESPN's structure away,
+**The raw document had to be kept.** `fetchScoreboard` normalized and threw ESPN's structure away,
 and patch paths address fields inside exactly that structure, so there was nothing to apply a delta
-to. The poller now holds the events by uid and re-normalises after each burst, which also means a
+to. The poller now holds the events by uid and re-normalizes after each burst, which also means a
 pushed update is scored by the same code as a polled one rather than by a parallel path that could
 drift.
 
@@ -1766,7 +1766,7 @@ but shares process space with whatever the user has open, and filtering its proc
 time to clean up kills content processes belonging to their real session.
 
 **Retake whenever the board's layout or chrome changes**: the header and controls, the card or row
-structure, the tag set, colours, or anything that changes what a glance at the board looks like.
+structure, the tag set, colors, or anything that changes what a glance at the board looks like.
 
 ## The scale could not reach its own top, and the labels were calibrated to a range it never hit
 
@@ -1793,7 +1793,7 @@ minutes.
 
 **So the labels described almost nothing.** `BEST GAME ON` needed 55 and `TURN THIS ON` needed 75.
 Across every minute of live football on record the board said `BEST OF WHAT IS ON` for **81% of
-college minutes and 84% of NFL minutes**. Four times in five it apologised for what was on.
+college minutes and 84% of NFL minutes**. Four times in five it apologized for what was on.
 
 Two of the three are fixed here. `stakes` loses its weight to `primary`, and `prominence` and
 `upset` share one budget of 0.25 through `max`, so a game earns it for being big *or* for going
@@ -1901,9 +1901,9 @@ precision the model does not have.
 
 So `scoreColor` interpolates instead of banding, over the same four palette colors and with the same
 values at the ends. One wrinkle: blue to orange is nearly opposite on the hue wheel, so a direct
-blend crosses the low-chroma axis and the forties came out grey, which is where most games live.
+blend crosses the low-chroma axis and the forties came out gray, which is where most games live.
 That one leg takes `oklch longer hue` and rotates through teal, green and yellow at full chroma.
-Only that leg: the neighbouring pairs are close in hue already, and sending those the long way would
+Only that leg: the neighboring pairs are close in hue already, and sending those the long way would
 take them right around the wheel.
 
 An explicit green anchor at 48 was tried instead and rejected. It keeps green to a narrower band,
@@ -1923,14 +1923,14 @@ the scale reaches its own top, whether a change moves the games it was meant to.
 None of that answers whether a 61 deserved to be a 61. That is a question about
 watching football, and the answer only exists in Micah's head.
 
-So the arrangement is that he supplies the judgements and everything downstream of
+So the arrangement is that he supplies the judgments and everything downstream of
 them is this project's problem. A report is "that felt like an 80 and the board
 said 61", not a request for a specific change; working out whether the model is
 wrong, which term is responsible, and whether it is worth touching is the work.
 
-Those judgements go in `docs/calibration-log.md` as they arrive. The point of
+Those judgments go in `docs/calibration-log.md` as they arrive. The point of
 writing them down is that a proposed change can then be tested against every past
-judgement rather than against the one that prompted it, which is the difference
+judgment rather than against the one that prompted it, which is the difference
 between calibrating and chasing the most recent complaint.
 
 Three failure modes to design against, all of them observed here already:
@@ -1953,7 +1953,7 @@ carries. The target is "rarely wrong in a way that annoys him", not zero error.
 
 ## Feedback on a rating has to carry the situation that produced it
 
-Micah supplies the judgements; the point of collecting them in the app rather than in
+Micah supplies the judgments; the point of collecting them in the app rather than in
 conversation is that a verdict given in the moment is worth more than one reconstructed from
 memory a day later, and there are more of them.
 
@@ -1961,10 +1961,10 @@ memory a day later, and there are more of them.
 against anything, because what has to be checked is which term was wrong, and that is gone the
 moment the game moves on. So a report stores every component, the score, clock, spread and win
 probability, and both numbers: what the browser was showing and what the server had. Those differ,
-routinely. The board runs a broadcast delay and adds the favourite bonus in the browser, so the
+routinely. The board runs a broadcast delay and adds the favorite bonus in the browser, so the
 verdict is about `shown` and the diagnosis is about `total`.
 
-**It also stores the rest of the board.** Most of these judgements are really orderings: "this
+**It also stores the rest of the board.** Most of these judgments are really orderings: "this
 should be above that". Without what else was live and how it was rated, that is unrecoverable, and
 it is the more useful half.
 
@@ -2007,7 +2007,7 @@ viewers is a different fact from one viewer changing their mind.
 
 **A fixed game re-opens showing what was already said.** Not a courtesy: a blank form over a
 report you have forgotten writing invites you to overwrite considered feedback with a snap
-judgement, and the old row leaves no trace when it goes. So the sheet fetches the standing verdict,
+judgment, and the old row leaves no trace when it goes. So the sheet fetches the standing verdict,
 fills the buttons, chips and note back in, says when it was given and at what rating, and labels
 the button Replace. Live games get none of this, and should not: each of their reports is a
 different moment, nothing is replaced, so there is nothing to show back.
@@ -2055,7 +2055,7 @@ practice is the thing to learn before anything acts on it.
 
 **A standing verdict belongs to one state of the game, not to the game.** A game passes through
 three, and what you expected beforehand, what you thought while it ran and what you made of it
-afterwards are three different judgements about three different things. The first cut keyed the
+afterwards are three different judgments about three different things. The first cut keyed the
 standing verdict on the game alone, which had two consequences: long-pressing a finished game
 offered back the verdict given while it was still playing, and accepting that replacement deleted
 every observation made during the game, which are precisely the rows the live-appends rule exists to
@@ -2106,7 +2106,7 @@ there was never a number to hold.
 complaint that close games read low turned out to be one specific failure: ESPN's win probability
 going lopsided on a one-score game. North Carolina down one to Clemson with 1:54 left, Clemson with
 the ball, 92%: rated 45. Houston at Texas Tech down one with 8:47 left, 89%: rated 38. A tie in the
-fourth rated 20 because the line had made one side a heavy favourite. Measured over 26,787 live rows:
+fourth rated 20 because the line had made one side a heavy favorite. Measured over 26,787 live rows:
 
 - A *blend* of win-probability tension and margin tension lifted games that were already right.
   Indianapolis tied with Kansas City at 5:37 was called right at 76; halfway to the margin put it at
@@ -2115,7 +2115,7 @@ fourth rated 20 because the line had made one side a heavy favourite. Measured o
   the scoreboard. North Carolina goes 45 to 68 (the verdict was about 73), the tied Indianapolis
   game stays at 77, Houston at Texas Tech goes 38 to 69.
 - From kickoff the floor is wrong: the margin cannot tell a mismatch from a close game, so a
-  34.5-point favourite up 10-7 in the second went 19 to 43, and 44% of first-half rows moved more
+  34.5-point favorite up 10-7 in the second went 19 to 43, and 44% of first-half rows moved more
   than five. From the second half it is clean: first half untouched, the same eight games cross the
   hero bar and the same seven the classic bar, and the headline changes hands 76 times in 4,370
   board-minutes against 77.
@@ -2134,7 +2134,7 @@ minutes. One report; the mechanism is known if more arrive.
 though it were the pick. The category is right, an underdog doing that is worth knowing about, but
 the text should say what it is. So when a different game is the best one on, the body adds "Worth
 keeping an eye on. Best game on now:" and names it, chosen exactly as that viewer's headline is:
-being played, no spoiler teams, within their channels if they asked, ranked with their favourites
+being played, no spoiler teams, within their channels if they asked, ranked with their favorites
 bonus. When the upset game is itself the best one, or nothing else is being played, the line is
 left out rather than saying something false. The same alert could not be explained afterwards
 either: every recorded value of its trigger was below the bar, because the history log samples
@@ -2291,7 +2291,7 @@ Both say the board weighs who is playing too lightly against how close it is. Th
 measured the same way before shipping: every game on the board at the moment of every report was
 re-scored from the history log, which reproduces the logged rating exactly for 99.7% of rows once
 each game's live expectation is recovered from the rows where the billing floor binds. A candidate
-was judged on whether "higher" rose (or climbed past a neighbour), "lower" fell, and "right" stayed
+was judged on whether "higher" rose (or climbed past a neighbor), "lower" fell, and "right" stayed
 within three points and in place, and separately on how often a first-half game led the board
 while a one-score game elsewhere was in its last five minutes, which is the complaint that pulls
 the other way.
@@ -2380,7 +2380,7 @@ document carries the season's calendar with a label per week, so the preseason r
 Fame Weekend" and "Preseason Week 1" and the playoffs "Wild Card", "Divisional Round",
 "Conference Championship" and "Super Bowl" without a rule of ours. College has two exceptions.
 Conference championship weekend is just a number to ESPN, and which number moves (15 in 2025, 14 in
-2026), so the week is recognised from its games, whose notes read "SEC Championship"; the FCS
+2026), so the week is recognized from its games, whose notes read "SEC Championship"; the FCS
 playoff, which the FBS feed also carries as "FCS Championship - Second Round", is excluded. And the
 postseason is one heading, "Bowl season": ESPN's calendar has overlapping "Bowls" and "CFP" entries
 spanning six weeks, and playoff quarterfinals share New Year's Day with ordinary bowls, so a split
@@ -2505,7 +2505,7 @@ changes, until the game is no longer hidden.
 week's complaint from both sides at once, which is what made it actionable: close finishes between
 teams almost nobody follows led the board and drew "lower" (Ball State at Bowling Green, 0.23
 prominence, top at 76 three times; UMass at Buffalo the same), while one-score games between the
-biggest programmes sat far down and drew "higher" (Ohio State at Indiana eighth at 45 starting the
+biggest programs sat far down and drew "higher" (Ohio State at Indiana eighth at 45 starting the
 fourth; Auburn at Georgia 41 at 14-14; Notre Dame at BYU, Florida State at Miami, Alabama at
 Tennessee early).
 

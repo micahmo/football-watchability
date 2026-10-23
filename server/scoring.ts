@@ -44,7 +44,7 @@ export function tensionFromMargin(margin: number, secsLeft: number): number {
  * game a viewer would not: North Carolina trailed Clemson by one with 1:54 left,
  * Clemson had the ball, ESPN said 92%, and the board rated it 45. Texas Tech
  * trailed Houston by one with 8:47 left at 89% and rated 38. A tie in the fourth
- * rated 20 because the line had made one side a heavy favourite. So the margin
+ * rated 20 because the line had made one side a heavy favorite. So the margin
  * sets a floor under tension, at this share of what the margin alone would say.
  *
  * A floor rather than a blend, and less than the full margin reading. A blend
@@ -54,7 +54,7 @@ export function tensionFromMargin(margin: number, secsLeft: number): number {
  * every verdict on record, including that one.
  *
  * Second half only. Early on the margin cannot tell a mismatch from a close game,
- * which is exactly what ESPN's number knows: from kickoff, a 34.5-point favourite
+ * which is exactly what ESPN's number knows: from kickoff, a 34.5-point favorite
  * leading 10-7 in the second quarter went from 19 to 43. It fades in over the
  * first five minutes of the third quarter rather than switching on at halftime,
  * so a close game does not jump twenty points with nobody on the field.
@@ -322,10 +322,10 @@ export function stakesScore(
  * weighted by how much of the game has actually been played.
  */
 /**
- * Scoring expectations differ by league, so the pace term has to be normalised
+ * Scoring expectations differ by league, so the pace term has to be normalized
  * against each one. College totals run roughly 43 to 67; NFL totals run roughly
  * 38 to 52. Scoring both on the college scale means no NFL game can ever clear
- * 0.38 on pace, which is a penalty for being the NFL rather than a judgement
+ * 0.38 on pace, which is a penalty for being the NFL rather than a judgment
  * about the game.
  */
 const PACE_SCALE: Record<League, { floor: number; span: number; typical: number }> = {

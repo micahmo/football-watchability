@@ -411,7 +411,7 @@
 
   /**
    * A nudge, not an override. A favored conference should float a game up past
-   * its neighbours without letting a dull one outrank a genuinely great game.
+   * its neighbors without letting a dull one outrank a genuinely great game.
    */
   /**
    * Graded, not binary. An all-AFC game is more of an AFC game than a
@@ -520,7 +520,7 @@
   const spoilerLast = (rank: (game: Game) => number) => (a: Game, b: Game) =>
     Number(isHidden(a)) - Number(isHidden(b)) || rank(b) - rank(a);
 
-  /* Re-sorted here because the favourite bonus and the market preference only
+  /* Re-sorted here because the favorite bonus and the market preference only
      exist out here. */
   const ordered = $derived.by(() =>
     [...(snapshot?.live ?? [])].sort(
@@ -580,7 +580,7 @@
    * the whole point is that a 54 and a 56 are the same thing.
    *
    * So one heading, which is true whatever the number: it really is the best game
-   * on. The pill takes its colour from the rating, and that colour is now a
+   * on. The pill takes its color from the rating, and that color is now a
    * continuum, so it shouts at 87 and sits quietly at 31 without anything having
    * to decide which of those it is.
    *
@@ -598,7 +598,7 @@
 
   /* Which game a verdict is being given about, and the number that prompted it.
      The rating has to travel with it: the dialog cannot recompute what was on
-     screen, because the delay and the favourite bonus both live out here. */
+     screen, because the delay and the favorite bonus both live out here. */
   let reporting = $state<{ game: Game; shown: number } | null>(null);
   const report = (game: Game, shown: number) => (reporting = { game, shown });
 

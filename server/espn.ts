@@ -202,7 +202,7 @@ function calendarOf(body: any): Map<string, string> {
  * ESPN's own names, which already say "Wild Card" and "Divisional Round" for the
  * NFL playoffs and "Hall of Fame Weekend" for the preseason. College gets two of
  * its own. Conference championship weekend is a numbered week to ESPN, and which
- * number moves with the calendar (15 in 2025, 14 in 2026), so it is recognised
+ * number moves with the calendar (15 in 2025, 14 in 2026), so it is recognized
  * from the games in it. And the postseason is "Bowl season", one heading over the
  * month, for the reason under `weekKey`.
  */
@@ -583,7 +583,7 @@ export async function fetchScoreboard(opts: FetchOptions): Promise<ScoreboardRes
     weekLabels: weekLabelsOf(opts.league, calendarOf(body), events),
     games: normalizeEvents(events, opts.league),
     // Kept so the push feed has something to patch. Patch paths address fields
-    // inside ESPN's own document, which normalising throws away, so the raw
+    // inside ESPN's own document, which normalizing throws away, so the raw
     // events are the only thing a delta can be applied to.
     events,
   };

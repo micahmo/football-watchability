@@ -98,7 +98,7 @@ function reporterFor(req: http.IncomingMessage): string | null {
 function reportGate(req: http.IncomingMessage, res: http.ServerResponse): string | null {
   const reporter = reporterFor(req);
   if (reporter !== null) return reporter;
-  json(res, { error: "not authorised" }, 401);
+  json(res, { error: "not authorized" }, 401);
   return null;
 }
 const listings = new ListingsStore();
@@ -213,7 +213,7 @@ interface Stream {
   viewer: Viewer;
   res: http.ServerResponse;
   /**
-   * The planning list this connection was last sent, serialised.
+   * The planning list this connection was last sent, serialized.
    *
    * Kept so an unchanged list can be left out of a push. It is most of the board
    * by size and changes only when the schedule poll runs or a game changes state,
@@ -721,7 +721,7 @@ function parseSaw(value: unknown): Report["saw"] {
 }
 
 async function handleReport(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  // Key first. Whether the store is usable is not something an unauthorised
+  // Key first. Whether the store is usable is not something an unauthorized
   // caller gets to find out.
   const reporter = reportGate(req, res);
   if (reporter === null) return;

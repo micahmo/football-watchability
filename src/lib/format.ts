@@ -18,16 +18,16 @@ export function teamColor(team: TeamSide): string {
 }
 
 /**
- * The rating's colour, as a continuum rather than four bands.
+ * The rating's color, as a continuum rather than four bands.
  *
- * Banding invited waiting for the colour to change: a 57 and a 61 were drawn as
+ * Banding invited waiting for the color to change: a 57 and a 61 were drawn as
  * different kinds of game when nothing about them differs, and the boundaries
  * were never real anyway. They moved twice in one afternoon on nothing but a
  * fresh look at the distribution. Worse, they disagreed with the heading above
  * the board, which banded at 55 and 35 while this banded at 78, 58 and 35, so a
  * game could be called worth turning on while its number was still blue.
  *
- * Same four palette colours as before, and the same values at the ends. Only the
+ * Same four palette colors as before, and the same values at the ends. Only the
  * middle stops being a staircase.
  */
 const STOPS: [number, string, string][] = [
@@ -37,11 +37,11 @@ const STOPS: [number, string, string][] = [
    * The long way round the hue wheel, and only on this leg.
    *
    * Blue to orange is nearly opposite on the wheel, so the direct path crosses
-   * the low-chroma axis and the forties came out grey, which is where most games
+   * the low-chroma axis and the forties came out gray, which is where most games
    * live. Going the other way rotates through teal, green and yellow at full
-   * chroma. It is confined to this one segment because the neighbouring pairs are
+   * chroma. It is confined to this one segment because the neighboring pairs are
    * close in hue already, and asking those to take the long way would send them
-   * right around the wheel through colours the board has no business showing.
+   * right around the wheel through colors the board has no business showing.
    */
   [35, "var(--cool)", "oklch longer hue"],
   [60, "var(--warm)", "oklab"],

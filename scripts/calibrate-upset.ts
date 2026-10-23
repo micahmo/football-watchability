@@ -1,5 +1,5 @@
 /**
- * Sweeps the upset-drama parameterisation across every finished game that has
+ * Sweeps the upset-drama parameterization across every finished game that has
  * both play-by-play win probability and a closing line.
  *
  *   SCRATCH=<dir with finals-lines.json and pbp/> npx tsx scripts/calibrate-upset.ts

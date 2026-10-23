@@ -27,7 +27,7 @@ export interface Prefs {
    * twice over: a good game is worth following whether or not it can be watched,
    * and Sunday Ticket makes every game watchable regardless of what the local
    * affiliates carry. The board still says which games are out of market, in the
-   * channel chip, so the information survives without the judgement attached.
+   * channel chip, so the information survives without the judgment attached.
    *
    * Labeled "My channels first" rather than anything about hiding, because the
    * games are demoted rather than removed.

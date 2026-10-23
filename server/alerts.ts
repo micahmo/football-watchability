@@ -373,7 +373,7 @@ export class AlertEngine {
     const out: Alert[] = [];
     // Chosen exactly as this viewer's headline is: playing rather than paused, no
     // spoiler teams and nothing off their channels (both already filtered out of
-    // `live`), ranked with their favourites bonus.
+    // `live`), ranked with their favorites bonus.
     const playing = live.filter((g) => !isPaused(g));
     const best =
       playing.length === 0

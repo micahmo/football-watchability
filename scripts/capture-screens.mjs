@@ -63,7 +63,7 @@ for (const mode of ["live", "upcoming"]) {
     for (const league of ["nfl", "cfb"]) {
       const page = await context.newPage();
       // The slate is a past week, photographed as of the afternoon before it, so
-      // the rows read as kickoff times rather than "Now" and the days are labelled
+      // the rows read as kickoff times rather than "Now" and the days are labeled
       // from where the pictures stand.
       await page.clock.setFixedTime(new Date(slate.now));
       // Set before the app boots, so it opens on the right tab with no click and no

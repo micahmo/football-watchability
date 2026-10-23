@@ -502,7 +502,7 @@
     /* Animating height forces layout every frame, so the honest wins are doing it
        once per card rather than three times and keeping the work inside the card.
        `contain` stops a card mid-animation from re-laying out its thirteen
-       neighbours, which is what a list of open and closed cards would otherwise
+       neighbors, which is what a list of open and closed cards would otherwise
        cost on each of those frames. */
     will-change: height;
   }

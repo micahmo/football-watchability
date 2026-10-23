@@ -41,7 +41,7 @@ export const WEIGHTS: Weights = {
  * College, where how big the game is counts for more.
  *
  * The fifth weekly review (2026-10-21). College prominence runs from FCS
- * programmes to Georgia, where every NFL team is a big one, and at the NFL's
+ * programs to Georgia, where every NFL team is a big one, and at the NFL's
  * split a close finish between two teams almost nobody follows outranked a
  * one-score game between two of the biggest: Ball State at Bowling Green, at 0.23
  * prominence, was the top game at 76 three times and drew "lower" each time,

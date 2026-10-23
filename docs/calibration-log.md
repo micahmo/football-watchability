@@ -5,7 +5,7 @@ What Micah thought a game was worth, against what the board said.
 The board's own numbers can only be checked for internal consistency. Whether a
 rating is *right* is a question about watching football, and he is the only one
 who can answer it. This file is where those answers accumulate so a proposed
-change can be tested against every past judgement at once, rather than against
+change can be tested against every past judgment at once, rather than against
 whichever one prompted it.
 
 ## How to use it
@@ -29,7 +29,7 @@ Three cautions, all learned the hard way and all easy to forget:
   only on "too low" inflates the scale over a season. When a row says too low, go
   looking for the inverse as well.
 - **Check the whole file, not the newest row.** The point of keeping it is that a
-  change can be regression-tested against every earlier judgement.
+  change can be regression-tested against every earlier judgment.
 
 ## Entries
 

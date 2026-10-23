@@ -110,7 +110,7 @@ export async function standingReport(
 /**
  * Sends a verdict. `shown` is the number that was actually on screen, which the
  * server cannot work out for itself: the board runs a broadcast delay and adds
- * the favourite bonus in the browser.
+ * the favorite bonus in the browser.
  *
  * `openedAt` is when the sheet opened. The server records the situation as it
  * stands when Send is pressed, and on a live game those are not the same moment:

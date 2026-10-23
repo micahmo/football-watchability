@@ -21,7 +21,7 @@ type ScoreBreakdownLike = ScoreComponents & {
  *
  * `shown` and `total` are both recorded and are not the same number. The board
  * runs a broadcast delay, so what was on screen describes a moment already past,
- * and the favourite bonus is applied in the browser. `shown` is what prompted the
+ * and the favorite bonus is applied in the browser. `shown` is what prompted the
  * verdict; `total` is what the server had. Where they disagree, the verdict is
  * about `shown`.
  */
@@ -70,7 +70,7 @@ export interface Report {
    * a finished one.
    *
    * Most of these verdicts are really orderings: "this should be above that".
-   * Without the rest of the list that judgement cannot be recovered, and it is
+   * Without the rest of the list that judgment cannot be recovered, and it is
    * the more useful half of the report. Before 2026-09-30 this was always the
    * live board, which is the wrong list for anything not live.
    */
@@ -209,7 +209,7 @@ export class ReportStore {
       total: game.score?.total ?? null,
       anticipation: game.anticipation ?? null,
       components: game.score === null || game.score === undefined ? null : { ...game.score },
-      alongside: this.neighbours(game, snapshot),
+      alongside: this.neighbors(game, snapshot),
       model: tuningStamp(),
       commit: COMMIT,
       reviewedAt: null,
@@ -230,7 +230,7 @@ export class ReportStore {
   }
 
   /** The other games in the list `game` came from, best first. */
-  private neighbours(game: Game, snapshot: Snapshot | null): Report["alongside"] {
+  private neighbors(game: Game, snapshot: Snapshot | null): Report["alongside"] {
     if (snapshot === null) return [];
     // By the list it is in rather than its state: a delayed game is `in` while
     // still sitting in the planning list.

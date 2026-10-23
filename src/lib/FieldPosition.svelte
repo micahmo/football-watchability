@@ -142,11 +142,11 @@
    * the forty and the fifty both suppressed the row jumped straight from 40 to 20
    * and looked like something had failed, when a 30 and a 10 would have sat there
    * perfectly well. At ten-yard spacing each line hides at most its nearest
-   * neighbour, so the gap is small enough to read as deliberate.
+   * neighbor, so the gap is small enough to read as deliberate.
    */
   const MARKS = [10, 20, 30, 40, 50, 60, 70, 80, 90];
   const marks = $derived.by(() => {
-    // Each line hides only its own neighbours, and a line that is not drawn hides
+    // Each line hides only its own neighbors, and a line that is not drawn hides
     // nothing, so an empty field keeps every number.
     const clear = (yard: number) =>
       (ball === null || Math.abs(yard - ball) > 6) &&

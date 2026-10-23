@@ -2,7 +2,7 @@
  * Long press, and right-click, as one gesture.
  *
  * A Svelte action rather than handlers on each component, because the live card
- * and the planning row both need it and both already own their click behaviour.
+ * and the planning row both need it and both already own their click behavior.
  *
  * The awkward part is not detecting the press, it is suppressing what would
  * otherwise follow it. A card expands on click and a hidden one opens its reveal

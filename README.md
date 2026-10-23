@@ -110,7 +110,7 @@ Every live game gets a 0-100 score and the board sorts on it.
 ESPN's live win probability, falling back to a scaled-down margin curve when ESPN stops publishing
 one, which it does for a few minutes after most scores and at halftime. From
 the third quarter the margin also sets a floor, so a one-score game is not written off because
-ESPN makes one side a heavy favourite, and in the fourth quarter a one-score game always counts as
+ESPN makes one side a heavy favorite, and in the fourth quarter a one-score game always counts as
 at least fairly close.
 
 **Four other terms can take over when closeness misses the point.** A one-score game inside the final

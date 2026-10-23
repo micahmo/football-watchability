@@ -48,7 +48,7 @@ const SCHEDULE_DAYS = Number(process.env.SCHEDULE_DAYS ?? 8);
  * real Saturday on purpose, so in normal weeks it never binds and nothing is lost:
  * it is a bound on a pathological response, not a ranking decision. The day boundary
  * is the server's local one, which matches the viewer's grouping whenever they share
- * a timezone; where they do not, a game near midnight lands in the neighbouring day's
+ * a timezone; where they do not, a game near midnight lands in the neighboring day's
  * budget, which at this size trims nothing.
  */
 const MAX_UPCOMING_PER_DAY = 100;
@@ -109,7 +109,7 @@ const WIN_PROB_CARRY_MS = 10 * 60 * 1000;
 /**
  * How far behind a side has to be before its win probability stops being credible.
  *
- * Not a judgement about football, a bound measured from ESPN's own numbers. Across
+ * Not a judgment about football, a bound measured from ESPN's own numbers. Across
  * 11,597 live frames of finished games: with a side trailing by 17 to 24 its win
  * probability never once exceeded 0.194 in 1,786 frames, and trailing by 25 or more
  * it never exceeded 0.043 in 3,415. Below 17 it can be anything, and rightly so, a
@@ -313,9 +313,9 @@ export class LeaguePoller {
   /**
    * ESPN's own event documents, keyed by uid, which is what the push feed patches.
    *
-   * The normalised `RawGame` view cannot be patched: a delta addresses a path
-   * inside ESPN's document, and normalising throws that structure away. So the
-   * raw document is kept and re-normalised after every burst, which also means a
+   * The normalized `RawGame` view cannot be patched: a delta addresses a path
+   * inside ESPN's document, and normalizing throws that structure away. So the
+   * raw document is kept and re-normalized after every burst, which also means a
    * pushed update goes through exactly the same scoring as a polled one.
    */
   private rawEvents = new Map<string, any>();
@@ -361,7 +361,7 @@ export class LeaguePoller {
   private consecutiveFailures = 0;
   private polling = false;
   private lastPollAt = 0;
-  /** Non-zero only while honouring an actual HTTP 429 from ESPN. */
+  /** Non-zero only while honoring an actual HTTP 429 from ESPN. */
   private rateLimitedUntil = 0;
 
   snapshot: Snapshot;
@@ -497,7 +497,7 @@ export class LeaguePoller {
     this.patchTimer.unref?.();
   }
 
-  /** Re-normalises the patched documents and rescores, with no network at all. */
+  /** Re-normalizes the patched documents and rescores, with no network at all. */
   private async rebuildFromPatches(): Promise<void> {
     const count = this.patchesApplied;
     this.patchesApplied = 0;
@@ -506,7 +506,7 @@ export class LeaguePoller {
       /*
        * Awaited, not fired and forgotten.
        *
-       * Normalising builds fresh objects every rebuild, so nothing carries over,
+       * Normalizing builds fresh objects every rebuild, so nothing carries over,
        * and enrichment resolving a microtask after `compose` publishes means it
        * never lands at all on this path. That costs the NFL its divisions, playoff
        * seeds and standings win percentage, which prominence and stakes are scored
@@ -797,7 +797,7 @@ export class LeaguePoller {
       this.week = week;
 
       /*
-       * Normalised back out of the merged map, not out of the fetch.
+       * Normalized back out of the merged map, not out of the fetch.
        *
        * Composing from `events` undid the guard for a frame. The held document
        * was kept as the base the next push would build on, so the rewind no
@@ -845,7 +845,7 @@ export class LeaguePoller {
   }
 
   /**
-   * Builds a snapshot from normalised games and publishes it.
+   * Builds a snapshot from normalized games and publishes it.
    *
    * Shared by the REST poll and the push feed, so a pushed update is scored by
    * exactly the same code as a polled one rather than by a parallel path that
