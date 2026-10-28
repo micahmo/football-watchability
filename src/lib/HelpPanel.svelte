@@ -35,7 +35,8 @@
     <p>Four things can take over when closeness alone misses the point:</p>
     <ul>
       <li>A one-score game in the last few minutes, with the team behind holding the ball. Any
-        one-score game in the fourth quarter counts as close, whatever the win probability says.</li>
+        one-score game counts as close by the fourth quarter, increasingly so through the third,
+        whatever the win probability says.</li>
       <li>
         An underdog well ahead of what the bookmakers expected, whether or not it is close. It counts
         for more the bigger the teams: an upset nobody is watching is still an upset nobody is

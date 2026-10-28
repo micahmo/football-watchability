@@ -2526,3 +2526,27 @@ topped the week at 84 with the Texans 1-4, and Cowboys at Packers and Chargers a
 Chargers 0-5, drew "lower", four reports over two weeks counting the Chargers the week before. The
 kickoff alert went to Missouri at Ole Miss rather than Alabama at Tennessee, one report, and the
 same question for college pregame: brand against a close line.
+
+## Sixth weekly review (2026-10-28)
+
+Nine reports, all NFL, five right. No college verdicts came in, so Saturday's new college weights
+had none.
+
+**The one-score floor now builds through the third quarter.** A one-score game late in the third had
+nothing under it, because the floor only switched on in the fourth: Cowboys at Eagles, 28-21 with
+1:23 left in the third, was 40, "its still one score late-ish". Ramped in from halftime to full
+strength at the start of the fourth, it lifts that and Ohio State at Indiana starting the fourth,
+moves no "right" or "lower" verdict on record, and leaves the top game unchanged in 99.9% of the
+week's minutes; the reasons and numbers are on `ONE_SCORE_FLOOR`. Raising the floor itself to 0.75,
+for Patriots at Bears at 64 with 6:22 left, lifted 9 "higher" verdicts but also 6 "right" ones, the
+same result the second review had at 0.8, and was left.
+
+**Pregame records were measured and not shipped.** Blending each team's record into the NFL quality
+term, more as the season goes on, moves the right way for 6 of the 7 pregame verdicts that disagreed
+with the board, but by 2 to 5 points: it reorders only Chiefs at Seahawks below Patriots at Bears,
+leaves Cowboys at Packers third, and moves 16 of 26 "right" verdicts, taking Bills at Rams off the
+top. The complaints are about level more than order, two middling teams on a close line in a big
+slot rating high, and no change measured so far fits them without moving the verdicts that agree
+with the board. So nothing changes until there is more data. Micah's rule for these reviews: "i am
+just ranking based on vibes. if there's no clear pattern or nothing you can change to fit what i
+rated, then there's no fix until there's more data."

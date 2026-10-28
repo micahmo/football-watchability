@@ -914,7 +914,7 @@ const BILLING_UNTIL = 1;
 const BILLING_FADE_POWER = 3;
 
 /**
- * The least a one-score game in the fourth quarter counts as close.
+ * The least a one-score game in the second half counts as close.
  *
  * Win probability writes off a one-score game with minutes left far faster than
  * a viewer does, and the margin floor, which exists for exactly that, follows a
@@ -924,15 +924,25 @@ const BILLING_FADE_POWER = 3;
  * prob too much weight?"; the Rams down four at Denver with 4:49 left rated 60;
  * the Chargers down four at Buffalo with 7:35 left, 55.
  *
- * It reaches full strength over the first three minutes of the fourth quarter so
- * the rating does not jump at the change of ends. 0.7 lands the fourth-quarter
- * one-score games he called right, the ties and three-point games at 65 to 78,
- * where they were, and lifts the ones he called low. At 0.8 it began lifting
- * games he had called right.
+ * 0.7 lands the fourth-quarter one-score games he called right, the ties and
+ * three-point games at 65 to 78, where they were, and lifts the ones he called
+ * low. At 0.8 it began lifting games he had called right.
+ *
+ * It builds through the third quarter and is at full strength when the fourth
+ * starts. It used to switch on over the fourth's first three minutes, which left
+ * a one-score game at the end of the third with nothing under it: Cowboys at
+ * Eagles, 28-21 with 1:23 left in the third, rated 40 ("bad teams yes, but it's
+ * been back and forth and its still one score late-ish"), and Ohio State at
+ * Indiana, 13-7 as the fourth began, rated 45 eighth on the board ("still one of
+ * the best games on"). Built over the third, those read 49 and 55. Across every
+ * live verdict on record it lifts those three and no "right" or "lower" one, and
+ * re-scored over the week of 2026-10-20 the top game is unchanged in 99.9% of NFL
+ * minutes and every college one, so it lifts a close third quarter when nothing
+ * better is on and does not let one push past a game that is finishing.
  */
 const ONE_SCORE_FLOOR = 0.7;
-const ONE_SCORE_FLOOR_FROM = 0.75;
-const ONE_SCORE_FLOOR_RAMP = 0.05;
+const ONE_SCORE_FLOOR_FROM = 0.5;
+const ONE_SCORE_FLOOR_RAMP = 0.25;
 
 /**
  * Every number that decides what a rating comes out as, in one place.

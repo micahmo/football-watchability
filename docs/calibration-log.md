@@ -97,3 +97,9 @@ Three cautions, all learned the hard way and all easy to forget:
 | 2026-10-15 | nfl | Texans at Jaguars; Cowboys at Packers; Chargers at Chiefs | pregame | 84; 79; 64 | lower: "seems very high", "both kinda bad teams", 0-5 Chargers | **Watching, four reports now:** the planning list rates teams by nfelo, not record. |
 | 2026-10-19 | nfl | 49ers at Falcons | pregame, no line | 55 | "no line?" | **Fixed.** ESPN dropped the odds for three and a half hours; the last line is now carried. |
 | 2026-10-18 | nfl | Cardinals at Rams | final, 18-16 upset | 86, second | higher, "bigger upset" | No change; a point behind Texans at Jaguars, one report. |
+| 2026-10-22 to 10-27 | nfl | whole week | live, pre, final | - | 5 of 9 right | **Sixth review.** No college reports. |
+| 2026-10-26 | nfl | Cowboys at Eagles | 28-21, 1:23 left in Q3 | 40 | higher, "its still one score late-ish" | **One-score floor ramped through Q3.** Now 49. |
+| 2026-10-22 | nfl | Patriots at Bears | 21-27, 6:22 left | 64 | higher | No change: already on the floor; raising the floor moved games called right. |
+| 2026-10-25 | nfl | 49ers at Falcons | 14-26 starting Q4 | 53 | higher, "massive upset against potentially #1 team??" | No change: the line had the 49ers by 2.5, so not an upset by the line. Records, not the market, made it feel like one. |
+| 2026-10-22 | nfl | Chiefs at Seahawks | pregame | 85, top | lower, "should this be lower than pats bears?"; right at 86 in Q1, "best game of the year so far?" | Watching. Records blended in would move it below Patriots at Bears, but the same change moves too many games called right; no fix until more data. |
+| 2026-10-25 | nfl | Dolphins at Jets; Browns at Titans | finals 28-25 and 27-24 | 77; 86 | right | Right. |
