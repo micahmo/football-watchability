@@ -492,17 +492,38 @@ export function upsetTensionScore(
   // main term already handles.
   if (spread < 6) return 0;
 
-  // Implied pregame win probability for the favorite. A logistic on the spread:
-  // a field goal is a coin flip nudged, four touchdowns is a formality.
-  const favPre = 1 / (1 + Math.exp(-spread / 6.5));
   const homeFavoured = homeSpread < 0;
   const dogLive = homeFavoured ? 1 - homeWinProb : homeWinProb;
-  const dogPre = 1 - favPre;
+  const dogPre = underdogPregameChance(spread);
 
   // How far the improbable has come, and how much doubt is left in it.
   const surprise = clamp((dogLive - dogPre) / (1 - dogPre));
   const doubt = 4 * dogLive * (1 - dogLive);
   return clamp(surprise * doubt);
+}
+
+/**
+ * Implied pregame win probability for the underdog. A logistic on the spread: a
+ * field goal is a coin flip nudged, four touchdowns is a formality.
+ */
+function underdogPregameChance(spread: number): number {
+  return 1 - 1 / (1 + Math.exp(-Math.abs(spread) / 6.5));
+}
+
+/**
+ * The most `upsetTensionScore` can ever read for a game on this line.
+ *
+ * Surprise rises as the underdog's live chance climbs and doubt falls, so the
+ * product peaks part way, and where it peaks depends on the spread: 0.49 for a
+ * six-point underdog, 0.56 at 13.5, 0.59 for four touchdowns. Anything measured
+ * against a fixed bar is really measured against this. Setting the derivative of
+ * (p - a) p (1 - p) to zero gives the peak in closed form.
+ */
+export function upsetTensionCeiling(homeSpread: number | null): number {
+  if (homeSpread === null || Math.abs(homeSpread) < 6) return 0;
+  const a = underdogPregameChance(homeSpread);
+  const p = (1 + a + Math.sqrt((1 + a) * (1 + a) - 3 * a)) / 3;
+  return clamp(((p - a) / (1 - a)) * 4 * p * (1 - p));
 }
 
 /** Whether the side the closing line made the underdog finished level or ahead. */

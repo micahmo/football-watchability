@@ -103,3 +103,8 @@ Three cautions, all learned the hard way and all easy to forget:
 | 2026-10-25 | nfl | 49ers at Falcons | 14-26 starting Q4 | 53 | higher, "massive upset against potentially #1 team??" | No change: the line had the 49ers by 2.5, so not an upset by the line. Records, not the market, made it feel like one. |
 | 2026-10-22 | nfl | Chiefs at Seahawks | pregame | 85, top | lower, "should this be lower than pats bears?"; right at 86 in Q1, "best game of the year so far?" | Watching. Records blended in would move it below Patriots at Bears, but the same change moves too many games called right; no fix until more data. |
 | 2026-10-25 | nfl | Dolphins at Jets; Browns at Titans | finals 28-25 and 27-24 | 77; 86 | right | Right. |
+| 2026-10-29 to 11-02 | both | whole week | live, pre, final | - | 9 of 10 right | **Seventh review.** College 4 of 5 right on the new weights. |
+| 2026-11-01 | nfl | Titans at Bengals | Titans (+13.5) ahead from 11:29 to 1:17 of Q4; alert at 36-36 | 79 | right, but the upset alert came late | **Bug, fixed.** The alert's fixed 0.55 bar was above what most lines can reach; it is now 85% of each line's own ceiling, which sends this one at 28-23 with 8:42 left. |
+| 2026-10-31 | cfb | Arizona at Texas Tech | 23-17, 5:33 left in Q3 | 56, third behind a scoreless first quarter | higher, "top. game?"; right at 71 at the end of Q3 | No change, one report. Top ten minutes later. |
+| 2026-10-31 | cfb | Minnesota at Indiana | 13-10 and 13-13 late in Q4 | 76, 74 | right, "good notif" (instant classic) | Right. |
+| 2026-10-30 to 11-01 | nfl | Bears at Seahawks; Vikings at Lions | pregame; Q1 and final | 81; 80 and 77 | right | Right. |

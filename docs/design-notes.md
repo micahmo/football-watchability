@@ -1044,7 +1044,7 @@ you missed, and that everything fires on a **transition** rather than a state: a
 | --- | --- | --- |
 | Turn this on | Boosted live score crosses 85 | At least 60s of game clock left |
 | Instant classic | The same game later crosses 87 | Second half onwards |
-| Upset alert | The underdog's live win probability has come far enough from its pregame chance, and is still in doubt, to reach 0.55. Spread 6+ | None, any quarter |
+| Upset alert | The underdog's live win probability has come far enough from its pregame chance, and is still in doubt, to reach 85% of the most that line allows. Spread 6+ | None, any quarter |
 | Kickoff | Best game in a window of four or more games | At kickoff |
 | Primetime | The only game in its window, NFL only | At kickoff |
 
@@ -2550,3 +2550,27 @@ slot rating high, and no change measured so far fits them without moving the ver
 with the board. So nothing changes until there is more data. Micah's rule for these reviews: "i am
 just ranking based on vibes. if there's no clear pattern or nothing you can change to fit what i
 rated, then there's no fix until there's more data."
+
+## Seventh weekly review (2026-11-04)
+
+Ten reports, nine right. The first college verdicts on the new college weights were four right out of
+five.
+
+**The upset alert could not fire for most underdogs.** It needed `upsetTension` to reach 0.55, but
+that term is surprise times doubt, and doubt falls as the underdog becomes the likely winner, so the
+product has a ceiling that depends on the line: 0.49 for a six-point underdog, 0.53 at ten, 0.56 at
+13.5, 0.59 for four touchdowns. Anything under 12.5 points could never reach the bar, although the
+table above has always said "spread 6+", and a 13.5-point underdog could reach it only at its peak.
+Tennessee at Cincinnati, Titans +13.5, led from 11:29 of the fourth until 1:17, topped out at 0.541
+while ahead, and alerted at 36-36 with their ball: "you don't send me the upset alert until
+Cincinnati comes back and ties it?" The bar is now 85% of the game's own ceiling
+(`upsetTensionCeiling`), which sends that game at 28-23 with 8:42 left. Over every live row from
+2026-10-15 on it sends 24 games instead of 4. That is more, but the daily cap meters it: after three
+alerts a day, another has to beat the best live one already sent by five. 90% was the next choice
+up, and still sent Tennessee's alert at 1:17.
+
+**Arizona at Texas Tech, 23-17 with 5:33 left in the third, at 56 under a scoreless first quarter**
+("top. game?") was not changed. It was top at 65 ten minutes later and called right at 71. It is the
+same stance as Ohio State at Indiana starting the fourth: a six-point game with a quarter and a half
+left is not yet a finish, and the floor ramp shipped last week is what lifts it. One report.
+

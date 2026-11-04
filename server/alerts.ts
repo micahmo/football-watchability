@@ -2,6 +2,7 @@ import type { Game, League, Snapshot } from "../shared/types.js";
 import { isPaused } from "../shared/status.js";
 import { combine, weightsFor } from "../shared/weights.js";
 import { channelLabel } from "../shared/channel.js";
+import { upsetTensionCeiling } from "./scoring.js";
 import type { Category, Subscription, SubscriptionStore } from "./subscriptions.js";
 
 /**
@@ -40,15 +41,29 @@ const CLASSIC = 87;
  */
 const HERO_MIN_SECONDS_LEFT = 60;
 /**
- * Upset tension that counts as an upset worth announcing.
+ * How close to its own peak a game's upset tension must come to be announced.
  *
  * Not a margin test. "Underdog ahead by one score" measures the wrong thing:
  * UMass led Rutgers by 16 as 29.5-point underdogs and would have failed it. The
  * tension term already peaks while the improbable is plausible but undecided,
- * which is the moment worth sending. On a full college Saturday this fires on
- * four games; the term itself tops out around 0.59.
+ * which is the moment worth sending.
+ *
+ * A share of the peak, not a fixed number, because the peak moves with the line
+ * (`upsetTensionCeiling`). The bar was 0.55, which only an underdog of 12.5 points
+ * or more can reach at all, and a 13.5-point one only at its single best moment.
+ * Tennessee at Cincinnati (2026-11-01, Titans +13.5) led from 11:29 of the fourth
+ * to 1:17 and peaked at 0.541 while ahead; the alert came at 36-36, as the
+ * favorite drew level (Micah: "you don't send me the upset alert until Cincinnati
+ * comes back and ties it?"). At 85% that game sends at 28-23 with 8:42 left.
+ * Replayed over every live row from 2026-10-15 to 2026-11-04: the fixed bar sent 4
+ * games, this sends 24 (21 college, 3 NFL), which the daily cap still meters.
  */
-const UPSET_TENSION = 0.55;
+const UPSET_SHARE = 0.85;
+/** The upset tension this game has to reach; unreachable when it has no real underdog. */
+function upsetBar(game: Game): number {
+  const ceiling = upsetTensionCeiling(game.pregameSpread);
+  return ceiling > 0 ? UPSET_SHARE * ceiling : Infinity;
+}
 /**
  * How prominent a game has to be for any live alert.
  *
@@ -431,7 +446,7 @@ export class AlertEngine {
       if (
         wants.includes("upset") &&
         !already("upset") &&
-        (game.score?.upsetTension ?? 0) >= UPSET_TENSION
+        (game.score?.upsetTension ?? 0) >= upsetBar(game)
       ) {
         out.push({
           category: "upset",
@@ -802,7 +817,7 @@ function explain(
   const top = view.live[0];
   const trigger =
     lead.category === "upset"
-      ? `upsetTension ${(game.score?.upsetTension ?? 0).toFixed(3)} >= ${UPSET_TENSION}, wp ${game.homeWinProb ?? "none"}, line ${game.pregameSpread ?? "none"}`
+      ? `upsetTension ${(game.score?.upsetTension ?? 0).toFixed(3)} >= ${upsetBar(game).toFixed(3)}, wp ${game.homeWinProb ?? "none"}, line ${game.pregameSpread ?? "none"}`
       : lead.category === "hero"
         ? `rating ${lead.score.toFixed(1)} >= ${HERO}, ${Math.round(secondsLeft(game))}s left`
         : lead.category === "classic"
