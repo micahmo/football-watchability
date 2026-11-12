@@ -59,10 +59,24 @@ const HERO_MIN_SECONDS_LEFT = 60;
  * games, this sends 24 (21 college, 3 NFL), which the daily cap still meters.
  */
 const UPSET_SHARE = 0.85;
+/**
+ * The first half keeps the old fixed bar, so only an underdog of 12.5 points or more,
+ * near its peak, can send one before halftime.
+ *
+ * Measured against its own ceiling, a 6-point underdog reaches the bar at about a
+ * coin flip, which in the first half is just a close game. Alabama at LSU
+ * (2026-11-07, Alabama +6) sent one at 3-3 with 9:30 left in the second quarter:
+ * "I just got an upset alert? for a tied game? in the 2nd quarter? what??". The
+ * first half cannot yet tell an upset from a game that is merely level, and the
+ * same rule already governs the board's tag. Replayed from 2026-10-23, the same
+ * games alert, the five first-half ones at or after the start of the third quarter.
+ */
+const UPSET_TENSION_FIRST_HALF = 0.55;
 /** The upset tension this game has to reach; unreachable when it has no real underdog. */
 function upsetBar(game: Game): number {
   const ceiling = upsetTensionCeiling(game.pregameSpread);
-  return ceiling > 0 ? UPSET_SHARE * ceiling : Infinity;
+  if (ceiling <= 0) return Infinity;
+  return game.period <= 2 ? UPSET_TENSION_FIRST_HALF : UPSET_SHARE * ceiling;
 }
 /**
  * How prominent a game has to be for any live alert.
