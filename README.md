@@ -117,7 +117,8 @@ third quarter and always at least fairly close in the fourth.
 five minutes, with the trailing team holding the ball, gets a `clutch` score. An underdog running
 away from where the closing line put it gets an `upsetTension` score. A finished game that a real
 underdog won gets a `decisiveness` score. And a game keeps a share of what it was billed as, fading
-over the game and gone at once if it turns into a blowout. The dominant
+over the game and gone at once if it turns into a blowout; a college game within one score keeps
+all of it. The dominant
 term is whichever of the five is highest.
 
 Five smaller components adjust it, with fixed weights:

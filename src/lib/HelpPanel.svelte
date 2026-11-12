@@ -44,8 +44,9 @@
       </li>
       <li>A finished game a real underdog won, because the recap is asking what mattered.</li>
       <li>
-        A big game keeps what it was billed as while it stays close. That fades over the game, mostly
-        in the second half, and goes at once if it turns into a blowout.
+        A big game keeps what it was billed as while it stays close, and in college all of it while
+        it is within one score. That fades over the game, mostly in the second half, and goes at
+        once if it turns into a blowout.
       </li>
     </ul>
 

@@ -108,3 +108,13 @@ Three cautions, all learned the hard way and all easy to forget:
 | 2026-10-31 | cfb | Arizona at Texas Tech | 23-17, 5:33 left in Q3 | 56, third behind a scoreless first quarter | higher, "top. game?"; right at 71 at the end of Q3 | No change, one report. Top ten minutes later. |
 | 2026-10-31 | cfb | Minnesota at Indiana | 13-10 and 13-13 late in Q4 | 76, 74 | right, "good notif" (instant classic) | Right. |
 | 2026-10-30 to 11-01 | nfl | Bears at Seahawks; Vikings at Lions | pregame; Q1 and final | 81; 80 and 77 | right | Right. |
+| 2026-11-06 to 11-08 | both | whole week | live, pre | - | 7 of 19 right | **Eighth review.** 17 college; the notes were mostly about which game should be top. |
+| 2026-11-07 | cfb | BYU at Utah; Texas at Missouri | 20-14 and 7-10, both mid Q2 | 54, second; 65, top | "shouldn't this be the top game", five reports; Texas at Missouri "why so much higher" | **College billing holds within one score.** BYU at Utah 77, top. Later called right at both teams' finishes: "the top recommendations have been exactly the right one". |
+| 2026-11-07 | cfb | Alabama at LSU | 10-3, Q2 | 50 to 57, second behind Vanderbilt at Mississippi State (0-0 Q1, 60) | higher, "should be higher than Vanderbilt Mississippi" | Same change: about 73, top. |
+| 2026-11-07 | cfb | Alabama at LSU | 17-13 starting Q4 | 72, second behind Texas A&M at South Carolina (9-17, 0:20 left) | top game? | No change: billing has mostly faded by the fourth, and the game above it was a one-score finish. |
+| 2026-11-07 | cfb | Alabama at LSU | upset alert at 3-3, Q2 | - | "for a tied game? in the 2nd quarter? what??" | **Fixed.** First-half upset alerts keep the old fixed bar, so only 12.5-point underdogs. |
+| 2026-11-08 | cfb | Kentucky at Tennessee; Oregon at Ohio State | 3-10 Q2; kickoff | 40, fifth; 65, second | higher, no notes | Kentucky at Tennessee about 65, second. Oregon at Ohio State unchanged; above it was a finish ESPN had already settled (watching). |
+| 2026-11-07 | cfb | BYU at Utah | 20-28, 0:02 | 80 | "shouldn't this be tagged one score late?" | No change: `GAME ON THE LINE` replaces it in the clutch window. |
+| 2026-11-06 | nfl | Packers at Patriots | pregame | 73, third | "only matchup of two teams with winning records... either this should go up or other one should go down" | Watching, sixth pregame-records report. The record blend moves it 0.6; the gap is the slot and line on Commanders at Giants. |
+| 2026-11-07 | cfb | Alabama at LSU | kickoff | 79 | right, "good notif" | Right. |
+

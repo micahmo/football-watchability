@@ -573,13 +573,11 @@ function billingCarry(input: ScoreInputs, progress: number): number {
    * gut a marquee game's billing before a snap had been played. The scoreboard is
    * the only evidence here that is actually about this game.
    */
-  const contradiction = Math.pow(
-    tensionFromMargin(
-      Math.abs(input.home.score - input.away.score),
-      secondsRemaining(input.period, input.clockSeconds),
-    ),
-    2,
-  );
+  const margin = Math.abs(input.home.score - input.away.score);
+  const secsLeft = secondsRemaining(input.period, input.clockSeconds);
+  const veto = (m: number) => Math.pow(tensionFromMargin(m, secsLeft), 2);
+  const grace = BILLING_GRACE[input.league];
+  const contradiction = grace > 0 ? Math.min(1, veto(margin) / veto(grace)) : veto(margin);
   const expected = anticipationScore({
     league: input.league,
     spread: input.homeSpread,
@@ -873,6 +871,35 @@ const UPSET_DRAMA_SHARE = 0.75;
  */
 const BILLING_CARRY = 1;
 /**
+ * The margin a college game can carry without its billing being contradicted.
+ *
+ * One score. The veto above treated every point as evidence against the billing,
+ * so a 6-point game in the second quarter kept 70% of it and a 3-point game 91%,
+ * and that difference alone decided which of two big games led the board. BYU at
+ * Utah, 20-14, was billed above Texas at Missouri, 7-10, at the same point in the
+ * same window and with the same prominence, and sat eleven points below it
+ * (2026-11-07: "I don't understand why the other game is so much higher"). It is
+ * the most repeated college verdict on record: seventeen reports across twelve
+ * games since September, among them Texas at Tennessee ("still a one score game"),
+ * Texas A&M at LSU ("dropped off too soon, still getting going"), Georgia at Alabama
+ * ("huh? best game on right now"), and Alabama at Tennessee, Notre Dame at BYU and
+ * Alabama at LSU, all some form of "should be the top game".
+ *
+ * Inside one score the veto is now flat, and past it the same curve takes over,
+ * scaled so that nothing jumps at nine points: two scores still take the billing
+ * apart. Re-scoring every college report, nine of the ten games he said should be
+ * top become top, no "right" verdict changes rank, and Texas at Missouri ("why so
+ * much higher") drops below BYU at Utah. Shifting every margin down by a score
+ * instead made 21-7 read like 13-7 and put Texas State at Oregon State on top at
+ * midnight. The cost is a first-half game leading while a one-score game finishes
+ * elsewhere, up from 12% to 16% of those college minutes, which is the direction
+ * his college verdicts have pushed since the second review.
+ *
+ * College only. Every report behind it is college, and the NFL verdicts on billed
+ * one-score games early on are all "right", which this would have reordered.
+ */
+const BILLING_GRACE: Record<League, number> = { nfl: 0, cfb: 8 };
+/**
  * When the billing has fully given way to what the game is actually doing.
  *
  * The final whistle. It was halftime, on the reasoning that by then there is real
@@ -994,6 +1021,7 @@ export const TUNING: Record<string, number> = {
   billingCarry: BILLING_CARRY,
   billingUntil: BILLING_UNTIL,
   billingFadePower: BILLING_FADE_POWER,
+  cfbBillingGrace: BILLING_GRACE.cfb,
   missingWinProbShare: MISSING_WIN_PROB_SHARE,
   oneScoreFloor: ONE_SCORE_FLOOR,
   oneScoreFloorFrom: ONE_SCORE_FLOOR_FROM,

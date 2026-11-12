@@ -1044,7 +1044,7 @@ you missed, and that everything fires on a **transition** rather than a state: a
 | --- | --- | --- |
 | Turn this on | Boosted live score crosses 85 | At least 60s of game clock left |
 | Instant classic | The same game later crosses 87 | Second half onwards |
-| Upset alert | The underdog's live win probability has come far enough from its pregame chance, and is still in doubt, to reach 85% of the most that line allows. Spread 6+ | None, any quarter |
+| Upset alert | The underdog's live win probability has come far enough from its pregame chance, and is still in doubt, to reach 85% of the most that line allows. Spread 6+ | First half: 0.55, so 12.5+ point underdogs only |
 | Kickoff | Best game in a window of four or more games | At kickoff |
 | Primetime | The only game in its window, NFL only | At kickoff |
 
@@ -2573,4 +2573,38 @@ up, and still sent Tennessee's alert at 1:17.
 ("top. game?") was not changed. It was top at 65 ten minutes later and called right at 71. It is the
 same stance as Ohio State at Indiana starting the fourth: a six-point game with a quarter and a half
 left is not yet a finish, and the floor ramp shipped last week is what lifts it. One report.
+
+## Eighth weekly review (2026-11-11)
+
+Nineteen reports, seven right, sixteen with notes. Nearly all college, and most of them about order
+rather than level: which game should be on top.
+
+**A college game within one score keeps its billing.** BYU at Utah, 20-14 in the second quarter, sat
+eleven points below Texas at Missouri, 7-10, with the same prominence, at the same point in the same
+window, and billed higher before kickoff. The whole gap was the scoreboard veto on billing, which
+treated a 6-point margin as far stronger evidence against the billing than a 3-point one. Five reports
+in four minutes said so, and reading every college report back to September, the same complaint had
+come seventeen times across twelve games. Inside one score the veto is now flat for college; past it
+the old curve resumes, scaled to meet it, so two scores still take the billing apart. The numbers,
+the alternatives tried and what it costs are on `BILLING_GRACE`. NFL is unchanged: no NFL report asks
+for it, and the NFL verdicts it would have touched are all "right".
+
+**The upset alert keeps the fixed bar in the first half.** Last week's change measured each game
+against its own ceiling, which for a 6-point underdog is reached at about a coin flip, and Alabama at
+LSU sent one at 3-3 in the second quarter ("for a tied game? in the 2nd quarter? what??"). Before
+halftime only a 12.5-point underdog near its peak can now send one; from the third quarter the
+per-line bar stands. Replayed since 2026-10-23 the same 21 games alert, the five first-half ones
+moved to the second half.
+
+**Watching, not changed:**
+- Packers at Patriots, pregame, "only matchup of two teams with winning records": third behind Bills at
+  Vikings and Commanders at Giants (2-5-1 against 5-2-1, Thursday night, a 2.5-point division line, 77).
+  The record blend measured last week moves this one 0.6. It is the same complaint as before, a close
+  line in a big slot outranking better teams, and the next measurement is the slot and line weight
+  against quality in the planning rating, not records.
+- Maryland at Purdue at 70.6 tagged `GAME ON THE LINE` with Purdue at 0.1% and 44 seconds left, above
+  Oregon at Ohio State's kickoff ("higher", no note). The one-score floor ignores a game ESPN has
+  settled. One report, no note.
+- BYU at Utah, "shouldn't this be tagged one score late?": it carried `GAME ON THE LINE`, which replaces
+  `ONE SCORE, LATE` once the trailing side is in the clutch window. Working as designed.
 
